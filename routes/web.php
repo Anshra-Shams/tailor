@@ -21,11 +21,16 @@ Route::get('/dashboard', function () {
 Route::middleware('auth')->group(function () {
     Route::resource('customers', CustomerController::class);
     Route::get('customers/{customer}/members', [CustomerController::class, 'getMembers'])->name('customers.members');
-    Route::post('api/customers', [CustomerController::class, 'apiStore'])->name('api.customers.store');
     Route::resource('services', ServiceController::class);
 
+    // Orders
     Route::resource('orders', OrderController::class)->only(['index', 'create', 'store', 'show', 'destroy']);
     Route::patch('orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.updateStatus');
+
+    // Order Wizard APIs
+    Route::get('api/orders/search-customers', [OrderController::class, 'apiSearchCustomers'])->name('api.orders.searchCustomers');
+    Route::post('api/orders/quick-customer', [OrderController::class, 'apiQuickCustomer'])->name('api.orders.quickCustomer');
+    Route::post('api/orders/quick-member', [OrderController::class, 'apiQuickMember'])->name('api.orders.quickMember');
     Route::get('api/orders/services', [OrderController::class, 'apiServices'])->name('api.orders.services');
     Route::get('api/orders/previous-measurements', [OrderController::class, 'apiPreviousMeasurements'])->name('api.orders.prevMeasurements');
 

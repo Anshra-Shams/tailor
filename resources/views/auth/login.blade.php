@@ -28,7 +28,7 @@
                     </svg>
                 </div>
                 <h1 class="text-4xl font-bold text-white mb-3 tracking-tight">Prowave</h1>
-                <p class="text-indigo-200/60 text-sm font-medium tracking-widest uppercase mb-10">Management System</p>
+                <p class="text-indigo-200/60 text-sm font-medium tracking-widest uppercase mb-10">Tailor Management System</p>
                 <div class="space-y-4 text-left max-w-sm mx-auto">
                     <div class="flex items-center gap-3 bg-white/5 backdrop-blur-sm rounded-xl px-4 py-3 border border-white/10">
                         <div class="w-9 h-9 rounded-lg bg-indigo-500/20 flex items-center justify-center flex-shrink-0">

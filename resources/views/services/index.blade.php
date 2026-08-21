@@ -7,7 +7,7 @@
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
             <h2 class="text-2xl font-bold text-slate-800">Services</h2>
-            <p class="text-slate-500 mt-1">Manage your tailoring services and pricing</p>
+            <p class="text-slate-500 mt-1">Manage your tailoring services</p>
         </div>
         <a href="{{ route('services.create') }}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 transition-all duration-200">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" /></svg>
@@ -46,14 +46,6 @@
                     </div>
                     <h3 class="text-lg font-bold text-slate-800 mb-1">{{ $service->name }}</h3>
                     <p class="text-sm text-slate-500 mb-4 line-clamp-2">{{ $service->description ?: 'No description' }}</p>
-                    <div class="flex items-center justify-between mb-4">
-                        <div>
-                            <p class="text-2xl font-bold text-indigo-600">Rs. {{ number_format($service->price, 0) }}</p>
-                            @if($service->estimated_days)
-                                <p class="text-xs text-slate-500 mt-0.5">{{ $service->estimated_days }} day{{ $service->estimated_days > 1 ? 's' : '' }} est.</p>
-                            @endif
-                        </div>
-                    </div>
                     <div class="flex items-center gap-2 pt-3 border-t border-slate-100">
                         <a href="{{ route('services.edit', $service) }}" class="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-indigo-50 text-indigo-600 text-sm font-medium rounded-lg hover:bg-indigo-100 transition-all">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" /></svg>

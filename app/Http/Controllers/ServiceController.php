@@ -36,12 +36,13 @@ class ServiceController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
-            'price' => 'required|numeric|min:0',
+            'price' => 'nullable|numeric|min:0',
             'estimated_days' => 'nullable|integer|min:1',
             'is_active' => 'boolean',
         ]);
 
         $validated['is_active'] = $request->boolean('is_active');
+        $validated['price'] = $validated['price'] ?? 0;
 
         Service::create($validated);
 
@@ -65,12 +66,13 @@ class ServiceController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
-            'price' => 'required|numeric|min:0',
+            'price' => 'nullable|numeric|min:0',
             'estimated_days' => 'nullable|integer|min:1',
             'is_active' => 'boolean',
         ]);
 
         $validated['is_active'] = $request->boolean('is_active');
+        $validated['price'] = $validated['price'] ?? 0;
 
         $service->update($validated);
 

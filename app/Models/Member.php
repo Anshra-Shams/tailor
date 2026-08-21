@@ -16,6 +16,7 @@ class Member extends Model
         'name',
         'phone',
         'gender',
+        'relation',
     ];
 
     public function customer(): BelongsTo

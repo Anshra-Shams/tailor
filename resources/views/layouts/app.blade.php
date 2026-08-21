@@ -35,7 +35,7 @@
                 </div>
                 <div>
                     <span class="text-lg font-bold text-white tracking-tight">Prowave</span>
-                    <span class="block text-[10px] font-medium text-slate-400 -mt-0.5 tracking-wider uppercase">Management System</span>
+                    <span class="block text-[10px] font-medium text-slate-400 -mt-0.5 tracking-wider uppercase">Tailor Management System</span>
                 </div>
             </div>
 
@@ -116,7 +116,7 @@
             </header>
 
             <!-- Page Content -->
-            <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+            <main class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4 sm:p-6 lg:p-8">
                 <!-- Flash Messages -->
                 @if (session('success'))
                     <div class="mb-6 bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl flex items-center gap-2" x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 4000)">

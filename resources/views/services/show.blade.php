@@ -31,18 +31,14 @@
         </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-        <div class="bg-white rounded-2xl border border-slate-200 p-6">
-            <h3 class="text-sm font-semibold text-slate-500 mb-1">Price</h3>
-            <p class="text-3xl font-bold text-indigo-600">Rs. {{ number_format($service->price, 0) }}</p>
-        </div>
-        <div class="bg-white rounded-2xl border border-slate-200 p-6">
-            <h3 class="text-sm font-semibold text-slate-500 mb-1">Est. Days</h3>
-            <p class="text-3xl font-bold text-slate-800">{{ $service->estimated_days ?: '—' }}</p>
-        </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div class="bg-white rounded-2xl border border-slate-200 p-6">
             <h3 class="text-sm font-semibold text-slate-500 mb-1">Total Orders</h3>
             <p class="text-3xl font-bold text-slate-800">{{ $service->orders->count() }}</p>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-200 p-6">
+            <h3 class="text-sm font-semibold text-slate-500 mb-1">Status</h3>
+            <p class="text-3xl font-bold {{ $service->is_active ? 'text-emerald-600' : 'text-slate-400' }}">{{ $service->is_active ? 'Active' : 'Inactive' }}</p>
         </div>
     </div>
 

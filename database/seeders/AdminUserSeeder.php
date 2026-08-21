@@ -32,9 +32,9 @@ class AdminUserSeeder extends Seeder
                 'gender' => 'male',
                 'address' => '123 Main Street, Lahore',
                 'members' => [
-                    ['name' => 'Asad Khan', 'gender' => 'male'],
-                    ['name' => 'Sara Khan', 'gender' => 'female'],
-                    ['name' => 'Rafiq Khan', 'gender' => 'male'],
+                    ['name' => 'Asad Khan', 'gender' => 'male', 'relation' => 'son'],
+                    ['name' => 'Sara Khan', 'gender' => 'female', 'relation' => 'daughter'],
+                    ['name' => 'Rafiq Khan', 'gender' => 'male', 'relation' => 'brother'],
                 ],
             ],
             [
@@ -43,8 +43,8 @@ class AdminUserSeeder extends Seeder
                 'gender' => 'male',
                 'address' => '456 Model Town, Karachi',
                 'members' => [
-                    ['name' => 'Ayesha Ali', 'gender' => 'female'],
-                    ['name' => 'Usman Ali', 'gender' => 'male'],
+                    ['name' => 'Ayesha Ali', 'gender' => 'female', 'relation' => 'wife'],
+                    ['name' => 'Usman Ali', 'gender' => 'male', 'relation' => 'son'],
                 ],
             ],
             [
@@ -53,10 +53,10 @@ class AdminUserSeeder extends Seeder
                 'gender' => 'male',
                 'address' => '789 Gulberg, Islamabad',
                 'members' => [
-                    ['name' => 'Hina Raza', 'gender' => 'female'],
-                    ['name' => 'Tariq Raza', 'gender' => 'male'],
-                    ['name' => 'Zain Raza', 'gender' => 'male'],
-                    ['name' => 'Mariam Raza', 'gender' => 'female'],
+                    ['name' => 'Hina Raza', 'gender' => 'female', 'relation' => 'wife'],
+                    ['name' => 'Tariq Raza', 'gender' => 'male', 'relation' => 'son'],
+                    ['name' => 'Zain Raza', 'gender' => 'male', 'relation' => 'son'],
+                    ['name' => 'Mariam Raza', 'gender' => 'female', 'relation' => 'daughter'],
                 ],
             ],
             [
@@ -65,7 +65,7 @@ class AdminUserSeeder extends Seeder
                 'gender' => 'female',
                 'address' => '321 DHA Phase 5, Lahore',
                 'members' => [
-                    ['name' => 'Bilal Noor', 'gender' => 'male'],
+                    ['name' => 'Bilal Noor', 'gender' => 'male', 'relation' => 'husband'],
                 ],
             ],
             [
@@ -92,10 +92,6 @@ class AdminUserSeeder extends Seeder
             ['name' => 'Suit Stitching', 'description' => 'Complete two-piece or three-piece suit stitching', 'price' => 3500, 'estimated_days' => 5, 'is_active' => true],
             ['name' => 'Shirt Stitching', 'description' => 'Formal and casual shirt stitching', 'price' => 800, 'estimated_days' => 2, 'is_active' => true],
             ['name' => 'Trouser', 'description' => 'Custom trouser stitching with perfect fit', 'price' => 600, 'estimated_days' => 2, 'is_active' => true],
-            ['name' => 'Waistcoat', 'description' => 'Formal waistcoat stitching', 'price' => 900, 'estimated_days' => 2, 'is_active' => true],
-            ['name' => 'Sherwani', 'description' => 'Traditional sherwani for weddings and events', 'price' => 5000, 'estimated_days' => 7, 'is_active' => true],
-            ['name' => 'Lehenga', 'description' => 'Bridal and party wear lehenga stitching', 'price' => 8000, 'estimated_days' => 10, 'is_active' => true],
-            ['name' => 'Alteration', 'description' => 'Minor alterations and adjustments', 'price' => 300, 'estimated_days' => 1, 'is_active' => true],
         ];
 
         foreach ($services as $service) {

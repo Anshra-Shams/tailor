@@ -10,7 +10,7 @@
             Back to Services
         </a>
         <h2 class="text-2xl font-bold text-slate-800">Add New Service</h2>
-        <p class="text-slate-500 mt-1">Create a new tailoring service with pricing.</p>
+        <p class="text-slate-500 mt-1">Create a new tailoring service.</p>
     </div>
 
     @if ($errors->any())
@@ -37,20 +37,6 @@
                 <textarea id="description" name="description" rows="3"
                     class="block w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all resize-none"
                     placeholder="Describe the service...">{{ old('description') }}</textarea>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div>
-                    <label for="price" class="block text-sm font-semibold text-slate-700 mb-1.5">Price (Rs.) <span class="text-red-500">*</span></label>
-                    <input type="number" id="price" name="price" value="{{ old('price') }}" required min="0" step="0.01"
-                        class="block w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-                        placeholder="0.00">
-                </div>
-                <div>
-                    <label for="estimated_days" class="block text-sm font-semibold text-slate-700 mb-1.5">Estimated Days</label>
-                    <input type="number" id="estimated_days" name="estimated_days" value="{{ old('estimated_days') }}" min="1"
-                        class="block w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-                        placeholder="e.g. 3">
-                </div>
             </div>
             <div class="flex items-center gap-3">
                 <input type="hidden" name="is_active" value="0">

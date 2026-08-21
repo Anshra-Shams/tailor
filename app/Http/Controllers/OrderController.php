@@ -7,15 +7,12 @@ use App\Models\Member;
 use App\Models\Order;
 use App\Models\Service;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
     public function create()
     {
-        $customers = Customer::with('members')->get();
-
-        return view('orders.create', compact('customers'));
+        return view('orders.create');
     }
 
     public function store(Request $request)
@@ -35,7 +32,7 @@ class OrderController extends Controller
             'member_id'     => 'nullable|exists:members,id',
             'service_id'    => 'required|exists:services,id',
             'price'         => 'required|numeric|min:0',
-            'due_date'      => 'nullable|date',
+            'due_date'      => 'nullable|date|after_or_equal:today',
             'measurements'  => 'required|array',
             'notes'         => 'nullable|string|max:1000',
         ]);
@@ -48,11 +45,11 @@ class OrderController extends Controller
             'status'       => 'pending',
             'order_date'   => now()->toDateString(),
             'due_date'     => $validated['due_date'] ?? null,
-            'measurements' => is_array($validated['measurements']) ? json_encode($validated['measurements']) : $validated['measurements'],
+            'measurements' => json_encode($validated['measurements']),
             'notes'        => $validated['notes'] ?? null,
         ]);
 
-        return redirect()->route('orders.show', $order)->with('success', 'Order created successfully!');
+        return redirect()->route('orders.show', $order)->with('success', 'Order placed successfully!');
     }
 
     public function show(Order $order)
@@ -75,39 +72,96 @@ class OrderController extends Controller
     public function destroy(Order $order)
     {
         $order->delete();
-
         return redirect()->route('orders.index')->with('success', 'Order deleted.');
     }
 
     public function updateStatus(Request $request, Order $order)
     {
-        $request->validate([
-            'status' => 'required|in:pending,in_progress,completed,cancelled',
-        ]);
-
+        $request->validate(['status' => 'required|in:pending,in_progress,completed,cancelled']);
         $order->update([
             'status'         => $request->status,
             'completed_date' => $request->status === 'completed' ? now()->toDateString() : null,
         ]);
-
         return back()->with('success', 'Order status updated.');
     }
 
-    // ── AJAX Endpoints ──
+    // ── API: Search customers by name/phone ──
 
-    public function apiCustomers()
+    public function apiSearchCustomers(Request $request)
     {
-        return Customer::with('members')->get()->map(fn($c) => [
-            'id'      => $c->id,
-            'name'    => $c->name,
-            'gender'  => $c->gender,
-            'members' => $c->members->map(fn($m) => [
-                'id'     => $m->id,
-                'name'   => $m->name,
-                'gender' => $m->gender,
-            ]),
+        $q = $request->input('q', '');
+
+        if (strlen($q) < 2) {
+            return response()->json([]);
+        }
+
+        $customers = Customer::with('members')
+            ->where('name', 'like', "%{$q}%")
+            ->orWhere('phone', 'like', "%{$q}%")
+            ->limit(20)
+            ->get()
+            ->map(fn($c) => [
+                'id'      => $c->id,
+                'name'    => $c->name,
+                'phone'   => $c->phone,
+                'gender'  => $c->gender,
+                'address' => $c->address,
+                'members' => $c->members->map(fn($m) => [
+                    'id'       => $m->id,
+                    'name'     => $m->name,
+                    'gender'   => $m->gender,
+                    'relation' => $m->relation,
+                ]),
+            ]);
+
+        return response()->json($customers);
+    }
+
+    // ── API: Quick create customer ──
+
+    public function apiQuickCustomer(Request $request)
+    {
+        $validated = $request->validate([
+            'name'    => 'required|string|max:255',
+            'phone'   => 'required|string|max:20',
+            'gender'  => 'nullable|in:male,female,other',
+            'address' => 'nullable|string|max:500',
+        ]);
+
+        $customer = Customer::create($validated);
+
+        return response()->json([
+            'id'      => $customer->id,
+            'name'    => $customer->name,
+            'phone'   => $customer->phone,
+            'gender'  => $customer->gender,
+            'address' => $customer->address,
+            'members' => [],
         ]);
     }
+
+    // ── API: Quick add member ──
+
+    public function apiQuickMember(Request $request)
+    {
+        $validated = $request->validate([
+            'customer_id' => 'required|exists:customers,id',
+            'name'        => 'required|string|max:255',
+            'gender'      => 'nullable|in:male,female,other',
+            'relation'    => 'nullable|string|max:100',
+        ]);
+
+        $member = Member::create($validated);
+
+        return response()->json([
+            'id'       => $member->id,
+            'name'     => $member->name,
+            'gender'   => $member->gender,
+            'relation' => $member->relation,
+        ]);
+    }
+
+    // ── API: Services ──
 
     public function apiServices()
     {
@@ -118,6 +172,8 @@ class OrderController extends Controller
             'days'  => $s->estimated_days,
         ]);
     }
+
+    // ── API: Previous measurements ──
 
     public function apiPreviousMeasurements(Request $request)
     {
