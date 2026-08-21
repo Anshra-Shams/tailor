@@ -27,7 +27,6 @@
     <!-- Wizard Card -->
     <div class="max-w-xl mx-auto mt-6 sm:mt-10 mb-10 px-4" x-data="wizard()" x-init="init()">
 
-        {{-- Flash --}}
         @if (session('success'))
             <div class="mb-4 bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl text-sm" x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 3000)">
                 {{ session('success') }}
@@ -51,22 +50,20 @@
                     <p class="text-xs text-slate-400 font-medium mb-1">Step 1 of 3</p>
                     <h2 class="text-base font-bold text-slate-800 mb-4">Select customer &amp; member</h2>
 
-                    {{-- Customer --}}
                     <div class="flex items-center justify-between mb-1">
-                        <label class="block text-sm font-medium text-slate-600">Customer <span class="text-red-500">*</span></label>
-                        <button type="button" @click="showAddCustomer = true" class="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                        <label class="text-sm font-medium text-slate-600">Customer <span class="text-red-500">*</span></label>
+                        <button type="button" @click="showAddCustomer = true" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition shadow-sm">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
                             Add Customer
                         </button>
                     </div>
-                    <select x-model="form.customer_id" @change="onCustomerChange()" class="w-full rounded-lg border-slate-300 text-sm focus:border-indigo-500 focus:ring-indigo-500 mb-4">
+                    <select x-ref="customerSelect" x-model="form.customer_id" @change="onCustomerChange()" class="w-full rounded-lg border-slate-300 text-sm focus:border-indigo-500 focus:ring-indigo-500 mb-4 mt-1">
                         <option value="">— select customer —</option>
-                        <template x-for="c in customersList" :key="c.id">
-                            <option :value="c.id" x-text="c.name" :data-members="JSON.stringify(c.members)" :data-gender="c.gender"></option>
-                        </template>
+                        @foreach ($customers as $customer)
+                            <option value="{{ $customer->id }}" data-members="{{ $customer->members->toJson() }}" data-gender="{{ $customer->gender }}">{{ $customer->name }}</option>
+                        @endforeach
                     </select>
 
-                    {{-- Members --}}
                     <div x-show="form.customer_id">
                         <label class="block text-sm font-medium text-slate-600 mb-2">Member <span class="text-red-500">*</span></label>
                         <div class="flex flex-wrap gap-2">
@@ -101,61 +98,7 @@
                                 <div class="text-xs text-slate-400 mt-1">
                                     <span x-text="measurementFields(svc.id).length + ' fields'"></span> ·
                                     <span class="text-indigo-500 font-medium" x-text="measurementFields(svc.id).filter(f=>f.req).length + ' required'"></span>
-    </div>
-
-    {{-- ═══════ ADD CUSTOMER MODAL ═══════ --}}
-    <div x-show="showAddCustomer" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display:none">
-        <div class="absolute inset-0 bg-black/50" @click="showAddCustomer = false"></div>
-        <div x-show="showAddCustomer" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" class="relative bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
-            <div class="flex items-center justify-between mb-5">
-                <h3 class="text-lg font-bold text-slate-800">Add New Customer</h3>
-                <button @click="showAddCustomer = false" class="p-1 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                </button>
-            </div>
-
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-slate-600 mb-1">Name <span class="text-red-500">*</span></label>
-                    <input type="text" x-model="newCustomer.name" class="w-full rounded-lg border-slate-300 text-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="Customer name">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-slate-600 mb-1">Phone <span class="text-red-500">*</span></label>
-                    <input type="text" x-model="newCustomer.phone" class="w-full rounded-lg border-slate-300 text-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="03XX-XXXXXXX">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-slate-600 mb-2">Gender</label>
-                    <div class="flex gap-4">
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="radio" value="male" x-model="newCustomer.gender" class="text-indigo-600 focus:ring-indigo-500">
-                            <span class="text-sm text-slate-600">Male</span>
-                        </label>
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="radio" value="female" x-model="newCustomer.gender" class="text-indigo-600 focus:ring-indigo-500">
-                            <span class="text-sm text-slate-600">Female</span>
-                        </label>
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-slate-600 mb-1">Address</label>
-                    <input type="text" x-model="newCustomer.address" class="w-full rounded-lg border-slate-300 text-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="Optional">
-                </div>
-            </div>
-
-            <p x-show="addCustomerError" x-text="addCustomerError" class="mt-3 text-sm text-red-500" x-transition></p>
-
-            <div class="flex justify-end gap-3 mt-6">
-                <button @click="showAddCustomer = false" class="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition">Cancel</button>
-                <button @click="addCustomer()" :disabled="addCustomerSaving" class="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition disabled:opacity-50">
-                    <span x-show="!addCustomerSaving">Save Customer</span>
-                    <span x-show="addCustomerSaving" class="flex items-center gap-2">
-                        <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
-                        Saving...
-                    </span>
-                </button>
-            </div>
-        </div>
-    </div>
+                                </div>
                                 <div class="text-xs text-slate-500 mt-1 font-medium" x-text="'Rs ' + Number(svc.price).toLocaleString()"></div>
                             </button>
                         </template>
@@ -170,13 +113,11 @@
                     <h2 class="text-base font-bold text-slate-800 mb-1" x-text="serviceName() + ' measurements'"></h2>
                     <p class="text-xs text-slate-400 mb-3">Fields change by garment type. <span class="text-red-500">*</span> required to save.</p>
 
-                    {{-- Loading --}}
                     <div x-show="loading" class="flex items-center gap-2 text-sm text-slate-500 mb-3 py-4 justify-center">
                         <svg class="animate-spin w-4 h-4 text-indigo-500" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
                         Loading previous measurements...
                     </div>
 
-                    {{-- Previous measurements banner --}}
                     <div x-show="prevMeasure && !loading" x-transition class="mb-4 bg-indigo-50 border border-indigo-200 rounded-xl px-4 py-2.5 flex items-center gap-2.5">
                         <svg class="w-4 h-4 text-indigo-500 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         <div class="text-xs text-indigo-700">
@@ -203,7 +144,6 @@
                         </template>
                     </div>
 
-                    {{-- Price & Due Date --}}
                     <div class="grid grid-cols-2 gap-x-4 mt-4 pt-4 border-t border-slate-100">
                         <div>
                             <label class="block text-xs font-medium text-slate-500 mb-1">Price (Rs) <span class="text-red-500">*</span></label>
@@ -254,7 +194,8 @@
                 </div>
             </div>
         </div>
-        {{-- Hidden form for submission --}}
+
+        {{-- Hidden form --}}
         <form id="orderForm" method="POST" action="{{ route('orders.store') }}" style="display:none">
             @csrf
             <input type="hidden" name="customer_id"   :value="form.customer_id">
@@ -265,6 +206,60 @@
             <input type="hidden" name="notes"         :value="form.notes">
             <input type="hidden" name="measurements"  :value="JSON.stringify(form.measurements)">
         </form>
+
+        {{-- ADD CUSTOMER MODAL --}}
+        <template x-if="showAddCustomer">
+            <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div class="absolute inset-0 bg-black/50" @click="showAddCustomer = false"></div>
+                <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-md p-6 z-10">
+                    <div class="flex items-center justify-between mb-5">
+                        <h3 class="text-lg font-bold text-slate-800">Add New Customer</h3>
+                        <button @click="showAddCustomer = false" class="p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-600 mb-1">Name <span class="text-red-500">*</span></label>
+                            <input type="text" x-model="newCustomer.name" class="w-full rounded-lg border-slate-300 text-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="Customer name">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-600 mb-1">Phone <span class="text-red-500">*</span></label>
+                            <input type="text" x-model="newCustomer.phone" class="w-full rounded-lg border-slate-300 text-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="03XX-XXXXXXX">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-600 mb-2">Gender</label>
+                            <div class="flex gap-4">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" value="male" x-model="newCustomer.gender" class="text-indigo-600 focus:ring-indigo-500">
+                                    <span class="text-sm text-slate-600">Male</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" value="female" x-model="newCustomer.gender" class="text-indigo-600 focus:ring-indigo-500">
+                                    <span class="text-sm text-slate-600">Female</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-600 mb-1">Address</label>
+                            <input type="text" x-model="newCustomer.address" class="w-full rounded-lg border-slate-300 text-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="Optional">
+                        </div>
+                    </div>
+                    <p x-show="addCustomerError" x-text="addCustomerError" class="mt-3 text-sm text-red-500" x-transition></p>
+                    <div class="flex justify-end gap-3 mt-6">
+                        <button @click="showAddCustomer = false" class="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition">Cancel</button>
+                        <button @click="addCustomer()" :disabled="addCustomerSaving" class="px-5 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition disabled:opacity-50">
+                            <span x-show="!addCustomerSaving">Save Customer</span>
+                            <span x-show="addCustomerSaving" class="flex items-center gap-2">
+                                <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                                Saving...
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </template>
+
     </div>
 
     <script>
@@ -364,7 +359,6 @@
             step: 1,
             loading: false,
             customers: @json($customers),
-            customersList: @json($customers),
             services: [],
             members: [],
             prevMeasure: null,
@@ -407,8 +401,15 @@
                     });
                     const data = await res.json();
                     if (res.ok) {
-                        this.customersList.push(data);
-                        this.form.customer_id = data.id;
+                        this.customers.push(data);
+                        const sel = this.$refs.customerSelect;
+                        const opt = document.createElement('option');
+                        opt.value = data.id;
+                        opt.textContent = data.name;
+                        opt.dataset.members = JSON.stringify(data.members || []);
+                        opt.dataset.gender = data.gender || '';
+                        sel.appendChild(opt);
+                        this.form.customer_id = String(data.id);
                         this.onCustomerChange();
                         this.showAddCustomer = false;
                         this.newCustomer = { name: '', phone: '', gender: 'male', address: '' };
@@ -422,7 +423,9 @@
             },
 
             onCustomerChange() {
-                const opt = document.querySelector(`select option[value="${this.form.customer_id}"]`);
+                const sel = this.$refs.customerSelect;
+                if (!sel) return;
+                const opt = sel.options[sel.selectedIndex];
                 if (opt && opt.dataset.members) {
                     const customerName = opt.textContent.trim();
                     const customerGender = opt.dataset.gender || '';
@@ -450,8 +453,11 @@
 
             memberName() {
                 if (this.form.member_id === '__self__') {
-                    const opt = document.querySelector(`select option[value="${this.form.customer_id}"]`);
-                    return opt ? opt.textContent.trim() : '';
+                    const sel = this.$refs.customerSelect;
+                    if (sel) {
+                        const opt = sel.options[sel.selectedIndex];
+                        return opt ? opt.textContent.trim() : '';
+                    }
                 }
                 const m = this.members.find(x => x.id == this.form.member_id);
                 return m ? m.name : '';
