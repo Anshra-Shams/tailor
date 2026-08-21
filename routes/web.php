@@ -21,6 +21,7 @@ Route::get('/dashboard', function () {
 Route::middleware('auth')->group(function () {
     Route::resource('customers', CustomerController::class);
     Route::get('customers/{customer}/members', [CustomerController::class, 'getMembers'])->name('customers.members');
+    Route::post('api/customers', [CustomerController::class, 'apiStore'])->name('api.customers.store');
     Route::resource('services', ServiceController::class);
 
     Route::resource('orders', OrderController::class)->only(['index', 'create', 'store', 'show', 'destroy']);

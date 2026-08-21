@@ -157,4 +157,23 @@ class CustomerController extends Controller
     {
         return response()->json($customer->members);
     }
+
+    public function apiStore(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $validated = $request->validate([
+            'name'   => 'required|string|max:255',
+            'phone'  => 'required|string|max:20',
+            'gender' => 'nullable|in:male,female,other',
+            'address'=> 'nullable|string|max:500',
+        ]);
+
+        $customer = Customer::create($validated);
+
+        return response()->json([
+            'id'      => $customer->id,
+            'name'    => $customer->name,
+            'gender'  => $customer->gender,
+            'members'=> [],
+        ]);
+    }
 }
