@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\MeasurementController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ServiceController;
@@ -23,11 +24,19 @@ Route::middleware('auth')->group(function () {
     Route::get('customers/{customer}/members', [CustomerController::class, 'getMembers'])->name('customers.members');
     Route::resource('services', ServiceController::class);
 
-    // Orders
-    Route::resource('orders', OrderController::class)->only(['index', 'create', 'store', 'show', 'destroy']);
-    Route::patch('orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.updateStatus');
+    // Measurements (decoupled from Orders)
+    Route::get('measurements/create', [MeasurementController::class, 'create'])->name('measurements.create');
+    Route::post('measurements', [MeasurementController::class, 'store'])->name('measurements.store');
+    Route::get('measurements', [MeasurementController::class, 'index'])->name('measurements.index');
+    Route::get('measurements/{measurement}', [MeasurementController::class, 'show'])->name('measurements.show');
+    Route::get('measurements/{measurement}/edit', [MeasurementController::class, 'edit'])->name('measurements.edit');
+    Route::put('measurements/{measurement}', [MeasurementController::class, 'update'])->name('measurements.update');
+    Route::delete('measurements/{measurement}', [MeasurementController::class, 'destroy'])->name('measurements.destroy');
 
-    // Order Wizard APIs
+    // Orders
+    Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
+
+    // Shared Wizard APIs (used by measurements create form)
     Route::get('api/orders/search-customers', [OrderController::class, 'apiSearchCustomers'])->name('api.orders.searchCustomers');
     Route::post('api/orders/quick-customer', [OrderController::class, 'apiQuickCustomer'])->name('api.orders.quickCustomer');
     Route::post('api/orders/quick-member', [OrderController::class, 'apiQuickMember'])->name('api.orders.quickMember');

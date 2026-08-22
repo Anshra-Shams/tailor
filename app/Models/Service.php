@@ -15,11 +15,13 @@ class Service extends Model
         'description',
         'price',
         'estimated_days',
+        'measurement_fields',
         'is_active',
     ];
 
     protected $casts = [
         'price' => 'decimal:2',
+        'measurement_fields' => 'array',
         'is_active' => 'boolean',
     ];
 

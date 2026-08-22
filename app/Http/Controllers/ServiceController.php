@@ -36,13 +36,17 @@ class ServiceController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
-            'price' => 'nullable|numeric|min:0',
+            'price' => 'required|numeric|min:0',
             'estimated_days' => 'nullable|integer|min:1',
+            'measurement_fields' => 'nullable|array',
+            'measurement_fields.*.label' => 'required|string|max:100',
+            'measurement_fields.*.required' => 'boolean',
             'is_active' => 'boolean',
         ]);
 
         $validated['is_active'] = $request->boolean('is_active');
         $validated['price'] = $validated['price'] ?? 0;
+        $validated['measurement_fields'] = $this->buildFields($request->measurement_fields);
 
         Service::create($validated);
 
@@ -66,13 +70,17 @@ class ServiceController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
-            'price' => 'nullable|numeric|min:0',
+            'price' => 'required|numeric|min:0',
             'estimated_days' => 'nullable|integer|min:1',
+            'measurement_fields' => 'nullable|array',
+            'measurement_fields.*.label' => 'required|string|max:100',
+            'measurement_fields.*.required' => 'boolean',
             'is_active' => 'boolean',
         ]);
 
         $validated['is_active'] = $request->boolean('is_active');
         $validated['price'] = $validated['price'] ?? 0;
+        $validated['measurement_fields'] = $this->buildFields($request->measurement_fields);
 
         $service->update($validated);
 
@@ -86,5 +94,45 @@ class ServiceController extends Controller
 
         return redirect()->route('services.index')
             ->with('success', 'Service deleted successfully.');
+    }
+
+    private function buildFields(?array $fields): array
+    {
+        if (!$fields) return [];
+
+        $filtered = array_values(array_filter($fields, function ($f) {
+            return !empty(trim($f['label'] ?? ''));
+        }));
+
+        $usedKeys = [];
+        $result = [];
+
+        foreach ($filtered as $f) {
+            $key = $this->generateKey($f['label'], $usedKeys);
+            $usedKeys[] = $key;
+
+            $result[] = [
+                'key'      => $key,
+                'label'    => trim($f['label']),
+                'required' => !empty($f['required']),
+            ];
+        }
+
+        return $result;
+    }
+
+    private function generateKey(string $label, array $usedKeys): string
+    {
+        $base = preg_replace('/[^a-z0-9]+/i', '_', strtolower(trim($label)));
+        $base = trim($base, '_');
+        $key  = $base;
+
+        $counter = 2;
+        while (in_array($key, $usedKeys)) {
+            $key = $base . '_' . $counter;
+            $counter++;
+        }
+
+        return $key;
     }
 }

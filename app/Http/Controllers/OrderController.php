@@ -10,79 +10,9 @@ use Illuminate\Http\Request;
 
 class OrderController extends Controller
 {
-    public function create()
-    {
-        return view('orders.create');
-    }
-
-    public function store(Request $request)
-    {
-        if ($request->member_id === '' || $request->member_id === '__self__') {
-            $request->merge(['member_id' => null]);
-        }
-
-        $measurements = $request->measurements;
-        if (is_string($measurements)) {
-            $decoded = json_decode($measurements, true);
-            $request->merge(['measurements' => is_array($decoded) ? $decoded : []]);
-        }
-
-        $validated = $request->validate([
-            'customer_id'   => 'required|exists:customers,id',
-            'member_id'     => 'nullable|exists:members,id',
-            'service_id'    => 'required|exists:services,id',
-            'price'         => 'required|numeric|min:0',
-            'due_date'      => 'nullable|date|after_or_equal:today',
-            'measurements'  => 'required|array',
-            'notes'         => 'nullable|string|max:1000',
-        ]);
-
-        $order = Order::create([
-            'customer_id'  => $validated['customer_id'],
-            'member_id'    => $validated['member_id'] ?? null,
-            'service_id'   => $validated['service_id'],
-            'price'        => $validated['price'],
-            'status'       => 'pending',
-            'order_date'   => now()->toDateString(),
-            'due_date'     => $validated['due_date'] ?? null,
-            'measurements' => json_encode($validated['measurements']),
-            'notes'        => $validated['notes'] ?? null,
-        ]);
-
-        return redirect()->route('orders.show', $order)->with('success', 'Order placed successfully!');
-    }
-
-    public function show(Order $order)
-    {
-        $order->load(['customer', 'member', 'service']);
-        $measurements = json_decode($order->measurements, true) ?? [];
-
-        return view('orders.show', compact('order', 'measurements'));
-    }
-
     public function index()
     {
-        $orders = Order::with(['customer', 'member', 'service'])
-            ->latest()
-            ->paginate(15);
-
-        return view('orders.index', compact('orders'));
-    }
-
-    public function destroy(Order $order)
-    {
-        $order->delete();
-        return redirect()->route('orders.index')->with('success', 'Order deleted.');
-    }
-
-    public function updateStatus(Request $request, Order $order)
-    {
-        $request->validate(['status' => 'required|in:pending,in_progress,completed,cancelled']);
-        $order->update([
-            'status'         => $request->status,
-            'completed_date' => $request->status === 'completed' ? now()->toDateString() : null,
-        ]);
-        return back()->with('success', 'Order status updated.');
+        return view('orders.index');
     }
 
     // ── API: Search customers by name/phone ──
@@ -166,10 +96,11 @@ class OrderController extends Controller
     public function apiServices()
     {
         return Service::where('is_active', true)->get()->map(fn($s) => [
-            'id'    => $s->id,
-            'name'  => $s->name,
-            'price' => (float) $s->price,
-            'days'  => $s->estimated_days,
+            'id'                => $s->id,
+            'name'              => $s->name,
+            'price'             => (float) $s->price,
+            'days'              => $s->estimated_days,
+            'measurement_fields' => $s->measurement_fields ?? [],
         ]);
     }
 

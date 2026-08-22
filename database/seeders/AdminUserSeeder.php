@@ -88,10 +88,67 @@ class AdminUserSeeder extends Seeder
         }
 
         $services = [
-            ['name' => 'Shalwar Kameez', 'description' => 'Custom tailored shalwar kameez with premium stitching', 'price' => 1500, 'estimated_days' => 3, 'is_active' => true],
-            ['name' => 'Suit Stitching', 'description' => 'Complete two-piece or three-piece suit stitching', 'price' => 3500, 'estimated_days' => 5, 'is_active' => true],
-            ['name' => 'Shirt Stitching', 'description' => 'Formal and casual shirt stitching', 'price' => 800, 'estimated_days' => 2, 'is_active' => true],
-            ['name' => 'Trouser', 'description' => 'Custom trouser stitching with perfect fit', 'price' => 600, 'estimated_days' => 2, 'is_active' => true],
+            [
+                'name' => 'Shalwar Kameez',
+                'description' => 'Custom tailored shalwar kameez with premium stitching',
+                'price' => 1500,
+                'estimated_days' => 3,
+                'is_active' => true,
+                'measurement_fields' => [
+                    ['key' => 'kurta_length', 'label' => 'Kurta Length', 'required' => true],
+                    ['key' => 'chest', 'label' => 'Chest', 'required' => true],
+                    ['key' => 'shoulder', 'label' => 'Shoulder', 'required' => true],
+                    ['key' => 'sleeve_len', 'label' => 'Sleeve Length', 'required' => true],
+                    ['key' => 'neck', 'label' => 'Neck', 'required' => false],
+                    ['key' => 'shalwar_len', 'label' => 'Shalwar Length', 'required' => true],
+                    ['key' => 'pancha', 'label' => 'Pancha', 'required' => false],
+                ],
+            ],
+            [
+                'name' => 'Suit Stitching',
+                'description' => 'Complete two-piece or three-piece suit stitching',
+                'price' => 3500,
+                'estimated_days' => 5,
+                'is_active' => true,
+                'measurement_fields' => [
+                    ['key' => 'chest', 'label' => 'Chest', 'required' => true],
+                    ['key' => 'waist', 'label' => 'Waist', 'required' => true],
+                    ['key' => 'shoulder', 'label' => 'Shoulder', 'required' => true],
+                    ['key' => 'sleeve_len', 'label' => 'Sleeve Length', 'required' => true],
+                    ['key' => 'collar', 'label' => 'Collar', 'required' => false],
+                    ['key' => 'jacket_len', 'label' => 'Jacket Length', 'required' => true],
+                    ['key' => 'trouser_len', 'label' => 'Trouser Length', 'required' => true],
+                    ['key' => 'trouser_waist', 'label' => 'Trouser Waist', 'required' => true],
+                ],
+            ],
+            [
+                'name' => 'Shirt Stitching',
+                'description' => 'Formal and casual shirt stitching',
+                'price' => 800,
+                'estimated_days' => 2,
+                'is_active' => true,
+                'measurement_fields' => [
+                    ['key' => 'chest', 'label' => 'Chest', 'required' => true],
+                    ['key' => 'shoulder', 'label' => 'Shoulder', 'required' => true],
+                    ['key' => 'sleeve_len', 'label' => 'Sleeve Length', 'required' => true],
+                    ['key' => 'neck', 'label' => 'Neck', 'required' => true],
+                    ['key' => 'shirt_len', 'label' => 'Shirt Length', 'required' => true],
+                ],
+            ],
+            [
+                'name' => 'Trouser',
+                'description' => 'Custom trouser stitching with perfect fit',
+                'price' => 600,
+                'estimated_days' => 2,
+                'is_active' => true,
+                'measurement_fields' => [
+                    ['key' => 'waist', 'label' => 'Waist', 'required' => true],
+                    ['key' => 'length', 'label' => 'Length', 'required' => true],
+                    ['key' => 'thigh', 'label' => 'Thigh', 'required' => false],
+                    ['key' => 'knee', 'label' => 'Knee', 'required' => false],
+                    ['key' => 'pancha', 'label' => 'Pancha', 'required' => true],
+                ],
+            ],
         ];
 
         foreach ($services as $service) {
