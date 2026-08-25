@@ -7,6 +7,7 @@
     <title>{{ config('app.name', 'Prowave') }} - @yield('title', 'Dashboard')</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
         body { font-family: 'Figtree', sans-serif; }
@@ -148,6 +149,33 @@
             sidebar.classList.toggle('-translate-x-full');
             overlay.classList.toggle('hidden');
         }
+
+        // Global SweetAlert confirmation for all delete forms (.js-delete-form)
+        document.addEventListener('submit', function (e) {
+            const form = e.target.closest('form.js-delete-form');
+            if (!form) return;
+            e.preventDefault();
+            if (typeof Swal === 'undefined') { form.submit(); return; }
+            const name = form.dataset.name || '';
+            Swal.fire({
+                title: form.dataset.title || 'Are you sure?',
+                html: name
+                    ? `"<strong>${name}</strong>" will be permanently deleted.<br>This action cannot be undone.`
+                    : 'This record will be permanently deleted.<br>This action cannot be undone.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Yes, Delete',
+                cancelButtonText: 'Cancel',
+                reverseButtons: true,
+                focusCancel: true,
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+        });
     </script>
     @stack('scripts')
 </body>

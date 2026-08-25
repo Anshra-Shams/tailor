@@ -35,13 +35,18 @@ Route::middleware('auth')->group(function () {
 
     // Orders
     Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
+    Route::get('orders/create', [OrderController::class, 'create'])->name('orders.create');
+    Route::post('orders', [OrderController::class, 'store'])->name('orders.store');
 
     // Shared Wizard APIs (used by measurements create form)
     Route::get('api/orders/search-customers', [OrderController::class, 'apiSearchCustomers'])->name('api.orders.searchCustomers');
+    Route::get('api/orders/search-all', [OrderController::class, 'apiSearchAll'])->name('api.orders.searchAll');
     Route::post('api/orders/quick-customer', [OrderController::class, 'apiQuickCustomer'])->name('api.orders.quickCustomer');
     Route::post('api/orders/quick-member', [OrderController::class, 'apiQuickMember'])->name('api.orders.quickMember');
     Route::get('api/orders/services', [OrderController::class, 'apiServices'])->name('api.orders.services');
     Route::get('api/orders/previous-measurements', [OrderController::class, 'apiPreviousMeasurements'])->name('api.orders.prevMeasurements');
+    Route::get('api/orders/customer-ledger/{customer}', [OrderController::class, 'apiCustomerLedger'])->name('api.orders.customerLedger');
+    Route::get('api/orders/member-services', [OrderController::class, 'apiMemberServices'])->name('api.orders.memberServices');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

@@ -61,9 +61,9 @@
                         <button type="button" @click="clearCustomer()" class="p-1.5 text-indigo-400 hover:text-indigo-600 hover:bg-indigo-100 rounded-lg transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
                     </div>
 
-                    {{-- Select Member(s) --}}
+                    {{-- Select Member --}}
                     <div class="mt-4 pt-4 border-t border-indigo-100">
-                        <h4 class="text-sm font-bold text-slate-800 mb-2">Select Member(s)</h4>
+                        <h4 class="text-sm font-bold text-slate-800 mb-2">Select Member</h4>
                         <button type="button" @click="toggleMembers()" class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-indigo-700 bg-white border border-indigo-200 rounded-lg hover:bg-indigo-50 transition">
                             Members
                             <svg class="w-3.5 h-3.5 transition-transform duration-200" :class="showMembersList ? 'rotate-180' : ''" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/></svg>
@@ -126,29 +126,31 @@
 
         {{-- Section: Select Service --}}
         <section>
-            <div class="flex items-center gap-3 mb-4">
+            <div class="flex flex-wrap items-center gap-x-3 gap-y-2 mb-4">
                 <h3 class="text-base font-bold text-slate-800 flex-shrink-0">Select Service</h3>
                 <div class="flex-1"></div>
-                <div class="relative flex-shrink-0">
+                <div class="flex items-center gap-1.5">
+                    <button type="button" @click="servicePrev()" :disabled="servicePage === 0" class="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-500 hover:text-slate-700 transition disabled:opacity-30 disabled:cursor-not-allowed flex-shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/></svg>
+                    </button>
+                    <button type="button" @click="serviceNext()" :disabled="servicePage >= serviceMaxPage" class="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-500 hover:text-slate-700 transition disabled:opacity-30 disabled:cursor-not-allowed flex-shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
+                    </button>
+                </div>
+                <div class="relative w-full sm:w-56 sm:ml-auto">
                     <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
                         <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
                     </div>
-                    <input type="text" x-model="serviceSearchQuery" placeholder="Search services..." class="w-56 pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 text-xs bg-white focus:border-indigo-500 focus:ring-indigo-500 placeholder-slate-400">
+                    <input type="text" x-model="serviceSearchQuery" placeholder="Search services..." class="w-full pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 text-xs bg-white focus:border-indigo-500 focus:ring-indigo-500 placeholder-slate-400">
                 </div>
-                <button type="button" @click="servicePrev()" :disabled="servicePage === 0" class="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-500 hover:text-slate-700 transition disabled:opacity-30 disabled:cursor-not-allowed flex-shrink-0">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/></svg>
-                </button>
-                <button type="button" @click="serviceNext()" :disabled="servicePage >= serviceMaxPage" class="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-500 hover:text-slate-700 transition disabled:opacity-30 disabled:cursor-not-allowed flex-shrink-0">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
-                </button>
             </div>
 
             {{-- Service cards slider --}}
             <div class="overflow-hidden rounded-xl" style="height: 88px;">
                 <div class="flex gap-4 transition-transform duration-300 ease-in-out h-full" :style="'transform: translateX(-' + (servicePage * 100) + '%)'">
                     <template x-for="(svc, idx) in filteredServices" :key="svc.id">
-                        <button type="button" @click="selectService(svc)" class="flex-shrink-0 w-[calc(25%-0.75rem)] h-full text-left p-4 rounded-xl border transition-all duration-150" :class="form.service_id === svc.id ? 'border-indigo-500 bg-indigo-50 ring-2 ring-indigo-200 shadow-sm' : 'border-slate-200 bg-white hover:border-slate-300'">
-                            <div class="text-sm font-semibold text-slate-700" x-text="svc.name"></div>
+                        <button type="button" @click="selectService(svc)" class="flex-shrink-0 h-full min-w-0 text-left p-4 rounded-xl border transition-all duration-150" :style="'width: calc((100% / ' + servicePerPage + ') - 1rem)'" :class="form.service_id === svc.id ? 'border-indigo-500 bg-indigo-50 ring-2 ring-indigo-200 shadow-sm' : 'border-slate-200 bg-white hover:border-slate-300'">
+                            <div class="text-sm font-semibold text-slate-700 truncate" x-text="svc.name"></div>
                             <div class="text-xs text-slate-400 mt-1.5">
                                 <span x-text="fieldsFor(svc.id).length + ' fields'"></span> &middot;
                                 <span class="text-indigo-500 font-medium" x-text="fieldsFor(svc.id).filter(f=>f.req).length + ' required'"></span>
@@ -172,10 +174,10 @@
 
                 <div x-show="prevMeasure && !loading" x-transition class="bg-indigo-50 border border-indigo-200 rounded-xl px-4 py-2.5 flex items-start gap-2.5">
                     <svg class="w-4 h-4 text-indigo-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    <div class="text-xs text-indigo-700"><span class="font-semibold">Previous measurements loaded</span> from Order #<span x-text="prevMeasure?.order_id"></span> (<span x-text="prevMeasure?.order_date"></span>) &mdash; edit before saving.</div>
+                    <div class="text-xs text-indigo-700"><span class="font-semibold">Previous measurements loaded</span> (saved <span x-text="prevMeasure?.saved_date"></span>) &mdash; edit before saving.</div>
                 </div>
 
-                <div class="bg-white rounded-2xl border border-slate-200 p-5">
+                <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5">
                     <h3 class="text-base font-bold text-slate-800 mb-4" x-text="serviceName() + ' Measurements'"></h3>
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-4">
                         <template x-for="f in currentFields()" :key="f.k">
@@ -203,14 +205,14 @@
             {{-- Error + Action buttons --}}
             <p class="text-sm text-red-500 min-h-[20px]" x-show="errors.step3" x-text="errors.step3" x-transition></p>
 
-            <div class="flex items-center gap-3">
-                <button type="button" @click="prev()" class="inline-flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 transition flex-shrink-0">
+            <div class="flex flex-wrap items-center gap-3">
+                <button type="button" @click="prev()" class="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 transition flex-shrink-0">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/></svg>
                     Back
                 </button>
-                <button type="button" @click="submitOrder()" :disabled="submitting" class="ml-auto inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-sm transition disabled:opacity-50">
+                <button type="button" @click="submitOrder()" :disabled="submitting" class="w-full sm:w-auto sm:ml-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-sm transition disabled:opacity-50">
                     <svg x-show="!submitting" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
-                    <svg x-show="submitting" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                    <svg x-show="submitting" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></circle></svg>
                     <span x-text="submitting ? 'Saving...' : 'Save Measurements'"></span>
                 </button>
             </div>
@@ -311,6 +313,7 @@ function wizard() {
         services: [],
         serviceSearchQuery: '',
         servicePage: 0,
+        servicePerPage: window.innerWidth < 640 ? 1 : (window.innerWidth < 1024 ? 2 : 4),
         memberList: [],
         showMembersList: false,
         showQuickCustomer: false,
@@ -333,7 +336,7 @@ function wizard() {
         },
 
         get serviceMaxPage() {
-            return Math.max(0, Math.ceil(this.filteredServices.length / 4) - 1);
+            return Math.max(0, Math.ceil(this.filteredServices.length / this.servicePerPage) - 1);
         },
 
         serviceNext() {
@@ -346,6 +349,14 @@ function wizard() {
 
         async init() {
             this.$watch('serviceSearchQuery', () => { this.servicePage = 0; });
+            window.addEventListener('resize', () => {
+                const w = window.innerWidth;
+                const per = w < 640 ? 1 : (w < 1024 ? 2 : 4);
+                if (per !== this.servicePerPage) {
+                    this.servicePerPage = per;
+                    if (this.servicePage > this.serviceMaxPage) this.servicePage = this.serviceMaxPage;
+                }
+            });
             try {
                 this.services = await (await fetch('{{ route("api.orders.services") }}', { headers: { 'Accept': 'application/json' } })).json();
             } catch (e) {
@@ -411,13 +422,13 @@ function wizard() {
         },
 
         toggleMember(m) {
-            const idx = this.form.member_ids.indexOf(m.id);
-            if (idx > -1) {
-                this.form.member_ids.splice(idx, 1);
+            if (this.form.member_ids.length === 1 && this.form.member_ids[0] === m.id) {
+                this.form.member_ids = [];
             } else {
-                this.form.member_ids.push(m.id);
+                this.form.member_ids = [m.id];
             }
             this.errors.step1 = '';
+            if (this.form.service_id) this.loadPrevious();
         },
 
         isMemberSelected(id) {
@@ -473,7 +484,7 @@ function wizard() {
                 const d = await r.json();
                 if (r.ok) {
                     this.memberList.push(d);
-                    this.form.member_ids.push(d.id);
+                    this.form.member_ids = [d.id];
                     this.showQuickMember = false;
                     this.qm = { name:'', gender:'male', relation:'' };
                 } else {
@@ -537,7 +548,7 @@ function wizard() {
         async next() {
             if (this.step === 1) {
                 if (!this.form.customer_id) { this.errors.step1 = 'Please select a customer'; return; }
-                if (this.form.member_ids.length === 0) { this.errors.step1 = 'Please select at least one member'; return; }
+                if (this.form.member_ids.length === 0) { this.errors.step1 = 'Please select a member'; return; }
                 this.errors.step1 = '';
                 this.step = 2;
             } else if (this.step === 2) {

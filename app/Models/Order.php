@@ -15,6 +15,8 @@ class Order extends Model
         'member_id',
         'service_id',
         'price',
+        'quantity',
+        'paid_amount',
         'status',
         'order_date',
         'due_date',
@@ -25,6 +27,8 @@ class Order extends Model
 
     protected $casts = [
         'price' => 'decimal:2',
+        'quantity' => 'integer',
+        'paid_amount' => 'decimal:2',
         'order_date' => 'date',
         'due_date' => 'date',
         'completed_date' => 'date',
