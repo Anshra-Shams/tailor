@@ -3,6 +3,7 @@
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\MeasurementController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ServiceController;
 use Illuminate\Support\Facades\Route;
@@ -16,7 +17,22 @@ Route::get('/dashboard', function () {
     $totalServices = \App\Models\Service::where('is_active', true)->count();
     $newOrders = \App\Models\Order::where('status', 'pending')->count();
 
-    return view('dashboard', compact('totalCustomers', 'totalServices', 'newOrders'));
+    $todayReceived = (float) \App\Models\Payment::whereDate('created_at', today())->sum('amount');
+    $totalOutstanding = (float) \App\Models\Order::whereIn('payment_status', ['unpaid', 'partial'])
+        ->sum(\Illuminate\Support\Facades\DB::raw('price * quantity - paid_amount'));
+    $recentPayments = \App\Models\Payment::with(['order.customer:id,name'])
+        ->latest('payments.id')
+        ->limit(5)
+        ->get()
+        ->map(fn ($p) => [
+            'order_no' => str_pad($p->order_id, 4, '0', STR_PAD_LEFT),
+            'customer' => $p->order?->customer?->name ?? '—',
+            'amount'   => (float) $p->amount,
+            'method'   => str_replace('_', ' ', $p->method),
+            'date'     => $p->created_at->diffForHumans(),
+        ]);
+
+    return view('dashboard', compact('totalCustomers', 'totalServices', 'newOrders', 'todayReceived', 'totalOutstanding', 'recentPayments'));
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
@@ -37,6 +53,17 @@ Route::middleware('auth')->group(function () {
     Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
     Route::get('orders/create', [OrderController::class, 'create'])->name('orders.create');
     Route::post('orders', [OrderController::class, 'store'])->name('orders.store');
+    Route::get('orders/{order}/edit', [OrderController::class, 'edit'])->name('orders.edit');
+    Route::put('orders/{order}', [OrderController::class, 'update'])->name('orders.update');
+    Route::patch('orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.updateStatus');
+    Route::delete('orders/{order}', [OrderController::class, 'destroy'])->name('orders.destroy');
+
+    // Payments
+    Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
+    Route::post('payments', [PaymentController::class, 'store'])->name('payments.store');
+    Route::get('api/payments/search', [PaymentController::class, 'apiSearch'])->name('api.payments.search');
+    Route::get('api/payments/orders/{order}/payments', [PaymentController::class, 'apiPayments'])->name('api.payments.order');
+    Route::get('api/payments/recent', [PaymentController::class, 'apiRecentPayments'])->name('api.payments.recent');
 
     // Shared Wizard APIs (used by measurements create form)
     Route::get('api/orders/search-customers', [OrderController::class, 'apiSearchCustomers'])->name('api.orders.searchCustomers');

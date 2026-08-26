@@ -20,9 +20,15 @@ class OrderController extends Controller
         return view('orders.index', compact('orders'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
-        return view('orders.create');
+        $editOrder = null;
+        if ($request->filled('edit')) {
+            $editOrder = Order::with(['customer.members', 'member', 'service'])
+                ->findOrFail($request->edit);
+        }
+
+        return view('orders.create', compact('editOrder'));
     }
 
     public function store(Request $request)
@@ -54,7 +60,7 @@ class OrderController extends Controller
                 $decoded = [];
             }
 
-            Order::create([
+            $order = Order::create([
                 'customer_id'  => $validated['customer_id'],
                 'member_id'    => $validated['member_id'] ?: null,
                 'service_id'   => $serviceId,
@@ -67,9 +73,79 @@ class OrderController extends Controller
                 'measurements' => json_encode($decoded),
                 'notes'        => $validated['notes'] ?? null,
             ]);
+            $order->refreshPaymentStatus();
+            $order->save();
         }
 
         return redirect()->route('orders.index')->with('success', "{$count} order(s) created successfully!");
+    }
+
+    public function edit(Order $order)
+    {
+        $order->load(['customer.members', 'member', 'service']);
+
+        // All active services; the measured subset is resolved dynamically per member via API
+        $allServices = Service::where('is_active', true)
+            ->orderBy('name')
+            ->get(['id', 'name', 'price']);
+
+        return view('orders.edit', compact('order', 'allServices'));
+    }
+
+    public function update(Request $request, Order $order)
+    {
+        $validated = $request->validate([
+            'member_id'           => 'nullable|exists:members,id',
+            'due_date'            => 'required|date',
+            'notes'               => 'nullable|string|max:1000',
+            'paid_amount'         => 'nullable|numeric|min:0',
+            'service_ids'         => 'required|array|min:1',
+            'service_ids.*'       => 'required|exists:services,id',
+            'prices'              => 'required|array',
+            'prices.*'            => 'required|numeric|min:0',
+            'quantities'          => 'required|array',
+            'quantities.*'        => 'required|integer|min:1',
+            'measurements_json'   => 'required|array',
+            'measurements_json.*' => 'nullable|string',
+        ]);
+
+        $decoded = json_decode($validated['measurements_json'][0] ?? '{}', true);
+        if (!is_array($decoded)) {
+            $decoded = [];
+        }
+
+        $order->update([
+            'member_id'    => $validated['member_id'] ?: null,
+            'service_id'   => $validated['service_ids'][0],
+            'price'        => $validated['prices'][0],
+            'quantity'     => $validated['quantities'][0] ?? 1,
+            'paid_amount'  => $validated['paid_amount'] ?? 0,
+            'due_date'     => $validated['due_date'],
+            'measurements' => json_encode($decoded),
+            'notes'        => $validated['notes'] ?? null,
+        ]);
+        $order->refreshPaymentStatus();
+        $order->save();
+
+        return redirect()->route('orders.index')->with('success', "Order #" . str_pad($order->id, 4, '0', STR_PAD_LEFT) . " updated successfully!");
+    }
+
+    public function updateStatus(Request $request, Order $order)
+    {
+        $validated = $request->validate([
+            'status' => 'required|in:pending,in_progress,completed,delivered,cancelled',
+        ]);
+
+        $order->update(['status' => $validated['status']]);
+
+        return response()->json(['success' => true, 'status' => $order->status]);
+    }
+
+    public function destroy(Order $order)
+    {
+        $order->delete();
+
+        return redirect()->route('orders.index')->with('success', 'Order deleted successfully!');
     }
 
     // ── API: Customer ledger ──
@@ -121,15 +197,22 @@ class OrderController extends Controller
 
     public function apiSearchCustomers(Request $request)
     {
-        $q = $request->input('q', '');
+        $q = trim($request->input('q', ''));
 
-        if (strlen($q) < 2) {
+        if ($q !== '' && strlen($q) < 2) {
             return response()->json([]);
         }
 
-        $customers = Customer::with('members')
-            ->where('name', 'like', "%{$q}%")
-            ->orWhere('phone', 'like', "%{$q}%")
+        $query = Customer::with('members');
+
+        if ($q !== '') {
+            $query->where(function ($w) use ($q) {
+                $w->where('name', 'like', "%{$q}%")
+                  ->orWhere('phone', 'like', "%{$q}%");
+            });
+        }
+
+        $customers = $query->latest()
             ->limit(20)
             ->get()
             ->map(fn($c) => [

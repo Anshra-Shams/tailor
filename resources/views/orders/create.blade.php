@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Create Order')
+@section('title', $editOrder ? 'Edit Order' : 'Create Order')
 
 @section('content')
 <div x-data="orderWizard()" class="max-w-6xl mx-auto">
@@ -14,12 +14,15 @@
                 <div class="flex items-center gap-3 mb-3">
                     <span class="w-7 h-7 rounded-full bg-indigo-600 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">1</span>
                     <h2 class="text-lg font-bold text-slate-800">Customer</h2>
+                    @if($editOrder)
+                        <span class="text-xs font-medium text-slate-400 bg-slate-100 rounded-full px-2.5 py-0.5">Edit mode</span>
+                    @endif
                 </div>
 
                 <div class="bg-white rounded-2xl border border-slate-200 p-5 space-y-4">
 
                     {{-- Search --}}
-                    <div class="relative" @click.outside="showDropdown = false">
+                    <div class="relative" @click.outside="showDropdown = false" x-show="!editMode">
                         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                             <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
                         </div>
@@ -307,7 +310,7 @@
                         <button type="button" @click="saveOrder()" :disabled="submitting" class="w-full inline-flex items-center justify-center gap-2 px-6 py-3 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-md shadow-indigo-500/30 transition disabled:opacity-50">
                             <svg x-show="!submitting" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
                             <svg x-show="submitting" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
-                            <span x-text="submitting ? 'Saving...' : ('Save Order' + (selectedServices.length > 1 ? 's (' + selectedServices.length + ')' : ''))"></span>
+                            <span x-text="submitting ? 'Saving...' : (editMode ? 'Update Order' : ('Save Order' + (selectedServices.length > 1 ? 's (' + selectedServices.length + ')' : '')))"></span>
                         </button>
                         <p class="text-sm text-red-500" x-show="errors.general" x-text="errors.general"></p>
                     </div>
@@ -317,8 +320,9 @@
     </div>
 
     {{-- HIDDEN FORM --}}
-    <form id="orderForm" method="POST" action="{{ route('orders.store') }}" style="display:none">
+    <form id="orderForm" method="POST" action="{{ $editOrder ? route('orders.update', $editOrder) : route('orders.store') }}" style="display:none">
         @csrf
+        @if($editOrder) @method('PUT') @endif
         <input type="hidden" name="customer_id" :value="form.customer_id">
         <input type="hidden" name="member_id"   :value="form.member_id">
         <input type="hidden" name="due_date"    :value="form.due_date">
@@ -338,8 +342,12 @@
 
 @push('scripts')
 <script>
+window.__editOrder = @json($editOrder);
 function orderWizard() {
+    const eo = window.__editOrder || null;
     return {
+        editMode: !!eo,
+        editOrderId: eo ? eo.id : null,
         searchQuery: '',
         searchResults: { customers: [], members: [] },
         searchLoading: false,
@@ -362,6 +370,46 @@ function orderWizard() {
         form: { customer_id:'', member_id:'', paid_amount:'', due_date:'', notes:'' },
         errors: {},
         fieldErrors: {},
+
+        async init() {
+            if (this.editMode) {
+                await this.initEditOrder();
+            }
+        },
+
+        async initEditOrder() {
+            const eo = window.__editOrder;
+            const customer = eo.customer;
+            this.selectedCustomer = {
+                id: customer.id,
+                name: customer.name,
+                phone: customer.phone,
+                gender: customer.gender,
+                members: customer.members || [],
+            };
+            this.form.customer_id = customer.id;
+            await this.loadLedger(this.selectedCustomer);
+
+            if (eo.member_id) {
+                this.pickMember({ id: eo.member_id, name: eo.member?.name || '', relation: eo.member?.relation || '', gender: eo.member?.gender || '' });
+            } else {
+                this.pickMember({ id: '__self__', name: customer.name, relation: '', gender: customer.gender, isSelf: true });
+            }
+            this.searchQuery = '';
+
+            await this.loadMemberServices();
+            const svc = this.services.find(s => s.id === eo.service_id);
+            if (svc) {
+                await this.toggleService(svc);
+                this.servicePrices[svc.id] = eo.price;
+                this.serviceQty[svc.id] = eo.quantity;
+                const measurements = typeof eo.measurements === 'object' ? eo.measurements : JSON.parse(eo.measurements || '{}');
+                this.serviceMeasurements[svc.id] = measurements;
+            }
+            this.form.paid_amount = eo.paid_amount || '';
+            this.form.due_date = eo.due_date ? eo.due_date.substring(0, 10) : '';
+            this.form.notes = eo.notes || '';
+        },
 
         get customers() {
             return Array.isArray(this.searchResults.customers) ? this.searchResults.customers : [];

@@ -42,9 +42,9 @@
                             <p class="text-xs text-slate-500">{{ $customer->gender ? ucfirst($customer->gender) : '' }}</p>
                         </div>
                         @if($customer->members_count > 0)
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 flex-shrink-0">
-                                {{ $customer->members_count }} Member{{ $customer->members_count > 1 ? 's' : '' }}
-                            </span>
+                            <button type="button" class="js-members-badge inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 flex-shrink-0 hover:bg-indigo-100 transition-colors cursor-pointer" data-customer="{{ $customer->id }}" title="View member details">
+                                Member {{ $customer->members_count }}
+                            </button>
                         @else
                             <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-500 border border-slate-200 flex-shrink-0">
                                 No Members
@@ -115,11 +115,12 @@
                                 </td>
                                 <td class="px-6 py-4 text-sm text-slate-600 whitespace-nowrap">{{ $customer->phone }}</td>
                                 <td class="px-6 py-4 text-sm text-slate-600 max-w-[200px] truncate whitespace-nowrap">{{ $customer->address ?: '—' }}</td>
-                                <td class="px-6 py-4 text-center whitespace-nowrap">
-                                    @if($customer->members_count > 0)
-                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
-                                            {{ $customer->members_count }} Member{{ $customer->members_count > 1 ? 's' : '' }}
-                                        </span>
+                                <td class="px-6 py-4 text-center">
+                                    @if($customer->members->count())
+                                        <button type="button" class="js-members-badge inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 hover:border-indigo-300 transition-all cursor-pointer whitespace-nowrap" data-customer="{{ $customer->id }}" title="View member details">
+                                            <svg class="w-3.5 h-3.5 opacity-70" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/></svg>
+                                            Member {{ $customer->members->count() }}
+                                        </button>
                                     @else
                                         <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-500 border border-slate-200">
                                             No Members
@@ -168,3 +169,112 @@
     @endif
 </div>
 @endsection
+
+@push('scripts')
+<style>
+    .swal2-popup {
+        padding-top: 1.4em !important;
+        padding-right: 2em !important;
+        padding-left: 2em !important;
+    }
+    .swal2-popup .swal2-title {
+        padding-right: 40px;
+        margin-top: 6px;
+    }
+    .swal2-popup .swal2-close {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        width: 32px;
+        height: 32px;
+        border-radius: 10px;
+        background: #f1f5f9;
+        color: #94a3b8;
+        transition: all .15s ease;
+    }
+    .swal2-popup .swal2-close:hover {
+        color: #ef4444;
+        background: #fee2e2;
+        transform: none;
+    }
+</style>
+<script>
+@php
+    $membersData = [];
+    foreach ($customers as $c) {
+        $list = [];
+        foreach ($c->members as $m) {
+            $list[] = [
+                'name'     => $m->name,
+                'gender'   => $m->gender,
+                'relation' => $m->relation,
+                'phone'    => $m->phone,
+            ];
+        }
+        $membersData[$c->id] = $list;
+    }
+@endphp
+window.__members = @json($membersData);
+
+function escapeHtml(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+const X_SVG = `
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:18px;height:18px;display:block">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+    </svg>`;
+
+const GENDER_CLS = {
+    male:   'bg-blue-50 text-blue-700 border-blue-200',
+    female: 'bg-pink-50 text-pink-700 border-pink-200',
+    other:  'bg-slate-100 text-slate-600 border-slate-200',
+};
+
+function genderBadge(gender) {
+    const cls = GENDER_CLS[gender] || GENDER_CLS.other;
+    const label = gender ? escapeHtml(gender) : '—';
+    return `<span class="text-xs font-semibold capitalize px-2.5 py-1 rounded-full border ${cls}">${label}</span>`;
+}
+
+function openSwal({ title, html, width = 380 }) {
+    Swal.fire({
+        title: title,
+        html: html,
+        showConfirmButton: false,
+        showCloseButton: true,
+        closeButtonHtml: X_SVG,
+        width: width,
+        customClass: { popup: 'rounded-2xl' },
+    });
+}
+
+function membersListHtml(list) {
+    const rows = list.map((m, i) => {
+        let sub = [];
+        if (m.relation) sub.push(escapeHtml(m.relation));
+        if (m.phone) sub.push(escapeHtml(m.phone));
+        return `
+        <div class="flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg border ${i % 2 ? 'bg-slate-50' : 'bg-white'} border-slate-100">
+            <span class="flex items-center gap-2.5 min-w-0">
+                <span class="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white text-sm font-bold flex items-center justify-center flex-shrink-0">${escapeHtml((m.name || '?').charAt(0).toUpperCase())}</span>
+                <span class="min-w-0">
+                    <span class="block text-sm font-semibold text-slate-700 truncate">${escapeHtml(m.name)}</span>
+                    ${sub.length ? `<span class="block text-[11px] text-slate-400 truncate capitalize">${sub.join(' · ')}</span>` : ''}
+                </span>
+            </span>
+            ${genderBadge(m.gender)}
+        </div>`;
+    }).join('');
+    return `<div class="space-y-1.5 text-left max-h-80 overflow-y-auto pr-1">${rows}</div>`;
+}
+
+document.addEventListener('click', function (e) {
+    const badge = e.target.closest('.js-members-badge');
+    if (!badge) return;
+    const list = (window.__members || {})[badge.dataset.customer] || [];
+    if (!list.length) return;
+    openSwal({ title: '<span class="text-lg font-bold text-slate-800">Members</span>', html: membersListHtml(list), width: 400 });
+});
+</script>
+@endpush

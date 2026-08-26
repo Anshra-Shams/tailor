@@ -24,14 +24,14 @@
                 </div>
 
                 {{-- Search --}}
-                <div class="relative mb-3">
+                <div class="relative mb-3" @click.outside="searchOpen = false">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg></div>
-                    <input type="text" x-model="searchQuery" @input.debounce.300ms="searchCustomers()" placeholder="Search by name or phone..." class="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-300 text-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    <input type="text" x-model="searchQuery" @focus="openSearch()" @input.debounce.300ms="searchCustomers()" placeholder="Search by name or phone..." class="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-300 text-sm focus:border-indigo-500 focus:ring-indigo-500">
                     <button type="button" x-show="searchQuery" @click="clearSearch()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
                 </div>
 
                 {{-- Search results dropdown --}}
-                <div x-show="searchResults.length > 0 && !selectedCustomer" x-transition class="mb-3 border border-slate-200 rounded-xl divide-y divide-slate-100 max-h-48 overflow-y-auto bg-white">
+                <div x-show="searchOpen && searchResults.length > 0 && !selectedCustomer" x-transition class="mb-3 border border-slate-200 rounded-xl divide-y divide-slate-100 max-h-48 overflow-y-auto bg-white">
                     <template x-for="c in searchResults" :key="c.id">
                         <button type="button" @click="selectCustomer(c)" class="w-full text-left px-4 py-3 hover:bg-indigo-50 transition flex items-center justify-between">
                             <div>
@@ -308,6 +308,7 @@ function wizard() {
         searchQuery: '',
         searchResults: [],
         searchLoading: false,
+        searchOpen: false,
         selectedCustomer: null,
         selectedMember: null,
         services: [],
@@ -365,14 +366,19 @@ function wizard() {
         },
 
         async searchCustomers() {
-            if (this.searchQuery.trim().length < 2) { this.searchResults = []; return; }
             this.searchLoading = true;
             try {
-                this.searchResults = await (await fetch('{{ route("api.orders.searchCustomers") }}?q=' + encodeURIComponent(this.searchQuery), { headers: { 'Accept': 'application/json' } })).json();
+                this.searchResults = await (await fetch('{{ route("api.orders.searchCustomers") }}?q=' + encodeURIComponent(this.searchQuery.trim()), { headers: { 'Accept': 'application/json' } })).json();
             } catch (e) {
                 this.searchResults = [];
             }
             this.searchLoading = false;
+        },
+
+        async openSearch() {
+            if (this.selectedCustomer) return;
+            this.searchOpen = true;
+            if (!this.searchQuery.trim()) await this.searchCustomers();
         },
 
         selectCustomer(c) {
@@ -380,6 +386,7 @@ function wizard() {
             this.form.customer_id = c.id;
             this.searchResults = [];
             this.searchQuery = '';
+            this.searchOpen = false;
             this.errors.step1 = '';
             this.loadMembers(c);
         },
@@ -394,6 +401,7 @@ function wizard() {
             this.searchQuery = '';
             this.searchResults = [];
             this.searchLoading = false;
+            this.searchOpen = false;
         },
 
         clearCustomer() {

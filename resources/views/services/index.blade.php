@@ -51,6 +51,9 @@
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" /></svg>
                             Edit
                         </a>
+                        <button type="button" title="View measurement fields" class="js-view-fields px-3 py-2 bg-purple-50 text-purple-600 text-sm font-medium rounded-lg hover:bg-purple-100 transition-all" data-id="{{ $service->id }}">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                        </button>
                         <form method="POST" action="{{ route('services.destroy', $service) }}" class="js-delete-form" data-name="{{ $service->name }}" data-title="Delete Service?">
                             @csrf
                             @method('DELETE')
@@ -78,3 +81,82 @@
     @endif
 </div>
 @endsection
+
+@push('scripts')
+<style>
+    .swal2-popup {
+        padding-top: 1.4em !important;
+        padding-right: 2em !important;
+        padding-left: 2em !important;
+    }
+    .swal2-popup .swal2-title {
+        padding-right: 40px;
+        margin-top: 6px;
+    }
+    .swal2-popup .swal2-close {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        width: 32px;
+        height: 32px;
+        border-radius: 10px;
+        background: #f1f5f9;
+        color: #94a3b8;
+        transition: all .15s ease;
+    }
+    .swal2-popup .swal2-close:hover {
+        color: #ef4444;
+        background: #fee2e2;
+        transform: none;
+    }
+</style>
+<script>
+window.__serviceFields = @json($services->mapWithKeys(fn ($s) => [
+    $s->id => ['name' => $s->name, 'fields' => $s->measurement_fields ?? []],
+]));
+
+function escapeHtml(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+function viewServiceFields(name, fields) {
+    const list = Array.isArray(fields) ? fields : [];
+    let html;
+
+    if (!list.length) {
+        html = '<p class="text-sm text-slate-500 py-4">No measurement fields defined for this service.</p>';
+    } else {
+        const rows = list.map((f, i) => `
+            <div class="flex items-center justify-between gap-3 px-3 py-2 rounded-lg border ${i % 2 ? 'bg-slate-50' : 'bg-white'} border-slate-100">
+                <span class="flex items-center gap-2 min-w-0">
+                    <span class="w-5 h-5 rounded-md bg-indigo-100 text-indigo-600 text-[11px] font-bold flex items-center justify-center flex-shrink-0">${i + 1}</span>
+                    <span class="text-sm font-medium text-slate-700 truncate">${escapeHtml(f.label || f.key)}</span>
+                </span>
+                <span class="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full whitespace-nowrap ${f.required ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-slate-100 text-slate-400 border border-slate-200'}">${f.required ? 'Required' : 'Optional'}</span>
+            </div>`).join('');
+        html = `<p class="text-xs text-slate-400 mb-3">${list.length} field${list.length === 1 ? '' : 's'}</p><div class="space-y-1.5 text-left max-h-72 overflow-y-auto pr-1">${rows}</div>`;
+    }
+
+    Swal.fire({
+        title: `<span class="text-lg font-bold text-slate-800">${escapeHtml(name)}</span>`,
+        html: html,
+        showConfirmButton: false,
+        showCloseButton: true,
+        closeButtonHtml: `
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:18px;height:18px;display:block">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>`,
+        width: 420,
+        customClass: { popup: 'rounded-2xl' },
+    });
+}
+
+document.addEventListener('click', function (e) {
+    const btn = e.target.closest('.js-view-fields');
+    if (!btn) return;
+    const data = (window.__serviceFields || {})[btn.dataset.id];
+    if (!data) return;
+    viewServiceFields(data.name, data.fields);
+});
+</script>
+@endpush
