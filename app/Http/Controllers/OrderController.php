@@ -11,13 +11,33 @@ use Illuminate\Http\Request;
 
 class OrderController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $orders = Order::with(['customer', 'member', 'service'])
-            ->latest()
-            ->paginate(15);
+        $query = Order::with(['customer', 'member', 'service']);
 
-        return view('orders.index', compact('orders'));
+        $q = trim($request->input('q', ''));
+        if ($q !== '') {
+            $query->where(function ($w) use ($q) {
+                if (ctype_digit($q)) {
+                    $w->where('orders.id', (int) $q);
+                }
+                $w->orWhereHas('customer', function ($c) use ($q) {
+                    $c->where('name', 'like', "%{$q}%")
+                      ->orWhere('phone', 'like', "%{$q}%");
+                });
+                $w->orWhereHas('member', function ($m) use ($q) {
+                    $m->where('name', 'like', "%{$q}%");
+                });
+                $w->orWhereHas('service', function ($s) use ($q) {
+                    $s->where('name', 'like', "%{$q}%");
+                });
+                $w->orWhere('orders.status', 'like', "%{$q}%");
+            });
+        }
+
+        $orders = $query->latest()->paginate(15)->withQueryString();
+
+        return view('orders.index', compact('orders', 'q'));
     }
 
     public function create(Request $request)
