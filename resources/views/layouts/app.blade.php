@@ -10,13 +10,68 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
-        body { font-family: 'Figtree', sans-serif; }
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: 'Figtree', sans-serif;
+            scrollbar-width: none !important;
+            -ms-overflow-style: none !important;
+        }
+        html::-webkit-scrollbar,
+        body::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+        }
+
+        /* Sleek modern vertical scrollbar for page content and custom scroll containers */
+        main,
+        .custom-scrollbar {
+            scrollbar-width: thin !important;
+            scrollbar-color: #cbd5e1 transparent !important;
+        }
+        main::-webkit-scrollbar,
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px !important;
+            height: 8px !important;
+            display: block !important;
+        }
+        main::-webkit-scrollbar-track,
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent !important;
+        }
+        main::-webkit-scrollbar-thumb,
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1 !important;
+            border-radius: 9999px !important;
+            border: 2px solid transparent !important;
+            background-clip: padding-box !important;
+        }
+        main::-webkit-scrollbar-thumb:hover,
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background-color: #94a3b8 !important;
+        }
+
+        /* Class to intentionally hide scrollbars where desired */
+        .no-scrollbar {
+            scrollbar-width: none !important;
+            -ms-overflow-style: none !important;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none !important;
+        }
         .sidebar-link.active { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; box-shadow: 0 4px 12px rgba(99,102,241,0.3); }
         .sidebar-link:hover:not(.active) { background: #f1f5f9; color: #1e293b; }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        /* Hide Alpine.js elements before init to prevent flash */
+        [x-cloak] { display: none !important; }
+        /* Remove browser native clear/refresh/cancel buttons from inputs */
+        input::-webkit-search-cancel-button,
+        input::-webkit-search-results-button,
+        input::-webkit-search-decoration { display: none; -webkit-appearance: none; }
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
     </style>
 </head>
 <body class="antialiased bg-slate-50">
@@ -85,6 +140,14 @@
                     </svg>
                     Payments
                 </a>
+
+                <a href="{{ route('accounts.index') }}" class="sidebar-link flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 {{ request()->routeIs('accounts.*') ? 'active' : 'text-slate-400' }}">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0-1 3m8.5-3 1 3m0 0 .5 1.5m-.5-1.5h-9.5m0 0-.5 1.5m.75-9 3-3 2.148 2.148A12.061 12.061 0 0116.5 7.605" />
+                    </svg>
+                    Chart of Accounts
+                </a>
+
             </nav>
 
             <!-- Sidebar Footer -->

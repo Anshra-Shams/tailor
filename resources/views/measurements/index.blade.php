@@ -58,7 +58,11 @@
 
                     <div class="flex items-center gap-2">
                         <svg class="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17l-5.384 3.18A1.5 1.5 0 014 17.08V5.92a1.5 1.5 0 012.036-1.42l5.384 3.18a1.5 1.5 0 010 2.58z" /></svg>
-                        <span class="text-sm text-slate-600">{{ $measurement->service->name ?? '—' }}</span>
+                        @if($measurement->service)
+                            <span class="text-sm text-slate-600">{{ $measurement->service->name }}</span>
+                        @else
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">General Measurements</span>
+                        @endif
                     </div>
                 </div>
 
@@ -66,6 +70,10 @@
                     <a href="{{ route('measurements.show', $measurement) }}" class="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold text-indigo-600 bg-indigo-50 border border-indigo-200 rounded-lg hover:bg-indigo-100 transition-all">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                         View
+                    </a>
+                    <a href="{{ route('measurements.edit', $measurement) }}" class="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold text-indigo-600 bg-indigo-50 border border-indigo-200 rounded-lg hover:bg-indigo-100 transition-all">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/></svg>
+                        Edit
                     </a>
                     <form method="POST" action="{{ route('measurements.destroy', $measurement) }}" class="js-delete-form flex-1" data-title="Delete Measurement?">
                         @csrf @method('DELETE')
@@ -99,12 +107,26 @@
                             <td class="px-5 py-3 font-mono text-slate-500 text-xs whitespace-nowrap">#{{ $measurement->id }}</td>
                             <td class="px-5 py-3 font-medium text-slate-700 whitespace-nowrap">{{ $measurement->customer->name ?? '—' }}</td>
                             <td class="px-5 py-3 text-slate-500 whitespace-nowrap">{{ $measurement->member->name ?? '—' }}</td>
-                            <td class="px-5 py-3 text-slate-500 whitespace-nowrap">{{ $measurement->service->name ?? '—' }}</td>
+                            <td class="px-5 py-3 whitespace-nowrap">
+                                @if($measurement->service)
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
+                                        {{ $measurement->service->name }}
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                        General Profile
+                                    </span>
+                                @endif
+                            </td>
                             <td class="px-5 py-3 text-slate-500 text-xs whitespace-nowrap">{{ $measurement->created_at->format('M d, Y') }}</td>
                             <td class="px-5 py-3 text-right">
                                 <div class="flex items-center justify-end gap-1.5">
                                     <a href="{{ route('measurements.show', $measurement) }}" class="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition" title="View">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                    </a>
+                                    <a href="{{ route('measurements.edit', $measurement) }}" class="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition" title="Edit">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/></svg>
                                     </a>
                                     <form method="POST" action="{{ route('measurements.destroy', $measurement) }}" class="js-delete-form" data-title="Delete Measurement?">
                                         @csrf @method('DELETE')

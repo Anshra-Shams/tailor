@@ -7,7 +7,6 @@ use App\Models\User;
 use App\Models\Customer;
 use App\Models\Member;
 use App\Models\Service;
-use App\Models\Order;
 use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
 
@@ -153,26 +152,6 @@ class AdminUserSeeder extends Seeder
 
         foreach ($services as $service) {
             Service::create($service);
-        }
-
-        $customerIds = Customer::pluck('id')->toArray();
-        $serviceIds = Service::pluck('id')->toArray();
-        $statuses = ['pending', 'in_progress', 'completed'];
-
-        for ($i = 0; $i < 10; $i++) {
-            $customerId = $customerIds[array_rand($customerIds)];
-            $membersForCustomer = Member::where('customer_id', $customerId)->pluck('id')->toArray();
-            $memberId = !empty($membersForCustomer) ? $membersForCustomer[array_rand($membersForCustomer)] : null;
-
-            Order::create([
-                'customer_id' => $customerId,
-                'member_id' => $memberId,
-                'service_id' => $serviceIds[array_rand($serviceIds)],
-                'price' => rand(500, 8000),
-                'status' => $statuses[array_rand($statuses)],
-                'order_date' => Carbon::now()->subDays(rand(0, 30)),
-                'due_date' => Carbon::now()->addDays(rand(1, 14)),
-            ]);
         }
     }
 }

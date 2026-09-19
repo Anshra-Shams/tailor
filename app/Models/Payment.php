@@ -12,6 +12,7 @@ class Payment extends Model
 
     protected $fillable = [
         'order_id',
+        'account_id',
         'amount',
         'method',
         'notes',
@@ -24,5 +25,10 @@ class Payment extends Model
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);
+    }
+
+    public function account(): BelongsTo
+    {
+        return $this->belongsTo(Account::class);
     }
 }

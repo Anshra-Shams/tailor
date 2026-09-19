@@ -3,171 +3,321 @@
 @section('title', 'Edit Customer')
 
 @section('content')
-<div class="max-w-3xl mx-auto space-y-6" x-data="customerForm()">
-    <div>
-        <a href="{{ route('customers.index') }}" class="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-indigo-600 transition-colors mb-3">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
-            Back to Customers
-        </a>
-        <h2 class="text-2xl font-bold text-slate-800">Edit Customer</h2>
-        <p class="text-slate-500 mt-1">Update customer and member information.</p>
+<div class="space-y-4 max-w-7xl mx-auto" x-data="customerForm()">
+
+    {{-- Top Navigation & Header --}}
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-slate-200/80">
+        <div>
+            <div class="flex items-center gap-2 mb-1 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                <a href="{{ route('customers.index') }}" class="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-700 transition">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                    </svg>
+                    Customers
+                </a>
+                <span>/</span>
+                <span class="text-slate-400">Edit Customer</span>
+            </div>
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-sm shadow-indigo-500/25 flex-shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="text-xl font-bold text-slate-800 tracking-tight leading-tight">Edit Customer</h2>
+                    <p class="text-xs text-slate-500">Update account details for <span class="font-semibold text-slate-700">{{ $customer->name }}</span></p>
+                </div>
+            </div>
+        </div>
+
+        {{-- Quick Header Actions --}}
+        <div class="flex items-center gap-2.5">
+            <a href="{{ route('customers.index') }}"
+                class="px-4 py-2 text-xs font-semibold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl transition shadow-xs">
+                Cancel
+            </a>
+            <button type="submit" form="customer-edit-form"
+                class="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-xs font-semibold rounded-xl shadow-sm shadow-indigo-500/25 transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                </svg>
+                Update Customer
+            </button>
+        </div>
     </div>
 
+    {{-- Validation Errors Banner --}}
     @if ($errors->any())
-        <div class="bg-red-50 border border-red-200 rounded-xl px-4 py-3">
-            <ul class="list-disc list-inside text-sm text-red-600 space-y-1">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
+        <div class="bg-red-50/90 border border-red-200 rounded-xl p-3 flex items-start gap-2.5">
+            <div class="w-7 h-7 rounded-lg bg-red-100 text-red-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                </svg>
+            </div>
+            <div class="flex-1">
+                <h4 class="text-xs font-bold text-red-800">Please fix the following errors:</h4>
+                <ul class="list-disc list-inside text-xs text-red-600 mt-0.5 space-y-0.5">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
         </div>
     @endif
 
-    <form method="POST" action="{{ route('customers.update', $customer) }}">
+    {{-- Main Form (2-Column Grid Layout) --}}
+    <form id="customer-edit-form" method="POST" action="{{ route('customers.update', $customer) }}" class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
         @csrf
         @method('PUT')
 
-        <div class="bg-white rounded-2xl border border-slate-200 p-6 space-y-5">
-            <div class="flex items-center gap-3 pb-2 border-b border-slate-100">
-                <div class="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center">
-                    <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
-                </div>
-                <div>
-                    <h3 class="text-lg font-bold text-slate-800">Main Customer</h3>
-                    <p class="text-sm text-slate-500">Primary account holder details</p>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div class="sm:col-span-2">
-                    <label for="name" class="block text-sm font-semibold text-slate-700 mb-1.5">Customer / Family Name <span class="text-red-500">*</span></label>
-                    <input type="text" id="name" name="name" value="{{ old('name', $customer->name) }}" required
-                        class="block w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-                        placeholder="e.g. Khan Family">
-                </div>
-                <div>
-                    <label for="phone" class="block text-sm font-semibold text-slate-700 mb-1.5">Phone Number <span class="text-red-500">*</span></label>
-                    <input type="text" id="phone" name="phone" value="{{ old('phone', $customer->phone) }}" required
-                        class="block w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-                        placeholder="03XX-XXXXXXX">
-                </div>
-                <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">Gender</label>
-                    <div class="flex items-center gap-6 pt-2">
-                        <label class="inline-flex items-center gap-2 cursor-pointer">
-                            <input type="radio" name="gender" value="male" {{ old('gender', $customer->gender) == 'male' ? 'checked' : '' }} class="w-4 h-4 text-indigo-600 border-slate-300 focus:ring-indigo-500">
-                            <span class="text-sm text-slate-700">Male</span>
-                        </label>
-                        <label class="inline-flex items-center gap-2 cursor-pointer">
-                            <input type="radio" name="gender" value="female" {{ old('gender', $customer->gender) == 'female' ? 'checked' : '' }} class="w-4 h-4 text-indigo-600 border-slate-300 focus:ring-indigo-500">
-                            <span class="text-sm text-slate-700">Female</span>
-                        </label>
-                        <label class="inline-flex items-center gap-2 cursor-pointer">
-                            <input type="radio" name="gender" value="other" {{ old('gender', $customer->gender) == 'other' ? 'checked' : '' }} class="w-4 h-4 text-indigo-600 border-slate-300 focus:ring-indigo-500">
-                            <span class="text-sm text-slate-700">Other</span>
-                        </label>
-                    </div>
-                </div>
-                <div class="sm:col-span-2">
-                    <label for="address" class="block text-sm font-semibold text-slate-700 mb-1.5">Address</label>
-                    <textarea id="address" name="address" rows="2"
-                        class="block w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all resize-none"
-                        placeholder="Enter address">{{ old('address', $customer->address) }}</textarea>
-                </div>
-                <div class="sm:col-span-2">
-                    <label for="notes" class="block text-sm font-semibold text-slate-700 mb-1.5">Notes</label>
-                    <textarea id="notes" name="notes" rows="2"
-                        class="block w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all resize-none"
-                        placeholder="Any notes...">{{ old('notes', $customer->notes) }}</textarea>
-                </div>
-            </div>
-        </div>
-
-        <div class="mt-6 space-y-4">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center">
-                        <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" /></svg>
-                    </div>
-                    <div>
-                        <h3 class="text-lg font-bold text-slate-800">Family Members</h3>
-                        <p class="text-sm text-slate-500">Manage members under this customer</p>
-                    </div>
-                </div>
-                <button type="button" @click="addMember()"
-                    class="inline-flex items-center gap-1.5 px-4 py-2 bg-purple-50 text-purple-600 font-semibold text-sm rounded-xl hover:bg-purple-100 border border-purple-200 transition-all">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-                    Add Member
-                </button>
-            </div>
-
-            <template x-for="(member, index) in members" :key="index">
-                <div class="bg-white rounded-2xl border border-slate-200 p-5 relative group" x-show="member._deleted !== true" x-transition>
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="flex items-center gap-2">
-                            <span class="w-7 h-7 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-xs font-bold" x-text="index + 1"></span>
-                            <span class="text-sm font-semibold text-slate-700" x-text="member.name || 'New Member'"></span>
-                            <span x-show="member.id" class="text-xs bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-full border border-emerald-200">Existing</span>
-                        </div>
-                        <button type="button" @click="removeMember(index)"
-                            class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                        </button>
-                    </div>
-                    <input type="hidden" :name="'members[' + index + '][id]'" :value="member.id || ''">
-                    <input type="hidden" :name="'members[' + index + '][_deleted]'" :value="member._deleted ? '1' : '0'">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-500 mb-1">Member Name <span class="text-red-500">*</span></label>
-                            <input type="text" :name="'members[' + index + '][name]'" x-model="member.name" required
-                                class="block w-full px-4 py-2.5 border border-slate-300 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-                                placeholder="Enter member name">
+        {{-- ================= LEFT COLUMN: MAIN CUSTOMER INFO (7 Cols) ================= --}}
+        <div class="lg:col-span-7 space-y-4">
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-5 space-y-4">
+                {{-- Card Header --}}
+                <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-xs">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21c-2.676 0-5.216-.584-7.499-1.632z" />
+                            </svg>
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-slate-500 mb-1">Gender</label>
-                            <div class="flex items-center gap-5 pt-2">
-                                <label class="inline-flex items-center gap-1.5 cursor-pointer">
-                                    <input type="radio" :name="'members[' + index + '][gender]'" value="male" x-model="member.gender" class="w-4 h-4 text-indigo-600 border-slate-300 focus:ring-indigo-500">
-                                    <span class="text-sm text-slate-700">Male</span>
-                                </label>
-                                <label class="inline-flex items-center gap-1.5 cursor-pointer">
-                                    <input type="radio" :name="'members[' + index + '][gender]'" value="female" x-model="member.gender" class="w-4 h-4 text-indigo-600 border-slate-300 focus:ring-indigo-500">
-                                    <span class="text-sm text-slate-700">Female</span>
-                                </label>
-                                <label class="inline-flex items-center gap-1.5 cursor-pointer">
-                                    <input type="radio" :name="'members[' + index + '][gender]'" value="other" x-model="member.gender" class="w-4 h-4 text-indigo-600 border-slate-300 focus:ring-indigo-500">
-                                    <span class="text-sm text-slate-700">Other</span>
-                                </label>
+                            <h3 class="text-sm font-bold text-slate-800 leading-tight">Primary Account Details</h3>
+                            <p class="text-[11px] text-slate-400">Head of family or primary client</p>
+                        </div>
+                    </div>
+                    <span class="text-[11px] text-slate-400 font-medium">* Required</span>
+                </div>
+
+                <div class="space-y-3.5">
+                    {{-- Customer Name & Phone Number (2 Columns) --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div>
+                            <label for="name" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">
+                                Customer Name <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21c-2.676 0-5.216-.584-7.499-1.632z" />
+                                    </svg>
+                                </div>
+                                <input type="text" id="name" name="name" value="{{ old('name', $customer->name) }}" required
+                                    class="block w-full pl-9 pr-3 py-2 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                                    placeholder="e.g. Muhammad Usman / Khan Family">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="phone" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">
+                                Phone Number <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+                                    </svg>
+                                </div>
+                                <input type="text" id="phone" name="phone" value="{{ old('phone', $customer->phone) }}" required
+                                    class="block w-full pl-9 pr-3 py-2 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                                    placeholder="03XX-XXXXXXX">
                             </div>
                         </div>
                     </div>
-                </div>
-            </template>
 
-            <div x-show="members.filter(m => m._deleted !== true).length === 0" class="bg-white rounded-2xl border-2 border-dashed border-slate-200 p-8 text-center">
-                <svg class="w-10 h-10 mx-auto text-slate-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" /></svg>
-                <p class="text-sm text-slate-500">No members. Click <strong>"Add Member"</strong> to add family members.</p>
+                    {{-- Gender Segmented Pill Buttons --}}
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+                            Gender
+                        </label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <label class="flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl border text-xs font-semibold cursor-pointer select-none transition shadow-2xs"
+                                :class="gender === 'male' ? 'bg-indigo-600 text-white border-indigo-600 shadow-indigo-500/20' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'">
+                                <input type="radio" name="gender" value="male" x-model="gender" class="hidden">
+                                <span>👨 Male</span>
+                            </label>
+
+                            <label class="flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl border text-xs font-semibold cursor-pointer select-none transition shadow-2xs"
+                                :class="gender === 'female' ? 'bg-indigo-600 text-white border-indigo-600 shadow-indigo-500/20' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'">
+                                <input type="radio" name="gender" value="female" x-model="gender" class="hidden">
+                                <span>👩 Female</span>
+                            </label>
+
+                            <label class="flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl border text-xs font-semibold cursor-pointer select-none transition shadow-2xs"
+                                :class="gender === 'other' ? 'bg-indigo-600 text-white border-indigo-600 shadow-indigo-500/20' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'">
+                                <input type="radio" name="gender" value="other" x-model="gender" class="hidden">
+                                <span>Other</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    {{-- Address & Notes in 2 Columns --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div>
+                            <div class="flex items-center justify-between mb-1">
+                                <label for="address" class="block text-xs font-semibold uppercase tracking-wider text-slate-600">
+                                    Address
+                                </label>
+                                <span class="text-[10px] text-slate-400">Optional</span>
+                            </div>
+                            <textarea id="address" name="address" rows="2"
+                                class="block w-full px-3 py-2 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition resize-none"
+                                placeholder="Street, Colony, City...">{{ old('address', $customer->address) }}</textarea>
+                        </div>
+
+                        <div>
+                            <div class="flex items-center justify-between mb-1">
+                                <label for="notes" class="block text-xs font-semibold uppercase tracking-wider text-slate-600">
+                                    Customer Notes
+                                </label>
+                                <span class="text-[10px] text-slate-400">Optional</span>
+                            </div>
+                            <textarea id="notes" name="notes" rows="2"
+                                class="block w-full px-3 py-2 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition resize-none"
+                                placeholder="Special preferences or instructions...">{{ old('notes', $customer->notes) }}</textarea>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Card Bottom Actions --}}
+                <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
+                    <p class="text-[11px] text-slate-400">
+                        Changes will reflect across all associated records.
+                    </p>
+                    <div class="flex items-center gap-2">
+                        <a href="{{ route('customers.index') }}"
+                            class="px-3.5 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition">
+                            Cancel
+                        </a>
+                        <button type="submit"
+                            class="inline-flex items-center gap-1.5 px-4 py-1.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-xs font-semibold rounded-xl shadow-sm shadow-indigo-500/25 transition">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                            </svg>
+                            Update Customer
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="flex items-center gap-3 pt-4">
-            <button type="submit" class="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg shadow-indigo-500/25 transition-all duration-200">
-                Update Customer
-            </button>
-            <a href="{{ route('customers.index') }}" class="px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition-all duration-200">
-                Cancel
-            </a>
+        {{-- ================= RIGHT COLUMN: FAMILY MEMBERS (5 Cols) ================= --}}
+        <div class="lg:col-span-5 space-y-4">
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-5 space-y-3.5">
+                {{-- Card Header --}}
+                <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                    <div class="flex items-center gap-2">
+                        <div class="w-7 h-7 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-xs">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-1.5">
+                                <h3 class="text-sm font-bold text-slate-800 leading-tight">Family Members</h3>
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold"
+                                    :class="activeMembersCount > 0 ? 'bg-purple-100 text-purple-700' : 'bg-slate-100 text-slate-500'"
+                                    x-text="activeMembersCount + ' Total'">
+                                </span>
+                            </div>
+                            <p class="text-[11px] text-slate-400">Manage family members under this account</p>
+                        </div>
+                    </div>
+
+                    <button type="button" @click="addMember()"
+                        class="inline-flex items-center gap-1 px-3 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-semibold rounded-xl border border-purple-200 transition shadow-2xs">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                        </svg>
+                        Add Member
+                    </button>
+                </div>
+
+                {{-- Members List with Contained Scrollbar --}}
+                <div x-show="activeMembersCount > 0" class="max-h-[290px] overflow-y-auto custom-scrollbar space-y-2.5 pr-1">
+                    <template x-for="(member, index) in members" :key="index">
+                        <div class="bg-slate-50/80 hover:bg-slate-50 border border-slate-200 hover:border-purple-200 rounded-xl p-3 transition space-y-2 relative group"
+                            x-show="member._deleted !== true" x-transition>
+                            <input type="hidden" :name="'members[' + index + '][id]'" :value="member.id || ''">
+                            <input type="hidden" :name="'members[' + index + '][_deleted]'" :value="member._deleted ? '1' : '0'">
+
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="w-5 h-5 rounded-md bg-purple-100 text-purple-700 flex items-center justify-center text-[10px] font-bold" x-text="index + 1"></span>
+                                    <span class="text-xs font-bold text-slate-700 truncate" x-text="member.name ? member.name : 'New Member'"></span>
+                                    <span x-show="member.id" class="text-[10px] bg-emerald-50 text-emerald-600 px-1.5 py-0.2 rounded-md border border-emerald-200 font-medium">Existing</span>
+                                </div>
+                                <button type="button" @click="removeMember(index)" title="Remove member"
+                                    class="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-12 gap-2">
+                                <div class="sm:col-span-7">
+                                    <input type="text" :name="'members[' + index + '][name]'" x-model="member.name" required
+                                        class="block w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                                        placeholder="Member Name *">
+                                </div>
+                                <div class="sm:col-span-5 flex items-center gap-1 bg-white p-1 rounded-lg border border-slate-300">
+                                    <label class="flex-1 inline-flex items-center justify-center py-0.5 px-1.5 rounded-md text-[11px] font-semibold cursor-pointer select-none transition"
+                                        :class="member.gender === 'male' ? 'bg-indigo-600 text-white' : 'text-slate-600 hover:bg-slate-100'">
+                                        <input type="radio" :name="'members[' + index + '][gender]'" value="male" x-model="member.gender" class="hidden">
+                                        <span>Male</span>
+                                    </label>
+                                    <label class="flex-1 inline-flex items-center justify-center py-0.5 px-1.5 rounded-md text-[11px] font-semibold cursor-pointer select-none transition"
+                                        :class="member.gender === 'female' ? 'bg-indigo-600 text-white' : 'text-slate-600 hover:bg-slate-100'">
+                                        <input type="radio" :name="'members[' + index + '][gender]'" value="female" x-model="member.gender" class="hidden">
+                                        <span>Female</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                {{-- Empty State (Compact & Clean) --}}
+                <div x-show="activeMembersCount === 0" class="rounded-xl border-2 border-dashed border-slate-200/80 p-5 text-center bg-slate-50/50">
+                    <div class="w-9 h-9 mx-auto rounded-full bg-purple-50 text-purple-500 flex items-center justify-center mb-1.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
+                        </svg>
+                    </div>
+                    <h5 class="text-xs font-bold text-slate-700">No Family Members</h5>
+                    <p class="text-[11px] text-slate-400 mt-0.5 max-w-xs mx-auto">Click <strong class="text-purple-600 font-semibold cursor-pointer" @click="addMember()">"+ Add Member"</strong> above if this customer has family members sharing this account.</p>
+                </div>
+
+                {{-- Pro Tip Banner --}}
+                <div class="rounded-xl bg-indigo-50/60 border border-indigo-100/80 p-3 flex items-start gap-2.5">
+                    <div class="w-6 h-6 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.516 0c.85.493 1.508 1.333 1.508 2.316V18" />
+                        </svg>
+                    </div>
+                    <div class="text-[11px] leading-relaxed text-indigo-900">
+                        <strong class="font-bold">Family Accounts:</strong> Deleting a member removes their profile from this account. Past completed orders will retain history.
+                    </div>
+                </div>
+            </div>
         </div>
     </form>
 </div>
+@endsection
 
 @push('scripts')
 <script>
 function customerForm() {
     return {
-        members: {!! json_encode($customer->members->map(fn($m) => ['id' => $m->id, 'name' => $m->name, 'gender' => $m->gender])) !!},
+        gender: '{{ old('gender', $customer->gender ?? 'male') }}',
+        members: {!! json_encode(old('members', $customer->members->map(fn($m) => ['id' => $m->id, 'name' => $m->name, 'gender' => $m->gender, '_deleted' => false]))) !!},
+        get activeMembersCount() {
+            return this.members.filter(m => m._deleted !== true).length;
+        },
         addMember() {
-            this.members.push({ id: null, name: '', gender: 'male' });
+            this.members.push({ id: null, name: '', gender: 'male', _deleted: false });
         },
         removeMember(index) {
             if (this.members[index].id) {
@@ -180,4 +330,3 @@ function customerForm() {
 }
 </script>
 @endpush
-@endsection

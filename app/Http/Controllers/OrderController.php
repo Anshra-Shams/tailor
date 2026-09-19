@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Account;
 use App\Models\Customer;
 use App\Models\Measurement;
 use App\Models\Member;
 use App\Models\Order;
+use App\Models\Payment;
 use App\Models\Service;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class OrderController extends Controller
 {
@@ -48,7 +51,17 @@ class OrderController extends Controller
                 ->findOrFail($request->edit);
         }
 
-        return view('orders.create', compact('editOrder'));
+        $accounts = Account::with('category')
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get()
+            ->map(fn ($a) => [
+                'id'       => $a->id,
+                'name'     => $a->name,
+                'category' => $a->category?->name ?? 'Other',
+            ]);
+
+        return view('orders.create', compact('editOrder', 'accounts'));
     }
 
     public function store(Request $request)
@@ -59,14 +72,18 @@ class OrderController extends Controller
             'due_date'            => 'required|date',
             'notes'               => 'nullable|string|max:1000',
             'paid_amount'         => 'nullable|numeric|min:0',
+            'account_id'          => ['nullable', Rule::requiredIf(fn () => (float) $request->input('paid_amount', 0) > 0), 'exists:accounts,id'],
             'service_ids'         => 'required|array|min:1',
             'service_ids.*'       => 'required|exists:services,id',
+            'tiers'               => 'nullable|array',
             'prices'              => 'required|array',
             'prices.*'            => 'required|numeric|min:0',
             'quantities'          => 'required|array',
             'quantities.*'        => 'required|integer|min:1',
             'measurements_json'   => 'required|array',
             'measurements_json.*' => 'nullable|string',
+        ], [
+            'account_id.required' => 'Please select an account for the advance payment.',
         ]);
 
         $count = count($validated['service_ids']);
@@ -80,21 +97,58 @@ class OrderController extends Controller
                 $decoded = [];
             }
 
+            // If no inline measurements, pull the latest saved measurement for this customer/member/service
+            if (empty($decoded)) {
+                $latest = \App\Models\Measurement::where('customer_id', $validated['customer_id'])
+                    ->where(function ($q) use ($serviceId) {
+                        $q->where('service_id', $serviceId)->orWhereNull('service_id');
+                    })
+                    ->when(!empty($validated['member_id']), fn ($q) => $q->where('member_id', $validated['member_id']), fn ($q) => $q->whereNull('member_id'))
+                    ->latest()
+                    ->first();
+                if ($latest) {
+                    $decoded = $latest->data ?? [];
+                }
+            }
+
+            $advanceAmount = $i === 0 ? (float) ($validated['paid_amount'] ?? 0) : 0;
+
+            $tierLabel = !empty($request->input('tiers')[$i]) ? ucfirst($request->input('tiers')[$i]) . ' Stitching' : null;
+            $noteParts = array_filter([$tierLabel, $validated['notes'] ?? null]);
+            $orderNotes = !empty($noteParts) ? implode(' — ', $noteParts) : null;
+
             $order = Order::create([
                 'customer_id'  => $validated['customer_id'],
-                'member_id'    => $validated['member_id'] ?: null,
+                'member_id'    => !empty($validated['member_id']) ? $validated['member_id'] : null,
                 'service_id'   => $serviceId,
                 'price'        => $validated['prices'][$i],
                 'quantity'     => $validated['quantities'][$i] ?? 1,
-                'paid_amount'  => $i === 0 ? ($validated['paid_amount'] ?? 0) : 0,
+                'paid_amount'  => $advanceAmount,
                 'status'       => 'pending',
                 'order_date'   => now()->toDateString(),
                 'due_date'     => $validated['due_date'],
                 'measurements' => json_encode($decoded),
-                'notes'        => $validated['notes'] ?? null,
+                'notes'        => $orderNotes,
             ]);
             $order->refreshPaymentStatus();
             $order->save();
+
+            // If an advance was paid, record it and credit the selected account
+            if ($advanceAmount > 0) {
+                $account = Account::find($validated['account_id']);
+
+                Payment::create([
+                    'order_id'   => $order->id,
+                    'account_id' => $account?->id,
+                    'amount'     => $advanceAmount,
+                    'method'     => $account ? $account->paymentMethod() : 'other',
+                    'notes'      => 'Advance payment at order creation',
+                ]);
+
+                if ($account) {
+                    $account->increment('current_balance', $advanceAmount);
+                }
+            }
         }
 
         return redirect()->route('orders.index')->with('success', "{$count} order(s) created successfully!");
@@ -132,6 +186,17 @@ class OrderController extends Controller
         $decoded = json_decode($validated['measurements_json'][0] ?? '{}', true);
         if (!is_array($decoded)) {
             $decoded = [];
+        }
+
+        if (empty($decoded)) {
+            $latest = \App\Models\Measurement::where('customer_id', $order->customer_id)
+                ->where('service_id', $validated['service_ids'][0])
+                ->when($validated['member_id'], fn ($q) => $q->where('member_id', $validated['member_id']), fn ($q) => $q->whereNull('member_id'))
+                ->latest()
+                ->first();
+            if ($latest) {
+                $decoded = $latest->data ?? [];
+            }
         }
 
         $order->update([
@@ -191,21 +256,18 @@ class OrderController extends Controller
             'member_id'   => 'nullable|exists:members,id',
         ]);
 
-        $query = Measurement::where('customer_id', $request->customer_id);
-
-        if ($request->filled('member_id')) {
-            $query->where('member_id', $request->member_id);
-        } else {
-            $query->whereNull('member_id');
-        }
-
-        $services = Service::whereIn('id', $query->select('service_id'))
-            ->where('is_active', true)
+        $services = Service::where('is_active', true)
+            ->orderBy('name')
             ->get()
             ->map(fn ($s) => [
                 'id'                 => $s->id,
                 'name'               => $s->name,
                 'price'              => (float) $s->price,
+                'pricing_tiers'      => $s->pricing_tiers ?? [
+                    'basic' => (float) $s->price,
+                    'standard' => (float) $s->price,
+                    'premium' => (float) $s->price,
+                ],
                 'days'               => $s->estimated_days,
                 'measurement_fields' => $s->measurement_fields ?? [],
             ]);
@@ -250,6 +312,27 @@ class OrderController extends Controller
             ]);
 
         return response()->json($customers);
+    }
+
+    // ── API: Fetch a single customer (with members) by id ──
+
+    public function apiCustomer(Customer $customer)
+    {
+        $c = $customer->load('members');
+
+        return response()->json([
+            'id'      => $c->id,
+            'name'    => $c->name,
+            'phone'   => $c->phone,
+            'gender'  => $c->gender,
+            'address' => $c->address,
+            'members' => $c->members->map(fn($m) => [
+                'id'       => $m->id,
+                'name'     => $m->name,
+                'gender'   => $m->gender,
+                'relation' => $m->relation,
+            ]),
+        ]);
     }
 
     // ── API: Unified search for customers and members (Create Order) ──
@@ -386,13 +469,16 @@ class OrderController extends Controller
         ]);
 
         $measurement = Measurement::where('customer_id', $request->customer_id)
-            ->where('service_id', $request->service_id)
+            ->where(function ($q) use ($request) {
+                $q->where('service_id', $request->service_id)->orWhereNull('service_id');
+            })
             ->when(
                 $request->member_id,
                 fn ($q, $mid) => $q->where('member_id', $mid),
                 fn ($q) => $q->whereNull('member_id')
             )
-            ->latest()
+            ->orderByRaw('CASE WHEN service_id = ? THEN 0 ELSE 1 END', [$request->service_id])
+            ->latest('id')
             ->first();
 
         if (!$measurement || !$measurement->data) {

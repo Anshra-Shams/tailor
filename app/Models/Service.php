@@ -14,6 +14,7 @@ class Service extends Model
         'name',
         'description',
         'price',
+        'pricing_tiers',
         'estimated_days',
         'measurement_fields',
         'is_active',
@@ -21,6 +22,7 @@ class Service extends Model
 
     protected $casts = [
         'price' => 'decimal:2',
+        'pricing_tiers' => 'array',
         'measurement_fields' => 'array',
         'is_active' => 'boolean',
     ];

@@ -22,12 +22,56 @@
         <div class="bg-white rounded-2xl border border-slate-200 p-5">
             <h3 class="font-semibold text-slate-800 mb-4">Measurements</h3>
             @if (!empty($measurement->data))
+                @php
+                    $customFieldDefs = collect($measurement->data['__custom_fields'] ?? [])->keyBy('key');
+                @endphp
                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     @foreach ($measurement->data as $key => $val)
-                        <div class="bg-slate-50 rounded-lg px-3 py-2">
-                            <div class="text-[11px] uppercase tracking-wide text-slate-400 font-medium">{{ ucwords(str_replace('_', ' ', $key)) }}</div>
-                            <div class="text-sm font-semibold text-slate-700 mt-0.5">{{ $val }} <span class="text-slate-400 font-normal text-xs">in</span></div>
-                        </div>
+                        @if ($key === '__custom_fields')
+                            @continue
+                        @elseif ($key === '__style')
+                            @if(is_array($val))
+                                @foreach($val as $sKey => $sVal)
+                                    <div class="bg-amber-50/70 border border-amber-200/80 rounded-xl px-3 py-2">
+                                        <div class="text-[11px] uppercase tracking-wide text-amber-600 font-bold">{{ ucwords(str_replace('_', ' ', $sKey)) }}</div>
+                                        <div class="text-sm font-semibold text-slate-800 mt-0.5">{{ $sVal }}</div>
+                                    </div>
+                                @endforeach
+                            @endif
+                        @elseif ($key === '__custom')
+                            @if(is_array($val))
+                                @foreach($val as $cf)
+                                    @if(!empty($cf['label']))
+                                        <div class="bg-indigo-50/70 border border-indigo-200/80 rounded-xl px-3 py-2">
+                                            <div class="text-[11px] uppercase tracking-wide text-indigo-600 font-bold">{{ $cf['label'] }}</div>
+                                            <div class="text-sm font-semibold text-slate-800 mt-0.5">{{ $cf['value'] ?? '—' }} <span class="text-slate-400 font-normal text-xs">in</span></div>
+                                        </div>
+                                    @endif
+                                @endforeach
+                            @endif
+                        @elseif (is_array($val) && !empty($val))
+                            @php
+                                $fieldDef = $customFieldDefs->get($key);
+                                $displayLabel = $fieldDef ? $fieldDef['label'] . (!empty($fieldDef['urdu']) ? ' (' . $fieldDef['urdu'] . ')' : '') : ucwords(str_replace('_', ' ', str_replace(['custom_u_', 'custom_l_'], '', $key)));
+                            @endphp
+                            <div class="bg-slate-50 rounded-xl border border-slate-100 px-3 py-2">
+                                <div class="text-[11px] uppercase tracking-wide text-slate-400 font-medium">{{ $displayLabel }}</div>
+                                <div class="flex flex-wrap items-center gap-1 mt-1">
+                                    @foreach($val as $v)
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-100">{{ $v }} <span class="text-slate-400 font-normal text-[10px] ml-0.5">in</span></span>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @elseif (!is_array($val) && trim((string)$val) !== '')
+                            @php
+                                $fieldDef = $customFieldDefs->get($key);
+                                $displayLabel = $fieldDef ? $fieldDef['label'] . (!empty($fieldDef['urdu']) ? ' (' . $fieldDef['urdu'] . ')' : '') : ucwords(str_replace('_', ' ', str_replace(['custom_u_', 'custom_l_'], '', $key)));
+                            @endphp
+                            <div class="bg-slate-50 rounded-xl border border-slate-100 px-3 py-2">
+                                <div class="text-[11px] uppercase tracking-wide text-slate-400 font-medium">{{ $displayLabel }}</div>
+                                <div class="text-sm font-semibold text-slate-800 mt-0.5">{{ $val }} <span class="text-slate-400 font-normal text-xs">in</span></div>
+                            </div>
+                        @endif
                     @endforeach
                 </div>
             @else
@@ -60,8 +104,14 @@
                 </div>
             @endif
             <div>
-                <div class="text-xs uppercase tracking-wide text-slate-400 font-medium">Service</div>
-                <div class="text-sm font-medium text-slate-700 mt-0.5">{{ $measurement->service->name ?? '—' }}</div>
+                <div class="text-xs uppercase tracking-wide text-slate-400 font-medium">Measurement Type</div>
+                <div class="text-sm font-medium text-slate-700 mt-0.5">
+                    @if($measurement->service)
+                        {{ $measurement->service->name }}
+                    @else
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">General Measurements</span>
+                    @endif
+                </div>
             </div>
             <div>
                 <div class="text-xs uppercase tracking-wide text-slate-400 font-medium">Date Created</div>

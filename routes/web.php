@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AccountController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\MeasurementController;
 use App\Http\Controllers\OrderController;
@@ -65,6 +66,14 @@ Route::middleware('auth')->group(function () {
     Route::get('api/payments/orders/{order}/payments', [PaymentController::class, 'apiPayments'])->name('api.payments.order');
     Route::get('api/payments/recent', [PaymentController::class, 'apiRecentPayments'])->name('api.payments.recent');
 
+    // Chart of Accounts
+    Route::get('chart-of-accounts', [AccountController::class, 'index'])->name('accounts.index');
+    Route::post('chart-of-accounts/categories', [AccountController::class, 'storeCategory'])->name('accounts.categories.store');
+    Route::patch('chart-of-accounts/categories/{category}', [AccountController::class, 'updateCategory'])->name('accounts.categories.update');
+    Route::post('chart-of-accounts/accounts', [AccountController::class, 'storeAccount'])->name('accounts.store');
+    Route::patch('chart-of-accounts/accounts/{account}/toggle', [AccountController::class, 'toggleActive'])->name('accounts.toggle');
+    Route::get('chart-of-accounts/{account}/ledger', [AccountController::class, 'ledger'])->name('accounts.ledger');
+
     // Shared Wizard APIs (used by measurements create form)
     Route::get('api/orders/search-customers', [OrderController::class, 'apiSearchCustomers'])->name('api.orders.searchCustomers');
     Route::get('api/orders/search-all', [OrderController::class, 'apiSearchAll'])->name('api.orders.searchAll');
@@ -73,7 +82,9 @@ Route::middleware('auth')->group(function () {
     Route::get('api/orders/services', [OrderController::class, 'apiServices'])->name('api.orders.services');
     Route::get('api/orders/previous-measurements', [OrderController::class, 'apiPreviousMeasurements'])->name('api.orders.prevMeasurements');
     Route::get('api/orders/customer-ledger/{customer}', [OrderController::class, 'apiCustomerLedger'])->name('api.orders.customerLedger');
+    Route::get('api/orders/customer/{customer}', [OrderController::class, 'apiCustomer'])->name('api.orders.customer');
     Route::get('api/orders/member-services', [OrderController::class, 'apiMemberServices'])->name('api.orders.memberServices');
+    Route::get('api/measurements/customer/{customer}', [MeasurementController::class, 'apiCustomerMeasurements'])->name('api.measurements.customer');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

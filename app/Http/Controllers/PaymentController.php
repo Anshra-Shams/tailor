@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Account;
 use App\Models\Order;
 use App\Models\Payment;
 use Illuminate\Http\JsonResponse;
@@ -9,7 +10,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
 
 class PaymentController extends Controller
 {
@@ -63,6 +63,7 @@ class PaymentController extends Controller
                 'initialOrders'   => $orders->getCollection()->map(fn ($o) => self::mapOrder($o))->values(),
                 'outstandingDue'  => (float) ($stats->due ?? 0),
                 'dueCount'        => (int) ($stats->cnt ?? 0),
+                'accounts'        => Account::with('category')->where('is_active', true)->orderBy('name')->get(),
             ])
             ->header('Cache-Control', 'no-store, max-age=0');
     }
@@ -118,11 +119,16 @@ class PaymentController extends Controller
 
     // ── API: recent payments across all orders ──
 
-    public function apiRecentPayments(): JsonResponse
+    public function apiRecentPayments(Request $request): JsonResponse
     {
+        $limit  = min((int) $request->input('limit', 50), 200);
+        $page   = max((int) $request->input('page', 1), 1);
+        $offset = ($page - 1) * $limit;
+
         $payments = Payment::with(['order.customer:id,name,phone', 'order.member:id,name'])
             ->latest('payments.id')
-            ->limit(20)
+            ->skip($offset)
+            ->take($limit)
             ->get()
             ->map(fn (Payment $p) => [
                 'id'        => $p->id,
@@ -134,6 +140,7 @@ class PaymentController extends Controller
                 'amount'    => (float) $p->amount,
                 'method'    => str_replace('_', ' ', $p->method),
                 'notes'     => $p->notes,
+                'type'      => str_contains((string) $p->notes, 'Advance') ? 'advance' : 'payment',
                 'date'      => $p->created_at->format('d M Y'),
                 'time'      => $p->created_at->format('h:i A'),
             ]);
@@ -146,10 +153,10 @@ class PaymentController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'order_id' => ['required', 'exists:orders,id'],
-            'amount'   => ['required', 'numeric', 'min:0.01'],
-            'method'   => ['required', Rule::in(['cash', 'bank_transfer', 'online', 'other'])],
-            'notes'    => ['nullable', 'string', 'max:500'],
+            'order_id'   => ['required', 'exists:orders,id'],
+            'amount'     => ['required', 'numeric', 'min:0.01'],
+            'account_id' => ['required', 'exists:accounts,id'],
+            'notes'      => ['nullable', 'string', 'max:500'],
         ]);
 
         $order = Order::with(['customer:id,name,phone', 'member:id,name,relation', 'service:id,name'])->findOrFail($validated['order_id']);
@@ -167,12 +174,19 @@ class PaymentController extends Controller
                 return 'Payment cannot exceed the remaining due of Rs. ' . number_format($due) . '.';
             }
 
+            $account = Account::find($validated['account_id']);
+
             Payment::create([
-                'order_id' => $locked->id,
-                'amount'   => $amount,
-                'method'   => $validated['method'],
-                'notes'    => $validated['notes'] ?? null,
+                'order_id'   => $locked->id,
+                'account_id' => $account?->id,
+                'amount'     => $amount,
+                'method'     => $account ? $account->paymentMethod() : 'other',
+                'notes'      => $validated['notes'] ?? null,
             ]);
+
+            if ($account) {
+                $account->increment('current_balance', $amount);
+            }
 
             $locked->paid_amount = (float) $locked->paid_amount + $amount;
             $locked->refreshPaymentStatus();

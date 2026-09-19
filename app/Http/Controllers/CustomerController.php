@@ -13,7 +13,7 @@ class CustomerController extends Controller
 {
     public function index(Request $request): View
     {
-        $query = Customer::with(['members' => fn ($q) => $q->orderBy('name')])->withCount('members');
+        $query = Customer::with(['members' => fn ($q) => $q->orderBy('name')])->withCount(['members', 'orders']);
 
         if ($request->filled('search')) {
             $search = $request->search;

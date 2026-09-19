@@ -36,16 +36,29 @@ class ServiceController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
-            'price' => 'required|numeric|min:0',
+            'price' => 'nullable|numeric|min:0',
+            'price_basic' => 'nullable|numeric|min:0',
+            'price_standard' => 'nullable|numeric|min:0',
+            'price_premium' => 'nullable|numeric|min:0',
             'estimated_days' => 'nullable|integer|min:1',
             'measurement_fields' => 'nullable|array',
             'measurement_fields.*.label' => 'required|string|max:100',
+            'measurement_fields.*.type' => 'nullable|string|in:upper,lower',
             'measurement_fields.*.required' => 'boolean',
             'is_active' => 'boolean',
         ]);
 
+        $basic = $request->filled('price_basic') ? (float)$request->price_basic : ($request->filled('price') ? (float)$request->price : 1000);
+        $standard = $request->filled('price_standard') ? (float)$request->price_standard : ($request->filled('price') ? (float)$request->price : 1500);
+        $premium = $request->filled('price_premium') ? (float)$request->price_premium : 2500;
+
+        $validated['price'] = $request->filled('price') ? (float)$request->price : $standard;
+        $validated['pricing_tiers'] = [
+            'basic' => $basic,
+            'standard' => $standard,
+            'premium' => $premium,
+        ];
         $validated['is_active'] = $request->boolean('is_active');
-        $validated['price'] = $validated['price'] ?? 0;
         $validated['measurement_fields'] = $this->buildFields($request->measurement_fields);
 
         Service::create($validated);
@@ -70,16 +83,29 @@ class ServiceController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
-            'price' => 'required|numeric|min:0',
+            'price' => 'nullable|numeric|min:0',
+            'price_basic' => 'nullable|numeric|min:0',
+            'price_standard' => 'nullable|numeric|min:0',
+            'price_premium' => 'nullable|numeric|min:0',
             'estimated_days' => 'nullable|integer|min:1',
             'measurement_fields' => 'nullable|array',
             'measurement_fields.*.label' => 'required|string|max:100',
+            'measurement_fields.*.type' => 'nullable|string|in:upper,lower',
             'measurement_fields.*.required' => 'boolean',
             'is_active' => 'boolean',
         ]);
 
+        $basic = $request->filled('price_basic') ? (float)$request->price_basic : ($request->filled('price') ? (float)$request->price : 1000);
+        $standard = $request->filled('price_standard') ? (float)$request->price_standard : ($request->filled('price') ? (float)$request->price : 1500);
+        $premium = $request->filled('price_premium') ? (float)$request->price_premium : 2500;
+
+        $validated['price'] = $request->filled('price') ? (float)$request->price : $standard;
+        $validated['pricing_tiers'] = [
+            'basic' => $basic,
+            'standard' => $standard,
+            'premium' => $premium,
+        ];
         $validated['is_active'] = $request->boolean('is_active');
-        $validated['price'] = $validated['price'] ?? 0;
         $validated['measurement_fields'] = $this->buildFields($request->measurement_fields);
 
         $service->update($validated);
@@ -111,9 +137,15 @@ class ServiceController extends Controller
             $key = $this->generateKey($f['label'], $usedKeys);
             $usedKeys[] = $key;
 
+            $type = strtolower(trim($f['type'] ?? 'upper'));
+            if (!in_array($type, ['upper', 'lower'])) {
+                $type = 'upper';
+            }
+
             $result[] = [
                 'key'      => $key,
                 'label'    => trim($f['label']),
+                'type'     => $type,
                 'required' => !empty($f['required']),
             ];
         }

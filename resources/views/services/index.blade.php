@@ -131,6 +131,7 @@ function viewServiceFields(name, fields) {
                 <span class="flex items-center gap-2 min-w-0">
                     <span class="w-5 h-5 rounded-md bg-indigo-100 text-indigo-600 text-[11px] font-bold flex items-center justify-center flex-shrink-0">${i + 1}</span>
                     <span class="text-sm font-medium text-slate-700 truncate">${escapeHtml(f.label || f.key)}</span>
+                    <span class="text-[10px] font-bold px-1.5 py-0.2 rounded ${f.type === 'lower' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-indigo-50 text-indigo-700 border border-indigo-200'}">${f.type === 'lower' ? '👖 Lower' : '👕 Upper'}</span>
                 </span>
                 <span class="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full whitespace-nowrap ${f.required ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-slate-100 text-slate-400 border border-slate-200'}">${f.required ? 'Required' : 'Optional'}</span>
             </div>`).join('');
