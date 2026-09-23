@@ -175,6 +175,12 @@
                         </div>
                     </div>
                     <div class="flex items-center gap-2">
+                        <button type="button" @click="resetUpperFields()"
+                            class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 text-slate-500 hover:text-slate-700 text-xs font-semibold transition cursor-pointer shadow-2xs"
+                            title="Reset all Upper Body measurement buttons to default">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+                            <span>Reset</span>
+                        </button>
                         <button type="button" @click="promptAddUpperField()"
                             class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-dashed border-indigo-300 hover:border-indigo-500 bg-indigo-50/50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold transition-all cursor-pointer shadow-2xs"
                             title="Add a new custom measurement field">
@@ -217,9 +223,9 @@
                                     :class="activeUpperKeys.includes(f.key) ? 'bg-white/25 text-white' : 'bg-indigo-200/90 text-indigo-900'"
                                     class="ml-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold"
                                     x-text="parseValues(measurements[f.key]).length"></span>
-                                <span x-show="f.isCustom" @click.stop="removeUpperField(f.key)"
-                                    class="ml-1 opacity-60 hover:opacity-100 hover:text-red-300 font-bold text-xs"
-                                    title="Delete custom field">&times;</span>
+                                <span @click.stop="confirmRemoveUpperField(f)"
+                                    class="ml-1 opacity-50 hover:opacity-100 hover:text-red-500 font-bold text-xs transition"
+                                    :title="'Remove ' + f.label + ' button'">&times;</span>
                             </button>
                         </template>
                     </div>
@@ -232,12 +238,11 @@
                             <div class="flex items-center justify-between mb-1.5">
                                 <div class="flex items-center gap-1.5 truncate">
                                     <label :for="'f_'+f.key" class="text-xs font-bold text-slate-800" x-text="f.label"></label>
-                                    <span x-show="f.isCustom" class="text-[10px] bg-indigo-100 text-indigo-700 px-1.5 py-0.2 rounded font-semibold">Custom</span>
                                 </div>
                                 <div class="flex items-center gap-1">
-                                    <button x-show="f.isCustom" type="button" @click="removeUpperField(f.key)"
+                                    <button type="button" @click="confirmRemoveUpperField(f)"
                                         class="text-slate-400 hover:text-red-500 p-0.5 rounded-md hover:bg-red-50 transition"
-                                        title="Delete this custom field">
+                                        :title="'Remove ' + f.label + ' button'">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
                                     </button>
                                     <button type="button" @click="toggleUpperField(f.key)"
@@ -288,6 +293,12 @@
                         </div>
                     </div>
                     <div class="flex items-center gap-2">
+                        <button type="button" @click="resetLowerFields()"
+                            class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 text-slate-500 hover:text-slate-700 text-xs font-semibold transition cursor-pointer shadow-2xs"
+                            title="Reset all Lower Body measurement buttons to default">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+                            <span>Reset</span>
+                        </button>
                         <button type="button" @click="promptAddLowerField()"
                             class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-dashed border-emerald-300 hover:border-emerald-500 bg-emerald-50/50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold transition-all cursor-pointer shadow-2xs"
                             title="Add a new custom measurement field">
@@ -330,9 +341,9 @@
                                     :class="activeLowerKeys.includes(f.key) ? 'bg-white/25 text-white' : 'bg-emerald-200/90 text-emerald-900'"
                                     class="ml-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold"
                                     x-text="parseValues(measurements[f.key]).length"></span>
-                                <span x-show="f.isCustom" @click.stop="removeLowerField(f.key)"
-                                    class="ml-1 opacity-60 hover:opacity-100 hover:text-red-300 font-bold text-xs"
-                                    title="Delete custom field">&times;</span>
+                                <span @click.stop="confirmRemoveLowerField(f)"
+                                    class="ml-1 opacity-50 hover:opacity-100 hover:text-red-500 font-bold text-xs transition"
+                                    :title="'Remove ' + f.label + ' button'">&times;</span>
                             </button>
                         </template>
                     </div>
@@ -345,12 +356,11 @@
                             <div class="flex items-center justify-between mb-1.5">
                                 <div class="flex items-center gap-1.5 truncate">
                                     <label :for="'f_'+f.key" class="text-xs font-bold text-slate-800" x-text="f.label"></label>
-                                    <span x-show="f.isCustom" class="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.2 rounded font-semibold">Custom</span>
                                 </div>
                                 <div class="flex items-center gap-1">
-                                    <button x-show="f.isCustom" type="button" @click="removeLowerField(f.key)"
+                                    <button type="button" @click="confirmRemoveLowerField(f)"
                                         class="text-slate-400 hover:text-red-500 p-0.5 rounded-md hover:bg-red-50 transition"
-                                        title="Delete this custom field">
+                                        :title="'Remove ' + f.label + ' button'">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
                                     </button>
                                     <button type="button" @click="toggleLowerField(f.key)"
@@ -468,15 +478,7 @@
                     </template>
                 </div>
 
-                {{-- Special Instructions Textarea --}}
-                <div class="pt-2">
-                    <label for="notes" class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">
-                        Master Tailor Notes / Posture Instructions
-                    </label>
-                    <textarea id="notes" x-model="notes" rows="2"
-                        class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs text-slate-900 placeholder-slate-400 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
-                        placeholder="e.g. Drop shoulder on right side, customer prefers 1 inch extra loose on sleeves, extra margin on inseam..."></textarea>
-                </div>
+
             </div>
 
             {{-- Bottom Save Actions --}}
@@ -684,6 +686,44 @@
 
 @push('scripts')
 <script>
+const DEFAULT_UPPER_FIELDS = [
+    { key: 'kameez_length', label: 'Length', urdu: 'لمبائی' },
+    { key: 'chest', label: 'Chest', urdu: 'چھاتی' },
+    { key: 'waist_upper', label: 'Waist', urdu: 'کمر' },
+    { key: 'shoulder', label: 'Shoulder', urdu: 'تیرا' },
+    { key: 'sleeves', label: 'Sleeves', urdu: 'بازو' },
+    { key: 'collar', label: 'Collar / Neck', urdu: 'کالر / گلا' },
+    { key: 'daman', label: 'Daman / Ghera', urdu: 'دامن / گھیرا' },
+    { key: 'cross_back', label: 'Cross Back', urdu: 'کراس بیک' },
+    { key: 'bicep', label: 'Bicep', urdu: 'مسل' },
+    { key: 'wrist', label: 'Cuff / Wrist', urdu: 'کف' },
+];
+
+const DEFAULT_LOWER_FIELDS = [
+    { key: 'shalwar_length', label: 'Length', urdu: 'شلوار / پینٹ لمبائی' },
+    { key: 'waist_lower', label: 'Waist', urdu: 'کمر' },
+    { key: 'hip', label: 'Hip', urdu: 'ہپ / سیٹ' },
+    { key: 'inseam', label: 'Inseam', urdu: 'اندر کی لمبائی' },
+    { key: 'paincha', label: 'Paincha / Bottom', urdu: 'پانچہ / موری' },
+    { key: 'thigh', label: 'Thigh', urdu: 'ران' },
+    { key: 'asan', label: 'Asan / Fly', urdu: 'آسن / فلائی' },
+];
+
+function getStoredMeasurementFields(storageKey, defaultList) {
+    try {
+        const stored = localStorage.getItem(storageKey);
+        if (stored !== null) {
+            const parsed = JSON.parse(stored);
+            if (Array.isArray(parsed)) {
+                return parsed;
+            }
+        }
+    } catch (e) {
+        console.warn('Error reading ' + storageKey + ' from localStorage', e);
+    }
+    return defaultList.map(f => ({ ...f }));
+}
+
 function measurementForm() {
     return {
         unit: 'in', // inches
@@ -713,30 +753,29 @@ function measurementForm() {
         qmSaving: false,
         qmError: '',
 
-        // Upper Body Fields
-        upperFields: [
-            { key: 'kameez_length', label: 'Length', urdu: 'لمبائی' },
-            { key: 'chest', label: 'Chest', urdu: 'چھاتی' },
-            { key: 'waist_upper', label: 'Waist', urdu: 'کمر' },
-            { key: 'shoulder', label: 'Shoulder', urdu: 'تیرا' },
-            { key: 'sleeves', label: 'Sleeves', urdu: 'بازو' },
-            { key: 'collar', label: 'Collar / Neck', urdu: 'کالر / گلا' },
-            { key: 'daman', label: 'Daman / Ghera', urdu: 'دامن / گھیرا' },
-            { key: 'cross_back', label: 'Cross Back', urdu: 'کراس بیک' },
-            { key: 'bicep', label: 'Bicep', urdu: 'مسل' },
-            { key: 'wrist', label: 'Cuff / Wrist', urdu: 'کف' },
-        ],
+        // Default field definitions for reset
+        defaultUpperFields: DEFAULT_UPPER_FIELDS,
+        defaultLowerFields: DEFAULT_LOWER_FIELDS,
 
-        // Lower Body Fields
-        lowerFields: [
-            { key: 'shalwar_length', label: 'Length', urdu: 'شلوار / پینٹ لمبائی' },
-            { key: 'waist_lower', label: 'Waist', urdu: 'کمر' },
-            { key: 'hip', label: 'Hip', urdu: 'ہپ / سیٹ' },
-            { key: 'inseam', label: 'Inseam', urdu: 'اندر کی لمبائی' },
-            { key: 'paincha', label: 'Paincha / Bottom', urdu: 'پانچہ / موری' },
-            { key: 'thigh', label: 'Thigh', urdu: 'ران' },
-            { key: 'asan', label: 'Asan / Fly', urdu: 'آسن / فلائی' },
-        ],
+        // Upper Body Fields (persistently stored in browser localStorage)
+        upperFields: getStoredMeasurementFields('tailor_upper_fields', DEFAULT_UPPER_FIELDS),
+
+        // Lower Body Fields (persistently stored in browser localStorage)
+        lowerFields: getStoredMeasurementFields('tailor_lower_fields', DEFAULT_LOWER_FIELDS),
+
+        saveFieldsToStorage() {
+            try {
+                localStorage.setItem('tailor_upper_fields', JSON.stringify(this.upperFields));
+                localStorage.setItem('tailor_lower_fields', JSON.stringify(this.lowerFields));
+            } catch (e) {
+                console.error('Failed to save measurement fields to localStorage', e);
+            }
+        },
+
+        loadFieldsFromStorage() {
+            this.upperFields = getStoredMeasurementFields('tailor_upper_fields', DEFAULT_UPPER_FIELDS);
+            this.lowerFields = getStoredMeasurementFields('tailor_lower_fields', DEFAULT_LOWER_FIELDS);
+        },
 
         // Active / open measurement field keys
         activeUpperKeys: [],
@@ -856,6 +895,7 @@ function measurementForm() {
                     isCustom: true
                 };
                 this.upperFields.push(newField);
+                this.saveFieldsToStorage();
                 if (!this.activeUpperKeys.includes(key)) {
                     this.activeUpperKeys.push(key);
                 }
@@ -866,10 +906,54 @@ function measurementForm() {
             }
         },
 
+        async confirmRemoveUpperField(field) {
+            const hasVal = this.parseValues(this.measurements[field.key]).length > 0;
+            const res = await Swal.fire({
+                title: 'Remove "' + field.label + '"?',
+                text: hasVal
+                    ? 'This button has entered measurements which will also be cleared.'
+                    : 'Are you sure you want to remove this measurement button?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Remove',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#94a3b8',
+                customClass: { popup: 'rounded-2xl shadow-2xl' }
+            });
+            if (res.isConfirmed) {
+                this.removeUpperField(field.key);
+            }
+        },
+
         removeUpperField(key) {
             this.upperFields = this.upperFields.filter(f => f.key !== key);
             this.activeUpperKeys = this.activeUpperKeys.filter(k => k !== key);
             delete this.measurements[key];
+            this.saveFieldsToStorage();
+        },
+
+        async resetUpperFields() {
+            const res = await Swal.fire({
+                title: 'Reset Upper Body Buttons?',
+                text: 'This will restore all default buttons (Length, Chest, Waist, etc.).',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Reset',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#4f46e5',
+                cancelButtonColor: '#94a3b8',
+                customClass: { popup: 'rounded-2xl shadow-2xl' }
+            });
+            if (res.isConfirmed) {
+                const customFields = this.upperFields.filter(f => f.isCustom);
+                const restored = this.defaultUpperFields.map(f => ({ ...f }));
+                customFields.forEach(cf => {
+                    if (!restored.some(r => r.key === cf.key)) restored.push(cf);
+                });
+                this.upperFields = restored;
+                this.saveFieldsToStorage();
+            }
         },
 
         async promptAddLowerField() {
@@ -914,6 +998,7 @@ function measurementForm() {
                     isCustom: true
                 };
                 this.lowerFields.push(newField);
+                this.saveFieldsToStorage();
                 if (!this.activeLowerKeys.includes(key)) {
                     this.activeLowerKeys.push(key);
                 }
@@ -924,10 +1009,54 @@ function measurementForm() {
             }
         },
 
+        async confirmRemoveLowerField(field) {
+            const hasVal = this.parseValues(this.measurements[field.key]).length > 0;
+            const res = await Swal.fire({
+                title: 'Remove "' + field.label + '"?',
+                text: hasVal
+                    ? 'This button has entered measurements which will also be cleared.'
+                    : 'Are you sure you want to remove this measurement button?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Remove',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#94a3b8',
+                customClass: { popup: 'rounded-2xl shadow-2xl' }
+            });
+            if (res.isConfirmed) {
+                this.removeLowerField(field.key);
+            }
+        },
+
         removeLowerField(key) {
             this.lowerFields = this.lowerFields.filter(f => f.key !== key);
             this.activeLowerKeys = this.activeLowerKeys.filter(k => k !== key);
             delete this.measurements[key];
+            this.saveFieldsToStorage();
+        },
+
+        async resetLowerFields() {
+            const res = await Swal.fire({
+                title: 'Reset Lower Body Buttons?',
+                text: 'This will restore all default buttons (Length, Waist, Hip, etc.).',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Reset',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#059669',
+                cancelButtonColor: '#94a3b8',
+                customClass: { popup: 'rounded-2xl shadow-2xl' }
+            });
+            if (res.isConfirmed) {
+                const customFields = this.lowerFields.filter(f => f.isCustom);
+                const restored = this.defaultLowerFields.map(f => ({ ...f }));
+                customFields.forEach(cf => {
+                    if (!restored.some(r => r.key === cf.key)) restored.push(cf);
+                });
+                this.lowerFields = restored;
+                this.saveFieldsToStorage();
+            }
         },
 
         get upperFilledCount() {
@@ -939,6 +1068,7 @@ function measurementForm() {
         },
 
         async init() {
+            this.loadFieldsFromStorage();
             // Apply URL query params if opened from customer view e.g. ?customer_id=1
             const params = new URLSearchParams(window.location.search);
             const cid = params.get('customer_id');
@@ -993,8 +1123,7 @@ function measurementForm() {
             this.memberList = [];
             this.measurements = {};
             this.customFields = [];
-            this.upperFields = this.upperFields.filter(f => !f.isCustom);
-            this.lowerFields = this.lowerFields.filter(f => !f.isCustom);
+            this.loadFieldsFromStorage();
             this.activeUpperKeys = [];
             this.activeLowerKeys = [];
             this.prevSavedDate = null;
@@ -1029,15 +1158,16 @@ function measurementForm() {
                         delete data.__custom;
                     }
 
-                    // Restore custom fields defined in __custom_fields
-                    this.upperFields = this.upperFields.filter(f => !f.isCustom);
-                    this.lowerFields = this.lowerFields.filter(f => !f.isCustom);
+                    // Always base off user's persistent buttons from storage
+                    this.loadFieldsFromStorage();
+
+                    // If this customer has saved custom field definitions not present in current list, include them for viewing
                     if (data.__custom_fields && Array.isArray(data.__custom_fields)) {
                         data.__custom_fields.forEach(cf => {
                             if (cf.section === 'upper' && !this.upperFields.some(f => f.key === cf.key)) {
-                                this.upperFields.push({ key: cf.key, label: cf.label, urdu: cf.urdu, isCustom: true });
+                                this.upperFields.push({ key: cf.key, label: cf.label, urdu: cf.urdu || cf.label, isCustom: true });
                             } else if (cf.section === 'lower' && !this.lowerFields.some(f => f.key === cf.key)) {
-                                this.lowerFields.push({ key: cf.key, label: cf.label, urdu: cf.urdu, isCustom: true });
+                                this.lowerFields.push({ key: cf.key, label: cf.label, urdu: cf.urdu || cf.label, isCustom: true });
                             }
                         });
                         delete data.__custom_fields;
@@ -1079,6 +1209,7 @@ function measurementForm() {
                 } else {
                     this.measurements = {};
                     this.customFields = [];
+                    this.loadFieldsFromStorage();
                     this.activeUpperKeys = [];
                     this.activeLowerKeys = [];
                     this.notes = '';

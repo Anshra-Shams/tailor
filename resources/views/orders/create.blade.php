@@ -2,54 +2,22 @@
 
 @section('title', $editOrder ? 'Edit Order' : 'Create Order')
 
+@section('back_button')
+<a href="{{ route('orders.index') }}"
+   class="group relative inline-flex items-center justify-center w-8 h-8 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-slate-100 transition mr-1"
+   aria-label="Back to Orders">
+    <svg class="w-4 h-4 transition-transform group-hover:-translate-x-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+    </svg>
+    {{-- Tooltip on hover --}}
+    <span class="absolute left-1/2 -translate-x-1/2 top-full mt-1.5 px-2 py-0.5 text-[10px] font-semibold text-white bg-slate-800 rounded-md shadow-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
+        Back to Orders
+    </span>
+</a>
+@endsection
+
 @section('content')
-<div x-data="orderWizard()" x-init="init()" class="space-y-6">
-
-    {{-- Top Navigation & Header (Matching services/create and measurements/create) --}}
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200/80">
-        <div>
-            <div class="flex items-center gap-2 mb-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                <a href="{{ route('orders.index') }}" class="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-700 transition">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-                    </svg>
-                    Orders
-                </a>
-                <span>/</span>
-                <span class="text-slate-400">{{ $editOrder ? 'Edit Order #' . $editOrder->id : 'New Order' }}</span>
-            </div>
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-md shadow-indigo-500/25">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-                    </svg>
-                </div>
-                <div>
-                    <h2 class="text-2xl font-bold text-slate-800 tracking-tight">{{ $editOrder ? 'Edit Order #' . $editOrder->id : 'Create Tailoring Order' }}</h2>
-                    <p class="text-xs sm:text-sm text-slate-500">Select customer, pick services with auto-filled measurements, and configure delivery schedule.</p>
-                </div>
-            </div>
-        </div>
-
-        {{-- Quick Header Actions --}}
-        <div class="flex items-center gap-3">
-            <a href="{{ route('orders.index') }}"
-                class="px-4 py-2.5 text-sm font-semibold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl transition shadow-sm">
-                Cancel
-            </a>
-            <button type="button" @click="saveOrder()" :disabled="submitting || !selectedCustomer || selectedServices.length === 0"
-                class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-sm font-semibold rounded-xl shadow-md shadow-indigo-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-                <svg x-show="!submitting" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                </svg>
-                <svg x-show="submitting" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                </svg>
-                <span x-text="submitting ? 'Saving...' : (editMode ? 'Update Order' : 'Save Order')"></span>
-            </button>
-        </div>
-    </div>
+<div x-data="orderWizard()" x-init="init()" class="space-y-6 -mt-4 sm:-mt-5 lg:-mt-6">
 
     {{-- Server Error Banner --}}
     @if ($errors->any())
@@ -60,8 +28,8 @@
             </svg>
         </div>
         <div class="flex-1">
-            <h4 class="text-sm font-bold text-red-800">Order submission failed:</h4>
-            <ul class="text-xs text-red-600 mt-1 list-disc list-inside space-y-0.5">
+            <h4 class="text-sm font-bold text-red-800">Please correct the errors below</h4>
+            <ul class="mt-1 text-xs text-red-600 list-disc list-inside space-y-0.5">
                 @foreach ($errors->all() as $error)
                     <li>{{ $error }}</li>
                 @endforeach
@@ -87,18 +55,18 @@
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
         {{-- ================= LEFT COLUMN: WORK AREA (8 Cols) ================= --}}
-        <div class="lg:col-span-8 space-y-6">
+        <div class="lg:col-span-8 space-y-5">
 
             {{-- STEP 1: CUSTOMER + MEMBER + FINANCIAL LEDGER --}}
-            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
-                <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-                    <div class="flex items-center gap-2.5">
-                        <span class="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-xs">1</span>
-                        <h3 class="text-base font-bold text-slate-800">Select Customer &amp; Family Member</h3>
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-3.5">
+                <div class="flex items-center justify-between pb-2.5 border-b border-slate-100">
+                    <div class="flex items-center gap-2">
+                        <span class="w-5 h-5 rounded-md bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-xs">1</span>
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Select Customer &amp; Family Member</h3>
                     </div>
                     <button type="button" @click="showQuickCustomer = true" x-show="!editMode"
-                        class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-xl transition">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                        class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-lg transition">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
                         + New Customer
                     </button>
                 </div>
@@ -170,241 +138,252 @@
                     </div>
                 </div>
 
-                {{-- Selected Customer Details & Member Selection (Matches measurements/create) --}}
-                <div x-show="selectedCustomer" x-transition class="rounded-xl bg-slate-50 border border-slate-200/80 p-4">
-                    <div class="flex items-start justify-between gap-3">
-                        <div class="flex items-center gap-3">
-                            <span class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-bold text-base flex items-center justify-center flex-shrink-0 shadow-sm"
-                                x-text="selectedCustomer?.name?.charAt(0)?.toUpperCase()"></span>
-                            <div>
-                                <h4 class="font-bold text-slate-800 text-base leading-tight" x-text="selectedCustomer?.name"></h4>
-                                <div class="flex items-center gap-2 mt-1 text-xs text-slate-500">
-                                    <span class="font-medium" x-text="selectedCustomer?.phone"></span>
-                                    <span x-show="selectedCustomer?.gender" class="capitalize px-2 py-0.5 rounded-full bg-slate-200/80 text-slate-600 text-[11px]" x-text="selectedCustomer?.gender"></span>
-                                </div>
+                {{-- Selected Customer Card --}}
+                <div x-show="selectedCustomer" x-transition class="rounded-xl bg-slate-50 border border-slate-200/80 overflow-hidden">
+
+                    {{-- Row 1: Customer Info + Order For chips + X button --}}
+                    <div class="flex items-start gap-3 px-4 pt-3 pb-2.5">
+
+                        {{-- Avatar --}}
+                        <span class="w-9 h-9 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-bold text-sm flex items-center justify-center flex-shrink-0 shadow-sm mt-0.5"
+                            x-text="selectedCustomer?.name?.charAt(0)?.toUpperCase()"></span>
+
+                        {{-- Name + Phone + Gender --}}
+                        <div class="flex-shrink-0 min-w-0">
+                            <h4 class="font-bold text-slate-800 text-sm leading-tight truncate" x-text="selectedCustomer?.name"></h4>
+                            <div class="flex items-center gap-1.5 mt-0.5">
+                                <span class="text-xs text-slate-500 font-medium" x-text="selectedCustomer?.phone"></span>
+                                <span x-show="selectedCustomer?.gender"
+                                    class="capitalize px-1.5 py-0.5 rounded-full bg-slate-200/80 text-slate-600 text-[10px] font-medium"
+                                    x-text="selectedCustomer?.gender"></span>
                             </div>
                         </div>
 
-                        <button type="button" @click="clearAll()" title="Change Customer" x-show="!editMode"
-                            class="p-1.5 text-slate-400 hover:text-red-500 hover:bg-white rounded-lg border border-transparent hover:border-slate-200 transition">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                        {{-- Add Family Member (+ before the divider) --}}
+                        <button type="button" @click="showQuickMember = true" x-show="!editMode"
+                            class="px-2 py-1 rounded-lg border border-dashed border-indigo-300 text-indigo-600 hover:bg-indigo-50 hover:border-indigo-400 transition flex items-center flex-shrink-0 cursor-pointer ml-1">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                            </svg>
                         </button>
-                    </div>
 
-                    {{-- Member Selection Section --}}
-                    <div class="mt-4 pt-3 border-t border-slate-200/80">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="text-xs font-bold text-slate-700">Order For:</span>
-                            <button type="button" @click="showQuickMember = true" x-show="!editMode"
-                                class="text-xs text-indigo-600 hover:text-indigo-700 font-semibold flex items-center gap-1">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-                                Add Family Member
-                            </button>
-                        </div>
+                        {{-- Vertical divider --}}
+                        <div class="w-px h-9 self-center bg-slate-300 mx-1 flex-shrink-0" aria-hidden="true"></div>
 
-                        <div class="flex flex-wrap items-center gap-2">
+                        {{-- Order For label + chips + Add button (all wrap together) --}}
+                        <div class="flex-1 flex flex-wrap items-center gap-1.5 min-w-0">
+                            <span class="text-xs font-bold text-slate-600 flex-shrink-0 mr-0.5">Order For:</span>
+
                             <template x-for="m in memberOptions" :key="'mo'+m.id">
                                 <button type="button" @click="pickMember(m)"
-                                    class="px-3 py-1.5 rounded-xl border text-xs font-semibold transition flex items-center gap-1.5 shadow-xs"
+                                    class="px-2.5 py-1 rounded-lg border text-xs font-semibold transition-all flex items-center gap-1 flex-shrink-0"
                                     :class="isMemberSelected(m.id)
-                                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-indigo-500/20'
-                                        : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'">
-                                    <svg x-show="isMemberSelected(m.id)" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm shadow-indigo-500/25'
+                                        : 'bg-white text-slate-700 border-slate-200 hover:border-indigo-300 hover:bg-indigo-50'">
+                                    <svg x-show="isMemberSelected(m.id)" class="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+                                    </svg>
                                     <span x-text="m.isSelf ? 'Self (' + selectedCustomer?.name + ')' : m.name"></span>
-                                    <span class="opacity-80 font-normal" x-show="!m.isSelf && m.relation" x-text="'(' + m.relation + ')'"></span>
+                                    <span class="opacity-60 font-normal" x-show="!m.isSelf && m.relation" x-text="'(' + m.relation + ')'"></span>
                                 </button>
                             </template>
                         </div>
-                    </div>
 
-                    {{-- Customer Financial Ledger Badges --}}
-                    <div x-show="ledger" x-transition class="mt-3.5 pt-3 border-t border-slate-200/80 flex flex-wrap items-center gap-2">
-                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-200/70 text-xs font-medium text-slate-700">
-                            <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z"/></svg>
-                            <span x-text="(ledger?.total_orders ?? 0) + ' past orders'"></span>
-                        </span>
-                        <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-slate-200/70 text-xs font-medium text-slate-700">
-                            Total: <strong class="ml-1 text-slate-800" x-text="money(ledger?.total_amount)"></strong>
-                        </span>
-                        <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-emerald-100/80 text-xs font-medium text-emerald-800">
-                            Paid: <strong class="ml-1" x-text="money(ledger?.paid_amount)"></strong>
-                        </span>
-                        <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold"
-                            :class="parseFloat(ledger?.due_amount) > 0 ? 'bg-red-100 text-red-700 border border-red-200' : 'bg-slate-100 text-slate-500'">
-                            Due: <strong class="ml-1" x-text="money(ledger?.due_amount)"></strong>
-                        </span>
-                    </div>
-                </div>
-            </div>
-
-            {{-- STEP 2: SERVICES (MULTI SELECT WITH UPPER/LOWER BREAKDOWN) --}}
-            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4" x-show="isMemberSelected()" x-transition>
-                <div class="flex items-center justify-between pb-3 border-b border-slate-100 flex-wrap gap-3">
-                    <div class="flex items-center gap-2.5">
-                        <span class="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-xs">2</span>
-                        <h3 class="text-base font-bold text-slate-800">Select Tailoring Services</h3>
-                    </div>
-
-                    <div class="flex items-center gap-3 ml-auto">
-                        {{-- Search services --}}
-                        <div class="relative w-48 sm:w-64">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
-                            </div>
-                            <input type="text" x-model="serviceSearch" @input="servicePage = 0" placeholder="Search services..."
-                                class="w-full pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
-                        </div>
-
-                        {{-- Pagination --}}
-                        <div class="flex items-center gap-1">
-                            <button type="button" @click="servicePage = Math.max(0, servicePage - 1)" :disabled="servicePage === 0"
-                                class="w-7 h-7 flex items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 transition disabled:opacity-30 disabled:cursor-not-allowed">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/></svg>
-                            </button>
-                            <span class="text-xs font-semibold text-slate-500 px-1" x-text="(visiblePages.length ? servicePage + 1 : 0) + ' / ' + visiblePages.length"></span>
-                            <button type="button" @click="servicePage = Math.min(visiblePages.length - 1, servicePage + 1)" :disabled="servicePage >= visiblePages.length - 1"
-                                class="w-7 h-7 flex items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 transition disabled:opacity-30 disabled:cursor-not-allowed">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Loading indicator --}}
-                <div x-show="servicesLoading" class="flex items-center justify-center gap-2 text-sm text-slate-400 py-6">
-                    <svg class="animate-spin w-5 h-5 text-indigo-500" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
-                    <span>Loading available services...</span>
-                </div>
-
-                {{-- Service Cards Grid (Matching services/create style) --}}
-                <div x-show="!servicesLoading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
-                    <template x-for="svc in currentPageServices" :key="svc.id">
-                        <button type="button" @click="toggleService(svc)"
-                            class="text-left p-4 rounded-xl border-2 transition-all duration-150 flex flex-col justify-between group relative overflow-hidden"
-                            :class="isSelected(svc)
-                                ? 'border-indigo-600 bg-indigo-50/70 shadow-sm ring-2 ring-indigo-200'
-                                : 'border-slate-200 bg-white hover:border-slate-300 hover:shadow-xs'">
-                            
-                            <div class="flex items-start justify-between gap-2 mb-2">
-                                <span class="text-sm font-bold text-slate-800 group-hover:text-indigo-600 transition" x-text="svc.name"></span>
-                                <span class="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 text-white transition"
-                                    :class="isSelected(svc) ? 'bg-indigo-600' : 'bg-slate-200 group-hover:bg-slate-300'">
-                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
-                                </span>
-                            </div>
-
-                            <div class="flex items-center justify-between text-xs font-semibold pt-2 border-t border-slate-100">
-                                <span class="text-indigo-600 font-bold" x-text="'From ' + money(getTierPrice(svc, 'basic'))"></span>
-                                <span class="text-slate-400 font-normal" x-text="(svc.days || 5) + ' Days'"></span>
-                            </div>
-
-                            {{-- 3-Tier Quick Price Badges --}}
-                            <div class="grid grid-cols-3 gap-1 mt-2 pt-1.5 border-t border-slate-100 text-[10px] text-center font-medium">
-                                <span class="px-1 py-0.5 rounded bg-slate-100 text-slate-600 truncate" title="Basic stitching" x-text="'🥉 ' + money(getTierPrice(svc, 'basic'))"></span>
-                                <span class="px-1 py-0.5 rounded bg-indigo-50 text-indigo-700 font-bold truncate" title="Standard stitching" x-text="'🥈 ' + money(getTierPrice(svc, 'standard'))"></span>
-                                <span class="px-1 py-0.5 rounded bg-purple-50 text-purple-700 truncate" title="Premium stitching" x-text="'🥇 ' + money(getTierPrice(svc, 'premium'))"></span>
-                            </div>
+                        {{-- X / Change customer (top-right) --}}
+                        <button type="button" @click="clearAll()" title="Change Customer" x-show="!editMode"
+                            class="ml-auto flex-shrink-0 p-1 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition mt-0.5">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
                         </button>
-                    </template>
-                </div>
+                    </div>
 
-                <div x-show="!servicesLoading && services.length === 0" class="text-center py-6 text-sm text-slate-400">
-                    No services found for this customer.
+                    {{-- Row 2: Ledger badges --}}
+                    <div class="flex items-center gap-2 px-4 py-2 border-t border-slate-200/70 bg-white/60 flex-wrap">
+                        <div x-show="ledger" x-transition class="flex flex-wrap items-center gap-1.5">
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-xs font-medium text-slate-600">
+                                <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z"/>
+                                </svg>
+                                <span x-text="(ledger?.total_orders ?? 0) + ' past orders'"></span>
+                            </span>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-100 text-xs font-medium text-slate-600">
+                                Total: <strong class="ml-1 text-slate-800" x-text="money(ledger?.total_amount)"></strong>
+                            </span>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-emerald-50 text-xs font-medium text-emerald-700">
+                                Paid: <strong class="ml-1" x-text="money(ledger?.paid_amount)"></strong>
+                            </span>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold"
+                                :class="parseFloat(ledger?.due_amount) > 0 ? 'bg-red-50 text-red-600 border border-red-200' : 'bg-slate-100 text-slate-500'">
+                                Due: <strong class="ml-1" x-text="money(ledger?.due_amount)"></strong>
+                            </span>
+                        </div>
+                        <div x-show="!ledger" class="text-xs text-slate-400 italic">Loading...</div>
+                    </div>
                 </div>
             </div>
 
-            {{-- STEP 3: SELECTED SERVICES & MEASUREMENTS TABLE --}}
-            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4" x-show="selectedServices.length > 0" x-transition>
-                <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-                    <div class="flex items-center gap-2.5">
-                        <span class="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-xs">3</span>
-                        <h3 class="text-base font-bold text-slate-800">Order Items &amp; Measurements</h3>
+            {{-- STEP 2: ORDER ITEMS & MEASUREMENTS TABLE --}}
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-3.5" x-show="isMemberSelected()" x-transition>
+                <div class="flex items-center justify-between pb-2.5 border-b border-slate-100 flex-wrap gap-2">
+                    <div class="flex items-center gap-2">
+                        <span class="w-5 h-5 rounded-md bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-xs">2</span>
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Order Items &amp; Measurements</h3>
+                        <span x-show="selectedServices.length > 0"
+                            class="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100"
+                            x-text="selectedServices.length + ' Item' + (selectedServices.length > 1 ? 's' : '')"></span>
                     </div>
-                    <span class="text-xs font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full border border-indigo-100"
-                        x-text="selectedServices.length + ' Service' + (selectedServices.length > 1 ? 's' : '') + ' Selected'"></span>
+                    <button type="button" @click="addFirstAvailableService()" x-show="services.length > 0"
+                        class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-lg transition cursor-pointer">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                        Add Service
+                    </button>
                 </div>
 
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm">
-                        <thead class="bg-slate-50/80 border-y border-slate-200">
-                            <tr class="text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                                <th class="px-4 py-3 min-w-[340px]">Service &amp; Stitching Package</th>
-                                <th class="px-3 py-3 text-center w-20">Qty</th>
-                                <th class="px-3 py-3 text-right w-36">Unit Price</th>
-                                <th class="px-3 py-3 text-right w-28">Total</th>
-                                <th class="px-3 py-3 text-center w-40">Measurements</th>
-                                <th class="px-3 py-3 text-center w-14">Action</th>
+                {{-- Loading services indicator --}}
+                <div x-show="servicesLoading" class="flex items-center justify-center gap-2 text-xs text-slate-400 py-6">
+                    <svg class="animate-spin w-4 h-4 text-indigo-400" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                    <span>Loading services...</span>
+                </div>
+
+                {{-- Empty state when no services added --}}
+                <div x-show="!servicesLoading && selectedServices.length === 0" class="text-center py-8 border-2 border-dashed border-slate-200 rounded-xl space-y-2">
+                    <p class="text-xs text-slate-500 font-medium">No services added to this order yet.</p>
+                    <button type="button" @click="addFirstAvailableService()" :disabled="services.length === 0"
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition shadow-xs disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                        + Add First Service
+                    </button>
+                </div>
+
+                {{-- Table with Service Dropdown in each row --}}
+                <div class="overflow-x-auto" x-show="!servicesLoading && selectedServices.length > 0">
+                    <table class="w-full border-collapse text-sm" style="min-width:680px">
+                        <thead>
+                            <tr class="border-b border-slate-200 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                <th class="px-3 py-2.5 w-[240px]">Service</th>
+                                <th class="px-2 py-2.5 w-[180px]">Note</th>
+                                <th class="px-2 py-2.5 text-center w-[48px]">Qty</th>
+                                <th class="px-2 py-2.5 text-center w-[160px]">Unit Price</th>
+                                <th class="px-2 py-2.5 text-right w-[110px]">Total</th>
+                                <th class="px-2 py-2.5 text-center w-[52px]">Meas</th>
+                                <th class="px-2 py-2.5 text-center w-[52px]">Action</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
                             <template x-for="svc in selectedServices" :key="'sel'+svc.id">
                                 <tr class="hover:bg-slate-50/60 transition">
-                                    {{-- Service Name & Stitching Package --}}
-                                    <td class="px-4 py-3.5 align-middle">
-                                        <div class="flex items-center gap-2">
-                                            <span class="font-bold text-slate-800 text-sm" x-text="svc.name"></span>
-                                            <span class="inline-flex items-center gap-1 text-[11px] font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
-                                                <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                                <span x-text="(svc.days || 5) + ' Days'"></span>
-                                            </span>
-                                        </div>
+                                    {{-- Service Direct Search Input & Dropdown --}}
+                                    <td class="px-3 py-3 align-middle">
+                                        <div class="relative" @click.outside="closeServiceDropdown(svc.id)">
+                                            {{-- Direct Search Input Field --}}
+                                            <div class="relative">
+                                                <input type="text"
+                                                    :id="'svc_input_' + svc.id"
+                                                    :value="activeServiceDropdown === svc.id ? (serviceFilterQuery[svc.id] ?? '') : (svc.name ? svc.name + (svc.days ? ' (' + svc.days + ' Days)' : '') : '')"
+                                                    @focus="openServiceDropdown(svc.id, svc)"
+                                                    @input="serviceFilterQuery[svc.id] = $event.target.value; activeServiceDropdown = svc.id"
+                                                    placeholder="Search service..."
+                                                    class="w-full pl-3 pr-8 py-2 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition cursor-pointer">
+                                                
+                                                {{-- Clear or dropdown indicator icon --}}
+                                                <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none text-slate-400">
+                                                    <svg class="w-3.5 h-3.5 transition-transform duration-150"
+                                                        :class="activeServiceDropdown === svc.id ? 'rotate-180 text-indigo-600' : ''"
+                                                        fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/>
+                                                    </svg>
+                                                </div>
+                                            </div>
 
-                                        {{-- 3-Tier Stitching Package Selector (Inline Horizontal Segmented Pills) --}}
-                                        <div class="inline-flex items-center p-1 bg-slate-100/90 rounded-xl border border-slate-200/80 gap-1 mt-2">
-                                            <button type="button" @click="setServiceTier(svc, 'basic')"
-                                                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition cursor-pointer"
-                                                :class="getServiceTier(svc.id) === 'basic' ? 'bg-slate-800 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'">
-                                                <span>🥉 Basic</span>
-                                                <span class="text-[11px] opacity-75 font-normal" x-text="'(' + money(getTierPrice(svc, 'basic')) + ')'"></span>
-                                            </button>
-                                            <button type="button" @click="setServiceTier(svc, 'standard')"
-                                                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition cursor-pointer"
-                                                :class="getServiceTier(svc.id) === 'standard' ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'">
-                                                <span>🥈 Standard</span>
-                                                <span class="text-[11px] opacity-75 font-normal" x-text="'(' + money(getTierPrice(svc, 'standard')) + ')'"></span>
-                                            </button>
-                                            <button type="button" @click="setServiceTier(svc, 'premium')"
-                                                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition cursor-pointer"
-                                                :class="getServiceTier(svc.id) === 'premium' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'">
-                                                <span>🥇 Premium</span>
-                                                <span class="text-[11px] opacity-75 font-normal" x-text="'(' + money(getTierPrice(svc, 'premium')) + ')'"></span>
-                                            </button>
+                                            {{-- Floating Available Services Dropdown (fixed overlay so it never scrolls the card) --}}
+                                            <div x-show="activeServiceDropdown === svc.id" x-transition
+                                                :style="dropdownStyle"
+                                                class="fixed z-[80] min-w-[240px] bg-white rounded-xl border border-slate-200 shadow-xl overflow-hidden divide-y divide-slate-100 max-h-56 overflow-y-auto">
+                                                <template x-for="s in getFilteredServicesFor(svc.id)" :key="'sopt_'+s.id">
+                                                    <button type="button" @mousedown.prevent="pickServiceFromDropdown(svc.id, s.id)"
+                                                        :class="s.id === svc.id ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-slate-700 hover:bg-slate-50 font-medium'"
+                                                        class="w-full text-left px-3 py-2.5 text-xs flex items-center justify-between transition group cursor-pointer">
+                                                        <span class="truncate" x-text="s.name + (s.days ? ' (' + s.days + ' Days)' : '')"></span>
+                                                        <span x-show="s.id === svc.id" class="text-indigo-600 text-xs font-bold">✓</span>
+                                                    </button>
+                                                </template>
+                                                <div x-show="getFilteredServicesFor(svc.id).length === 0" class="px-3 py-4 text-center text-xs text-slate-400">
+                                                    No matching services found
+                                                </div>
+                                            </div>
                                         </div>
+                                    </td>
+
+                                    {{-- Note input --}}
+                                    <td class="px-2 py-3 align-middle">
+                                        <input type="text" x-model="serviceNotes[svc.id]" placeholder="Add note..."
+                                            class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs text-slate-700 placeholder:text-slate-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
                                     </td>
 
                                     {{-- Qty --}}
-                                    <td class="px-3 py-3.5 text-center align-middle">
+                                    <td class="px-2 py-3 text-center align-middle">
                                         <input type="number" min="1" step="1" x-model.number="serviceQty[svc.id]"
-                                            class="w-14 py-1.5 px-2 rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white text-xs font-bold text-center focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition shadow-2xs">
+                                            class="w-10 py-1.5 px-1 rounded-lg border border-slate-200 bg-white text-xs font-bold text-center focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
                                     </td>
 
                                     {{-- Unit Price --}}
-                                    <td class="px-3 py-3.5 text-right align-middle">
-                                        <div class="relative inline-block w-28">
-                                            <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center text-[11px] font-semibold text-slate-400 pointer-events-none">Rs.</span>
-                                            <input type="number" min="0" step="1" x-model.number="servicePrices[svc.id]"
-                                                class="w-full pl-8 pr-2.5 py-1.5 rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white text-xs font-bold text-right focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition shadow-2xs">
+                                    <td class="px-2 py-3 text-right align-middle">
+                                        <div class="relative w-full" @click.outside="closePriceDropdown(svc.id)">
+                                            <div class="flex items-center gap-1 w-full">
+                                                <div class="relative flex-1 min-w-0">
+                                                    <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center text-[10px] font-semibold text-slate-400 pointer-events-none select-none">Rs.</span>
+                                                    <input type="number" min="0" step="1" x-model.number="servicePrices[svc.id]"
+                                                        class="w-full pl-7 pr-1.5 py-2 rounded-xl border border-slate-200 bg-white text-xs font-bold text-right focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                                                </div>
+
+                                                {{-- Basic / Standard / Premium tier button --}}
+                                                <button type="button" :id="'tier_btn_' + svc.id"
+                                                    class="w-7 h-7 flex-shrink-0 inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-400 hover:text-indigo-600 hover:border-indigo-300 transition cursor-pointer"
+                                                    @click="activePriceDropdown === svc.id ? closePriceDropdown(svc.id) : openPriceDropdown(svc.id)"
+                                                    :title="getTierLabel(getServiceTier(svc.id)) + ' tier'">
+                                                    <svg class="w-3.5 h-3.5 transition-transform duration-150"
+                                                        :class="activePriceDropdown === svc.id ? 'rotate-180 text-indigo-600' : ''"
+                                                        fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/>
+                                                    </svg>
+                                                </button>
+                                            </div>
+
+                                            {{-- Floating price tier dropdown --}}
+                                            <div x-show="activePriceDropdown === svc.id" x-transition
+                                                :style="priceDropdownStyle"
+                                                class="fixed z-[80] min-w-[150px] bg-white rounded-xl border border-slate-200 shadow-xl overflow-hidden divide-y divide-slate-100 py-1">
+                                                <template x-for="t in ['basic', 'standard', 'premium']" :key="'tier_' + svc.id + '_' + t">
+                                                    <button type="button" @mousedown.prevent="pickPriceTierFromDropdown(svc.id, t)"
+                                                        class="w-full text-left px-3 py-2 text-xs flex items-center justify-between transition cursor-pointer"
+                                                        :class="getServiceTier(svc.id) === t ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-slate-700 hover:bg-slate-50 font-medium'">
+                                                        <span x-text="getTierLabel(t)"></span>
+                                                        <span class="font-bold" x-text="money(getTierPrice(getSvcById(svc.id), t))"></span>
+                                                    </button>
+                                                </template>
+                                            </div>
                                         </div>
                                     </td>
 
                                     {{-- Total --}}
-                                    <td class="px-3 py-3.5 text-right font-extrabold text-slate-800 text-sm whitespace-nowrap align-middle"
+                                    <td class="px-2 py-3 text-right font-extrabold text-slate-800 text-sm align-middle whitespace-nowrap"
                                         x-text="money((parseFloat(servicePrices[svc.id]) || 0) * (parseInt(serviceQty[svc.id]) || 1))"></td>
 
                                     {{-- Measurements Button --}}
-                                    <td class="px-3 py-3.5 text-center align-middle whitespace-nowrap">
+                                    <td class="px-2 py-3 text-center align-middle whitespace-nowrap">
                                         <button type="button" @click="goMeasurements(svc)"
-                                            class="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition shadow-xs cursor-pointer"
+                                            title="Measurements"
+                                            class="inline-flex items-center justify-center w-8 h-8 rounded-full transition cursor-pointer hover:opacity-80"
                                             :class="mStatusClass(svc.id)">
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/></svg>
-                                            <span x-text="mStatusLabel(svc.id)"></span>
                                         </button>
                                     </td>
 
                                     {{-- Action --}}
-                                    <td class="px-3 py-3.5 text-center align-middle">
+                                    <td class="px-2 py-3 text-center align-middle">
                                         <button type="button" @click="removeService(svc.id)" title="Remove service"
-                                            class="w-8 h-8 inline-flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition cursor-pointer">
+                                            class="w-7 h-7 inline-flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition cursor-pointer">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
                                         </button>
                                     </td>
@@ -547,23 +526,6 @@
                     </div>
                 </div>
 
-                {{-- Helper / Information Card (Matching services/create) --}}
-                <div class="rounded-2xl bg-indigo-50/60 border border-indigo-100 p-4">
-                    <div class="flex items-start gap-3">
-                        <div class="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
-                            </svg>
-                        </div>
-                        <div>
-                            <h5 class="text-xs font-bold text-indigo-900">Auto Measurement Sync</h5>
-                            <p class="text-xs text-indigo-700/90 mt-0.5 leading-relaxed">
-                                Measurements are automatically pulled from the customer's general body profile. You can tweak or override values for this specific order at any time.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
             </div>
         </div>
     </div>
@@ -584,7 +546,7 @@
     {{-- ================= MEASUREMENT MODAL (CATEGORIZED INTO UPPER & LOWER BODY) ================= --}}
     <div x-show="mModal" x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-black/50 backdrop-blur-xs" @click="mModal = false"></div>
-        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-3xl z-10 max-h-[90vh] flex flex-col overflow-hidden">
+        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl z-10 max-h-[90vh] flex flex-col overflow-hidden">
             
             {{-- Modal Header --}}
             <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50 flex-shrink-0">
@@ -605,7 +567,7 @@
             </div>
 
             {{-- Modal Body --}}
-            <div class="p-6 space-y-5 overflow-y-auto flex-1">
+            <div class="p-6 space-y-6 overflow-y-auto flex-1">
                 
                 {{-- Auto-fill from general measurements badge --}}
                 <div x-show="mLoadedFromGeneral" class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between text-xs text-emerald-800">
@@ -616,106 +578,272 @@
                     <span class="text-[11px] text-emerald-600" x-text="'Saved ' + (mSavedDate || 'Profile')"></span>
                 </div>
 
-                {{-- Upper Body Fields Section --}}
-                <div x-show="mUpperFields.length > 0" class="space-y-3">
-                    <div class="flex items-center justify-between pb-1.5 border-b border-slate-100">
-                        <span class="text-xs font-bold text-indigo-700 uppercase tracking-wider flex items-center gap-1.5">
-                            <span>👕</span> Upper Body Specs
-                        </span>
-                        <span class="text-[11px] font-semibold text-slate-400" x-text="mUpperFields.length + ' fields'"></span>
-                    </div>
-                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3.5">
-                        <template x-for="f in mUpperFields" :key="'mf_u_'+f.k">
-                            <div>
-                                <label class="block text-xs font-medium text-slate-600 mb-1">
-                                    <span x-text="f.l"></span>
-                                    <span x-show="f.req" class="text-red-500">*</span>
-                                </label>
-                                <div class="relative">
-                                    <input type="number" step="0.25" x-model="mValues[f.k]" placeholder="0.0"
-                                        class="w-full pl-3 pr-8 py-2 rounded-xl border border-slate-200 text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-indigo-500"
-                                        :class="mFieldErr(f.k) ? 'border-red-400 bg-red-50' : ''">
-                                    <span class="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none text-slate-400 text-xs">in</span>
+                {{-- Upper & Lower Body Measurements — Side by Side --}}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                    {{-- Upper Body Measurements Section --}}
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-2xs p-4 space-y-3">
+                        <div class="flex items-center justify-between pb-2.5 border-b border-slate-100">
+                            <div class="flex items-center gap-2">
+                                <span class="text-base">👕</span>
+                                <h4 class="text-sm font-bold text-slate-800">Upper Body</h4>
+                            </div>
+                            <button type="button" @click="promptAddUpperField()"
+                                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-dashed border-indigo-300 hover:border-indigo-500 bg-indigo-50/50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold transition-all cursor-pointer shadow-2xs"
+                                title="Add a new custom measurement field">
+                                <span class="font-extrabold leading-none">+</span>
+                                <span>Add Field</span>
+                            </button>
+                        </div>
+
+                        {{-- Interactive Label Buttons Bar --}}
+                        <div class="space-y-1.5">
+                            <button type="button" @click="upperLabelsOpen = !upperLabelsOpen"
+                                class="w-full flex items-center justify-between text-left group">
+                                <p class="text-xs font-semibold text-slate-500 group-hover:text-indigo-600 transition-colors">
+                                    Click label buttons to open input fields <span class="text-slate-400 font-normal">(e.g. 32, 34, 36)</span>:
+                                </p>
+                                <div class="flex items-center gap-2 flex-shrink-0 ml-2">
+                                    <span class="text-[11px] text-slate-400" x-text="mActiveUpperKeys.length + ' selected'"></span>
+                                    <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-500 transition-all duration-200"
+                                        :class="upperLabelsOpen ? 'rotate-180' : ''"
+                                        fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/>
+                                    </svg>
+                                </div>
+                            </button>
+
+                            <div x-show="upperLabelsOpen" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-1">
+                                <div class="flex flex-wrap items-center gap-1.5 pt-1">
+                                    <template x-for="f in mUpperFields" :key="'mbtn_u_'+f.key">
+                                        <button type="button"
+                                            @click="toggleUpperField(f.key)"
+                                            :class="{
+                                                'bg-indigo-600 text-white border-indigo-600 shadow-sm ring-2 ring-indigo-200': mActiveUpperKeys.includes(f.key),
+                                                'bg-indigo-50/80 text-indigo-700 border-indigo-200 hover:bg-indigo-100': !mActiveUpperKeys.includes(f.key) && parseValues(mValues[f.key]).length > 0,
+                                                'bg-white text-slate-700 border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/40': !mActiveUpperKeys.includes(f.key) && parseValues(mValues[f.key]).length === 0
+                                            }"
+                                            class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border text-xs font-semibold tracking-wide transition-all cursor-pointer select-none shadow-xs hover:shadow">
+                                            <span class="text-[12px] font-black leading-none" x-text="mActiveUpperKeys.includes(f.key) ? '✓' : '+'"></span>
+                                            <span x-text="f.label"></span>
+                                            <span x-show="parseValues(mValues[f.key]).length > 0"
+                                                :class="mActiveUpperKeys.includes(f.key) ? 'bg-white/25 text-white' : 'bg-indigo-200/90 text-indigo-900'"
+                                                class="ml-0.5 px-1 py-0.5 rounded-full text-[10px] font-bold"
+                                                x-text="parseValues(mValues[f.key]).length"></span>
+                                            <span @click.stop="confirmRemoveUpperField(f)"
+                                                class="ml-0.5 opacity-50 hover:opacity-100 hover:text-red-500 font-bold text-xs transition"
+                                                :title="'Remove ' + f.label + ' button'">&times;</span>
+                                        </button>
+                                    </template>
                                 </div>
                             </div>
-                        </template>
-                    </div>
-                </div>
+                        </div>
 
-                {{-- Lower Body Fields Section --}}
-                <div x-show="mLowerFields.length > 0" class="space-y-3">
-                    <div class="flex items-center justify-between pb-1.5 border-b border-slate-100">
-                        <span class="text-xs font-bold text-teal-700 uppercase tracking-wider flex items-center gap-1.5">
-                            <span>👖</span> Lower Body Specs
-                        </span>
-                        <span class="text-[11px] font-semibold text-slate-400" x-text="mLowerFields.length + ' fields'"></span>
+                        {{-- Dynamic Active Input Fields Grid (2-per-row) --}}
+                        <div x-show="mActiveUpperKeys.length > 0" class="grid grid-cols-2 gap-2 pt-1">
+                            <template x-for="f in activeUpperFieldsList" :key="'minp_u_'+f.key">
+                                <div class="bg-slate-50/80 hover:bg-slate-50 border border-slate-200/90 rounded-xl p-2.5 transition focus-within:border-indigo-400 focus-within:ring-2 focus-within:ring-indigo-100 shadow-2xs">
+                                    <div class="flex items-center justify-between mb-1 gap-1">
+                                        <label :for="'mf_'+f.key" class="text-xs font-bold text-slate-800 truncate" x-text="f.label"></label>
+                                        <div class="flex items-center gap-0.5 flex-shrink-0">
+                                            <button type="button" @click="toggleUpperField(f.key)"
+                                                class="text-slate-400 hover:text-slate-600 p-0.5 rounded hover:bg-slate-200 transition"
+                                                title="Close this field">
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-1">
+                                        <div class="relative flex-1">
+                                            <input type="text" :id="'mf_'+f.key" x-model="mValues[f.key]"
+                                                placeholder="32, 34..."
+                                                class="w-full pl-2.5 pr-6 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-semibold text-slate-800 placeholder-slate-300 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition">
+                                            <span class="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none text-[11px] text-slate-400 font-medium">in</span>
+                                        </div>
+                                        {{-- Chips Toggle Button --}}
+                                        <button type="button"
+                                            x-show="getFieldOptions(f.key).length > 0"
+                                            @click="mChipsOpen[f.key] = !mChipsOpen[f.key]"
+                                            :title="mChipsOpen[f.key] ? 'Hide options' : 'Show options'"
+                                            :class="mChipsOpen[f.key] ? 'bg-indigo-100 text-indigo-600 border-indigo-300' : 'bg-white text-slate-400 border-slate-200 hover:text-indigo-500 hover:border-indigo-300'"
+                                            class="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-lg border transition cursor-pointer">
+                                            <svg class="w-3 h-3 transition-transform duration-200"
+                                                :class="mChipsOpen[f.key] ? 'rotate-180' : ''"
+                                                fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                    {{-- Selectable Values Chips --}}
+                                    <div x-show="mChipsOpen[f.key] && getFieldOptions(f.key).length > 0"
+                                        x-transition:enter="transition ease-out duration-150"
+                                        x-transition:enter-start="opacity-0 -translate-y-1"
+                                        x-transition:enter-end="opacity-100 translate-y-0"
+                                        x-transition:leave="transition ease-in duration-100"
+                                        x-transition:leave-start="opacity-100 translate-y-0"
+                                        x-transition:leave-end="opacity-0 -translate-y-1"
+                                        class="flex flex-wrap items-center gap-1 mt-1.5 pt-1.5 border-t border-slate-200/60">
+                                        <template x-for="(val, idx) in getFieldOptions(f.key)" :key="idx">
+                                            <button type="button" @click="selectSingleMeasurement(f.key, val)"
+                                                :class="isOptionSelected(f.key, val)
+                                                    ? 'bg-indigo-600 text-white border-indigo-700 shadow-sm font-extrabold ring-1 ring-indigo-300'
+                                                    : 'bg-indigo-50/80 hover:bg-indigo-100 text-indigo-700 border-indigo-200'"
+                                                class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-bold border transition shadow-2xs cursor-pointer"
+                                                :title="'Click to select ' + val + ' in'">
+                                                <span x-text="val + ' in'"></span>
+                                            </button>
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+
+                        {{-- Empty state --}}
+                        <div x-show="mActiveUpperKeys.length === 0" class="text-center py-4 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+                            <span class="text-lg block mb-1">👕</span>
+                            <p class="text-xs font-medium text-slate-600">No upper body fields selected yet.</p>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Click a label button above to add values.</p>
+                        </div>
                     </div>
-                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3.5">
-                        <template x-for="f in mLowerFields" :key="'mf_l_'+f.k">
-                            <div>
-                                <label class="block text-xs font-medium text-slate-600 mb-1">
-                                    <span x-text="f.l"></span>
-                                    <span x-show="f.req" class="text-red-500">*</span>
-                                </label>
-                                <div class="relative">
-                                    <input type="number" step="0.25" x-model="mValues[f.k]" placeholder="0.0"
-                                        class="w-full pl-3 pr-8 py-2 rounded-xl border border-slate-200 text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-teal-500"
-                                        :class="mFieldErr(f.k) ? 'border-red-400 bg-red-50' : ''">
-                                    <span class="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none text-slate-400 text-xs">in</span>
+
+                    {{-- Lower Body Measurements Section --}}
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-2xs p-4 space-y-3">
+                        <div class="flex items-center justify-between pb-2.5 border-b border-slate-100">
+                            <div class="flex items-center gap-2">
+                                <span class="text-base">👖</span>
+                                <h4 class="text-sm font-bold text-slate-800">Lower Body</h4>
+                            </div>
+                            <button type="button" @click="promptAddLowerField()"
+                                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-dashed border-emerald-300 hover:border-emerald-500 bg-emerald-50/50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold transition-all cursor-pointer shadow-2xs"
+                                title="Add a new custom measurement field">
+                                <span class="font-extrabold leading-none">+</span>
+                                <span>Add Field</span>
+                            </button>
+                        </div>
+
+                        {{-- Interactive Label Buttons Bar --}}
+                        <div class="space-y-1.5">
+                            <button type="button" @click="lowerLabelsOpen = !lowerLabelsOpen"
+                                class="w-full flex items-center justify-between text-left group">
+                                <p class="text-xs font-semibold text-slate-500 group-hover:text-emerald-600 transition-colors">
+                                    Click label buttons to open input fields <span class="text-slate-400 font-normal">(e.g. 38, 40)</span>:
+                                </p>
+                                <div class="flex items-center gap-2 flex-shrink-0 ml-2">
+                                    <span class="text-[11px] text-slate-400" x-text="mActiveLowerKeys.length + ' selected'"></span>
+                                    <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-emerald-500 transition-all duration-200"
+                                        :class="lowerLabelsOpen ? 'rotate-180' : ''"
+                                        fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/>
+                                    </svg>
+                                </div>
+                            </button>
+
+                            <div x-show="lowerLabelsOpen" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-1">
+                                <div class="flex flex-wrap items-center gap-1.5 pt-1">
+                                    <template x-for="f in mLowerFields" :key="'mbtn_l_'+f.key">
+                                        <button type="button"
+                                            @click="toggleLowerField(f.key)"
+                                            :class="{
+                                                'bg-emerald-600 text-white border-emerald-600 shadow-sm ring-2 ring-emerald-200': mActiveLowerKeys.includes(f.key),
+                                                'bg-emerald-50/80 text-emerald-700 border-emerald-200 hover:bg-emerald-100': !mActiveLowerKeys.includes(f.key) && parseValues(mValues[f.key]).length > 0,
+                                                'bg-white text-slate-700 border-slate-200 hover:border-emerald-300 hover:bg-emerald-50/40': !mActiveLowerKeys.includes(f.key) && parseValues(mValues[f.key]).length === 0
+                                            }"
+                                            class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border text-xs font-semibold tracking-wide transition-all cursor-pointer select-none shadow-xs hover:shadow">
+                                            <span class="text-[12px] font-black leading-none" x-text="mActiveLowerKeys.includes(f.key) ? '✓' : '+'"></span>
+                                            <span x-text="f.label"></span>
+                                            <span x-show="parseValues(mValues[f.key]).length > 0"
+                                                :class="mActiveLowerKeys.includes(f.key) ? 'bg-white/25 text-white' : 'bg-emerald-200/90 text-emerald-900'"
+                                                class="ml-0.5 px-1 py-0.5 rounded-full text-[10px] font-bold"
+                                                x-text="parseValues(mValues[f.key]).length"></span>
+                                            <span @click.stop="confirmRemoveLowerField(f)"
+                                                class="ml-0.5 opacity-50 hover:opacity-100 hover:text-red-500 font-bold text-xs transition"
+                                                :title="'Remove ' + f.label + ' button'">&times;</span>
+                                        </button>
+                                    </template>
                                 </div>
                             </div>
-                        </template>
-                    </div>
-                </div>
+                        </div>
 
-                {{-- General / Other Fields Section --}}
-                <div x-show="mOtherFields.length > 0" class="space-y-3">
-                    <div class="flex items-center justify-between pb-1.5 border-b border-slate-100">
-                        <span class="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                            ⚙️ Other Measurements
-                        </span>
-                        <span class="text-[11px] font-semibold text-slate-400" x-text="mOtherFields.length + ' fields'"></span>
-                    </div>
-                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3.5">
-                        <template x-for="f in mOtherFields" :key="'mf_o_'+f.k">
-                            <div>
-                                <label class="block text-xs font-medium text-slate-600 mb-1">
-                                    <span x-text="f.l"></span>
-                                    <span x-show="f.req" class="text-red-500">*</span>
-                                </label>
-                                <div class="relative">
-                                    <input type="text" x-model="mValues[f.k]" placeholder="Value"
-                                        class="w-full pl-3 pr-8 py-2 rounded-xl border border-slate-200 text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-indigo-500"
-                                        :class="mFieldErr(f.k) ? 'border-red-400 bg-red-50' : ''">
-                                    <span class="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none text-slate-400 text-xs">in</span>
+                        {{-- Dynamic Active Input Fields Grid (2-per-row) --}}
+                        <div x-show="mActiveLowerKeys.length > 0" class="grid grid-cols-2 gap-2 pt-1">
+                            <template x-for="f in activeLowerFieldsList" :key="'minp_l_'+f.key">
+                                <div class="bg-slate-50/80 hover:bg-slate-50 border border-slate-200/90 rounded-xl p-2.5 transition focus-within:border-emerald-400 focus-within:ring-2 focus-within:ring-emerald-100 shadow-2xs">
+                                    <div class="flex items-center justify-between mb-1 gap-1">
+                                        <label :for="'mf_'+f.key" class="text-xs font-bold text-slate-800 truncate" x-text="f.label"></label>
+                                        <div class="flex items-center gap-0.5 flex-shrink-0">
+                                            <button type="button" @click="toggleLowerField(f.key)"
+                                                class="text-slate-400 hover:text-slate-600 p-0.5 rounded hover:bg-slate-200 transition"
+                                                title="Close this field">
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-1">
+                                        <div class="relative flex-1">
+                                            <input type="text" :id="'mf_'+f.key" x-model="mValues[f.key]"
+                                                placeholder="38, 40..."
+                                                class="w-full pl-2.5 pr-6 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-semibold text-slate-800 placeholder-slate-300 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition">
+                                            <span class="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none text-[11px] text-slate-400 font-medium">in</span>
+                                        </div>
+                                        {{-- Chips Toggle Button --}}
+                                        <button type="button"
+                                            x-show="getFieldOptions(f.key).length > 0"
+                                            @click="mChipsOpen[f.key] = !mChipsOpen[f.key]"
+                                            :title="mChipsOpen[f.key] ? 'Hide options' : 'Show options'"
+                                            :class="mChipsOpen[f.key] ? 'bg-emerald-100 text-emerald-600 border-emerald-300' : 'bg-white text-slate-400 border-slate-200 hover:text-emerald-500 hover:border-emerald-300'"
+                                            class="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-lg border transition cursor-pointer">
+                                            <svg class="w-3 h-3 transition-transform duration-200"
+                                                :class="mChipsOpen[f.key] ? 'rotate-180' : ''"
+                                                fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                    {{-- Selectable Values Chips --}}
+                                    <div x-show="mChipsOpen[f.key] && getFieldOptions(f.key).length > 0"
+                                        x-transition:enter="transition ease-out duration-150"
+                                        x-transition:enter-start="opacity-0 -translate-y-1"
+                                        x-transition:enter-end="opacity-100 translate-y-0"
+                                        x-transition:leave="transition ease-in duration-100"
+                                        x-transition:leave-start="opacity-100 translate-y-0"
+                                        x-transition:leave-end="opacity-0 -translate-y-1"
+                                        class="flex flex-wrap items-center gap-1 mt-1.5 pt-1.5 border-t border-slate-200/60">
+                                        <template x-for="(val, idx) in getFieldOptions(f.key)" :key="idx">
+                                            <button type="button" @click="selectSingleMeasurement(f.key, val)"
+                                                :class="isOptionSelected(f.key, val)
+                                                    ? 'bg-emerald-600 text-white border-emerald-700 shadow-sm font-extrabold ring-1 ring-emerald-300'
+                                                    : 'bg-emerald-50/80 hover:bg-emerald-100 text-emerald-700 border-emerald-200'"
+                                                class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-bold border transition shadow-2xs cursor-pointer"
+                                                :title="'Click to select ' + val + ' in'">
+                                                <span x-text="val + ' in'"></span>
+                                            </button>
+                                        </template>
+                                    </div>
                                 </div>
-                            </div>
-                        </template>
-                    </div>
-                </div>
+                            </template>
+                        </div>
 
-                {{-- Customer's Styling Preferences Display --}}
-                <div x-show="mCustomerStyles && Object.keys(mCustomerStyles).length > 0" class="p-3.5 bg-amber-50/70 border border-amber-200/80 rounded-xl space-y-2">
-                    <span class="text-[11px] font-bold uppercase tracking-wider text-amber-800 flex items-center gap-1">
-                        <span>✂️</span> Saved Style Preferences for this Customer:
-                    </span>
-                    <div class="flex flex-wrap gap-2 text-xs">
-                        <template x-for="(val, skey) in mCustomerStyles" :key="skey">
-                            <span class="px-2.5 py-1 bg-white rounded-lg border border-amber-200 text-amber-900 font-semibold shadow-xs">
-                                <span class="capitalize text-amber-600" x-text="skey.replace('_', ' ') + ': '"></span>
-                                <span x-text="val"></span>
-                            </span>
-                        </template>
+                        {{-- Empty state --}}
+                        <div x-show="mActiveLowerKeys.length === 0" class="text-center py-4 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+                            <span class="text-lg block mb-1">👖</span>
+                            <p class="text-xs font-medium text-slate-600">No lower body fields selected yet.</p>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Click a label button above to add values.</p>
+                        </div>
                     </div>
-                </div>
+
+                </div>{{-- end grid --}}
 
                 <p x-show="mToast" x-text="mToast" class="text-sm font-semibold text-red-500"></p>
             </div>
 
             {{-- Modal Footer --}}
             <div class="flex items-center justify-between px-6 py-4 border-t border-slate-200 bg-slate-50 flex-shrink-0">
-                <button type="button" @click="mValues = {}" class="text-xs font-semibold text-slate-400 hover:text-red-500 transition">
-                    Clear Inputs
+                <button type="button" @click="mValues = {}; mActiveUpperKeys = []; mActiveLowerKeys = [];" class="text-xs font-semibold text-slate-400 hover:text-red-500 transition">
+                    Clear All
                 </button>
                 <div class="flex items-center gap-3">
                     <button type="button" @click="mModal = false"
@@ -830,6 +958,44 @@
 const TOKEN = document.querySelector('meta[name="csrf-token"]').content;
 window.__editOrder = @json($editOrder);
 
+const DEFAULT_UPPER_FIELDS = [
+    { key: 'kameez_length', label: 'Length', urdu: 'لمبائی' },
+    { key: 'chest', label: 'Chest', urdu: 'چھاتی' },
+    { key: 'waist_upper', label: 'Waist', urdu: 'کمر' },
+    { key: 'shoulder', label: 'Shoulder', urdu: 'تیرا' },
+    { key: 'sleeves', label: 'Sleeves', urdu: 'بازو' },
+    { key: 'collar', label: 'Collar / Neck', urdu: 'کالر / گلا' },
+    { key: 'daman', label: 'Daman / Ghera', urdu: 'دامن / گھیرا' },
+    { key: 'cross_back', label: 'Cross Back', urdu: 'کراس بیک' },
+    { key: 'bicep', label: 'Bicep', urdu: 'مسل' },
+    { key: 'wrist', label: 'Cuff / Wrist', urdu: 'کف' },
+];
+
+const DEFAULT_LOWER_FIELDS = [
+    { key: 'shalwar_length', label: 'Length', urdu: 'شلوار / پینٹ لمبائی' },
+    { key: 'waist_lower', label: 'Waist', urdu: 'کمر' },
+    { key: 'hip', label: 'Hip', urdu: 'ہپ / سیٹ' },
+    { key: 'inseam', label: 'Inseam', urdu: 'اندر کی لمبائی' },
+    { key: 'paincha', label: 'Paincha / Bottom', urdu: 'پانچہ / موری' },
+    { key: 'thigh', label: 'Thigh', urdu: 'ران' },
+    { key: 'asan', label: 'Asan / Fly', urdu: 'آسن / فلائی' },
+];
+
+function getStoredMeasurementFields(storageKey, defaultList) {
+    try {
+        const stored = localStorage.getItem(storageKey);
+        if (stored !== null) {
+            const parsed = JSON.parse(stored);
+            if (Array.isArray(parsed)) {
+                return parsed;
+            }
+        }
+    } catch (e) {
+        console.warn('Error reading ' + storageKey + ' from localStorage', e);
+    }
+    return defaultList.map(f => ({ ...f }));
+}
+
 function orderWizard() {
     const eo = window.__editOrder || null;
     return {
@@ -854,6 +1020,7 @@ function orderWizard() {
         serviceTiers: {},
         serviceQty: {},
         servicePrev: {},
+        serviceNotes: {},
         loadingServiceIds: [],
         submitting: false,
         today: new Date().toISOString().split('T')[0],
@@ -878,16 +1045,422 @@ function orderWizard() {
         qmError: '',
         qm: { name: '', relation: '', gender: 'male' },
 
-        // Measurements modal state
         mModal: false,
         mSaving: false,
         mService: null,
         mValues: {},
+        mOptionValues: {},
         mCustomerStyles: null,
         mLoadedFromGeneral: false,
         mSavedDate: '',
         mFieldErrors: {},
         mToast: '',
+
+        // Upper & Lower Body persistent fields and active keys
+        mUpperFields: getStoredMeasurementFields('tailor_upper_fields', DEFAULT_UPPER_FIELDS),
+        mLowerFields: getStoredMeasurementFields('tailor_lower_fields', DEFAULT_LOWER_FIELDS),
+        mActiveUpperKeys: [],
+        mActiveLowerKeys: [],
+        upperLabelsOpen: false,
+        lowerLabelsOpen: false,
+        mChipsOpen: {},
+
+        saveMFieldsToStorage() {
+            try {
+                localStorage.setItem('tailor_upper_fields', JSON.stringify(this.mUpperFields));
+                localStorage.setItem('tailor_lower_fields', JSON.stringify(this.mLowerFields));
+            } catch (e) {
+                console.error('Failed to save measurement fields to localStorage', e);
+            }
+        },
+
+        loadMFieldsFromStorage() {
+            this.mUpperFields = getStoredMeasurementFields('tailor_upper_fields', DEFAULT_UPPER_FIELDS);
+            this.mLowerFields = getStoredMeasurementFields('tailor_lower_fields', DEFAULT_LOWER_FIELDS);
+        },
+
+        parseValues(val) {
+            if (val === undefined || val === null) return [];
+            if (Array.isArray(val)) {
+                return val.map(v => String(v).trim()).filter(v => v !== '');
+            }
+            return String(val).split(',').map(v => v.trim()).filter(v => v !== '');
+        },
+
+        getFieldOptions(key) {
+            const currentParsed = this.parseValues(this.mValues[key]);
+            const stored = this.mOptionValues[key] || [];
+            // If current input has multiple comma-separated values, update option pool
+            if (currentParsed.length > 1) {
+                currentParsed.forEach(v => {
+                    if (!stored.includes(v)) stored.push(v);
+                });
+                this.mOptionValues[key] = stored;
+            }
+            return stored;
+        },
+
+        isOptionSelected(key, val) {
+            const current = String(this.mValues[key] || '').trim();
+            return current === String(val).trim();
+        },
+
+        selectSingleMeasurement(key, val) {
+            this.mValues[key] = String(val).trim();
+        },
+
+        // Searchable Service Dropdown in Table
+        activeServiceDropdown: null,
+        serviceFilterQuery: {},
+        dropdownRect: null,
+
+        // Price Tier (Basic/Standard/Premium) Dropdown
+        activePriceDropdown: null,
+        priceDropRect: null,
+
+        repositionPriceDropdown() {
+            const id = this.activePriceDropdown;
+            if (!id) return;
+            const btn = document.getElementById('tier_btn_' + id);
+            if (btn) {
+                const r = btn.getBoundingClientRect();
+                this.priceDropRect = { id, top: r.bottom + 6, left: r.left, width: Math.max(r.width, 150) };
+            }
+        },
+
+        get priceDropdownStyle() {
+            const r = this.priceDropRect && this.priceDropRect.id === this.activePriceDropdown ? this.priceDropRect : null;
+            return r
+                ? { position: 'fixed', top: r.top + 'px', left: r.left + 'px', width: r.width + 'px' }
+                : { display: 'none' };
+        },
+
+        openPriceDropdown(svcId) {
+            this.activePriceDropdown = svcId;
+            window.addEventListener('scroll', this.repositionPriceDropdown, true);
+            this.$nextTick(() => {
+                const btn = document.getElementById('tier_btn_' + svcId);
+                if (btn) {
+                    const r = btn.getBoundingClientRect();
+                    this.priceDropRect = { id: svcId, top: r.bottom + 6, left: r.left, width: Math.max(r.width, 150) };
+                }
+            });
+        },
+
+        closePriceDropdown(svcId) {
+            window.removeEventListener('scroll', this.repositionPriceDropdown, true);
+            if (this.activePriceDropdown === svcId) {
+                this.activePriceDropdown = null;
+                this.priceDropRect = null;
+            }
+        },
+
+        pickPriceTierFromDropdown(svcId, tier) {
+            const svc = this.getSvcById(svcId);
+            if (svc) {
+                this.setServiceTier(svc, tier);
+            }
+            this.closePriceDropdown(svcId);
+        },
+
+        getTierLabel(t) {
+            return t === 'basic' ? 'Basic' : t === 'premium' ? 'Premium' : 'Standard';
+        },
+
+        repositionDropdown() {
+            const id = this.activeServiceDropdown;
+            if (!id) return;
+            const inp = document.getElementById('svc_input_' + id);
+            if (inp) {
+                const r = inp.getBoundingClientRect();
+                this.dropdownRect = { id, top: r.bottom + 6, left: r.left, width: Math.max(r.width, 240) };
+            }
+        },
+
+        get dropdownStyle() {
+            const r = this.dropdownRect && this.dropdownRect.id === this.activeServiceDropdown ? this.dropdownRect : null;
+            return r
+                ? { position: 'fixed', top: r.top + 'px', left: r.left + 'px', width: r.width + 'px' }
+                : { display: 'none' };
+        },
+
+        openServiceDropdown(svcId, svc) {
+            this.activeServiceDropdown = svcId;
+            this.serviceFilterQuery[svcId] = '';
+            window.addEventListener('scroll', this.repositionDropdown, true);
+            this.$nextTick(() => {
+                const inp = document.getElementById('svc_input_' + svcId);
+                if (inp) {
+                    const r = inp.getBoundingClientRect();
+                    this.dropdownRect = { id: svcId, top: r.bottom + 6, left: r.left, width: Math.max(r.width, 240) };
+                    inp.select();
+                }
+            });
+        },
+
+        closeServiceDropdown(svcId) {
+            window.removeEventListener('scroll', this.repositionDropdown, true);
+            if (this.activeServiceDropdown === svcId) {
+                this.activeServiceDropdown = null;
+                this.dropdownRect = null;
+                delete this.serviceFilterQuery[svcId];
+            }
+        },
+
+        getFilteredServicesFor(svcId) {
+            const q = (this.serviceFilterQuery[svcId] || '').trim().toLowerCase();
+            if (!q) return this.services;
+            return this.services.filter(s => {
+                const name = (s.name || '').toLowerCase();
+                const days = s.days ? String(s.days) : '';
+                return name.includes(q) || days.includes(q);
+            });
+        },
+
+        async pickServiceFromDropdown(oldId, newId) {
+            this.activeServiceDropdown = null;
+            await this.changeService(oldId, newId);
+        },
+
+        get activeUpperFieldsList() {
+            return this.mUpperFields.filter(f => this.mActiveUpperKeys.includes(f.key));
+        },
+
+        get activeLowerFieldsList() {
+            return this.mLowerFields.filter(f => this.mActiveLowerKeys.includes(f.key));
+        },
+
+        toggleUpperField(key) {
+            const idx = this.mActiveUpperKeys.indexOf(key);
+            if (idx > -1) {
+                this.mActiveUpperKeys.splice(idx, 1);
+            } else {
+                this.mActiveUpperKeys.push(key);
+            }
+        },
+
+        toggleLowerField(key) {
+            const idx = this.mActiveLowerKeys.indexOf(key);
+            if (idx > -1) {
+                this.mActiveLowerKeys.splice(idx, 1);
+            } else {
+                this.mActiveLowerKeys.push(key);
+            }
+        },
+
+        showAllUpper() {
+            this.mActiveUpperKeys = this.mUpperFields.map(f => f.key);
+        },
+
+        hideAllUpper() {
+            this.mActiveUpperKeys = [];
+        },
+
+        showAllLower() {
+            this.mActiveLowerKeys = this.mLowerFields.map(f => f.key);
+        },
+
+        hideAllLower() {
+            this.mActiveLowerKeys = [];
+        },
+
+        async promptAddUpperField() {
+            const { value: formValues } = await Swal.fire({
+                title: 'Add New Upper Body Field',
+                html: `
+                    <div class="text-left space-y-3 pt-2">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Field Name *</label>
+                            <input id="swal_field_label" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="e.g. Armhole, Pocket Width...">
+                        </div>
+                    </div>
+                `,
+                focusConfirm: false,
+                showCancelButton: true,
+                confirmButtonText: '+ Add Field',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#4f46e5',
+                cancelButtonColor: '#94a3b8',
+                customClass: {
+                    popup: 'rounded-2xl shadow-2xl'
+                },
+                didOpen: () => {
+                    const inp = document.getElementById('swal_field_label');
+                    if (inp) inp.focus();
+                },
+                preConfirm: () => {
+                    const label = (document.getElementById('swal_field_label').value || '').trim();
+                    if (!label) {
+                        Swal.showValidationMessage('Field name is required');
+                        return false;
+                    }
+                    return { label, urdu: label };
+                }
+            });
+
+            if (formValues) {
+                const key = 'custom_u_' + formValues.label.toLowerCase().replace(/[^a-z0-9_]/g, '_') + '_' + Date.now().toString().slice(-4);
+                const newField = {
+                    key: key,
+                    label: formValues.label,
+                    urdu: formValues.urdu,
+                    isCustom: true
+                };
+                this.mUpperFields.push(newField);
+                this.saveMFieldsToStorage();
+                if (!this.mActiveUpperKeys.includes(key)) {
+                    this.mActiveUpperKeys.push(key);
+                }
+                this.$nextTick(() => {
+                    const el = document.getElementById('mf_' + key);
+                    if (el) el.focus();
+                });
+            }
+        },
+
+        async confirmRemoveUpperField(field) {
+            const hasVal = this.parseValues(this.mValues[field.key]).length > 0;
+            const res = await Swal.fire({
+                title: 'Remove "' + field.label + '"?',
+                text: hasVal
+                    ? 'This button has entered measurements which will also be cleared.'
+                    : 'Are you sure you want to remove this measurement button?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Remove',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#94a3b8',
+                customClass: { popup: 'rounded-2xl shadow-2xl' }
+            });
+            if (res.isConfirmed) {
+                this.removeUpperField(field.key);
+            }
+        },
+
+        removeUpperField(key) {
+            this.mUpperFields = this.mUpperFields.filter(f => f.key !== key);
+            this.mActiveUpperKeys = this.mActiveUpperKeys.filter(k => k !== key);
+            delete this.mValues[key];
+            this.saveMFieldsToStorage();
+        },
+
+        async resetUpperFields() {
+            const res = await Swal.fire({
+                title: 'Reset Upper Body Buttons?',
+                text: 'This will restore all default buttons (Length, Chest, Waist, etc.).',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Reset',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#4f46e5',
+                cancelButtonColor: '#94a3b8',
+                customClass: { popup: 'rounded-2xl shadow-2xl' }
+            });
+            if (res.isConfirmed) {
+                this.mUpperFields = DEFAULT_UPPER_FIELDS.map(f => ({ ...f }));
+                this.saveMFieldsToStorage();
+            }
+        },
+
+        async promptAddLowerField() {
+            const { value: formValues } = await Swal.fire({
+                title: 'Add New Lower Body Field',
+                html: `
+                    <div class="text-left space-y-3 pt-2">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Field Name *</label>
+                            <input id="swal_lfield_label" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" placeholder="e.g. Belt, Pocket, Calf...">
+                        </div>
+                    </div>
+                `,
+                focusConfirm: false,
+                showCancelButton: true,
+                confirmButtonText: '+ Add Field',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#059669',
+                cancelButtonColor: '#94a3b8',
+                customClass: {
+                    popup: 'rounded-2xl shadow-2xl'
+                },
+                didOpen: () => {
+                    const inp = document.getElementById('swal_lfield_label');
+                    if (inp) inp.focus();
+                },
+                preConfirm: () => {
+                    const label = (document.getElementById('swal_lfield_label').value || '').trim();
+                    if (!label) {
+                        Swal.showValidationMessage('Field name is required');
+                        return false;
+                    }
+                    return { label, urdu: label };
+                }
+            });
+
+            if (formValues) {
+                const key = 'custom_l_' + formValues.label.toLowerCase().replace(/[^a-z0-9_]/g, '_') + '_' + Date.now().toString().slice(-4);
+                const newField = {
+                    key: key,
+                    label: formValues.label,
+                    urdu: formValues.urdu,
+                    isCustom: true
+                };
+                this.mLowerFields.push(newField);
+                this.saveMFieldsToStorage();
+                if (!this.mActiveLowerKeys.includes(key)) {
+                    this.mActiveLowerKeys.push(key);
+                }
+                this.$nextTick(() => {
+                    const el = document.getElementById('mf_' + key);
+                    if (el) el.focus();
+                });
+            }
+        },
+
+        async confirmRemoveLowerField(field) {
+            const hasVal = this.parseValues(this.mValues[field.key]).length > 0;
+            const res = await Swal.fire({
+                title: 'Remove "' + field.label + '"?',
+                text: hasVal
+                    ? 'This button has entered measurements which will also be cleared.'
+                    : 'Are you sure you want to remove this measurement button?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Remove',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#94a3b8',
+                customClass: { popup: 'rounded-2xl shadow-2xl' }
+            });
+            if (res.isConfirmed) {
+                this.removeLowerField(field.key);
+            }
+        },
+
+        removeLowerField(key) {
+            this.mLowerFields = this.mLowerFields.filter(f => f.key !== key);
+            this.mActiveLowerKeys = this.mActiveLowerKeys.filter(k => k !== key);
+            delete this.mValues[key];
+            this.saveMFieldsToStorage();
+        },
+
+        async resetLowerFields() {
+            const res = await Swal.fire({
+                title: 'Reset Lower Body Buttons?',
+                text: 'This will restore all default buttons (Length, Waist, Hip, etc.).',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Reset',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#059669',
+                cancelButtonColor: '#94a3b8',
+                customClass: { popup: 'rounded-2xl shadow-2xl' }
+            });
+            if (res.isConfirmed) {
+                this.mLowerFields = DEFAULT_LOWER_FIELDS.map(f => ({ ...f }));
+                this.saveMFieldsToStorage();
+            }
+        },
 
         async init() {
             if (this.editMode) {
@@ -921,6 +1494,7 @@ function orderWizard() {
                 await this.toggleService(svc);
                 this.servicePrices[svc.id] = eo.price;
                 this.serviceQty[svc.id] = eo.quantity;
+                this.serviceNotes[svc.id] = eo.notes || '';
                 const measurements = typeof eo.measurements === 'object' ? eo.measurements : JSON.parse(eo.measurements || '{}');
                 this.serviceMeasurements[svc.id] = measurements;
             }
@@ -941,6 +1515,10 @@ function orderWizard() {
             const q = (this.serviceSearch || '').trim().toLowerCase();
             if (!q) return this.services;
             return (this.services || []).filter(s => (s.name || '').toLowerCase().includes(q));
+        },
+
+        get filteredServices() {
+            return this.visibleServices;
         },
 
         get visiblePages() {
@@ -995,6 +1573,10 @@ function orderWizard() {
             return this.serviceTiers[serviceId] || 'standard';
         },
 
+        getSvcById(svcId) {
+            return this.selectedServices.find(s => s.id === svcId) || null;
+        },
+
         setServiceTier(svc, tier) {
             this.serviceTiers[svc.id] = tier;
             this.servicePrices[svc.id] = this.getTierPrice(svc, tier);
@@ -1009,52 +1591,6 @@ function orderWizard() {
             return (svc.measurement_fields || []).filter(f => f.type === 'lower').length;
         },
 
-        defaultUpperFields: [
-            { k: 'kameez_length', l: 'Length (لمبائی)', req: 1 },
-            { k: 'chest', l: 'Chest (چھاتی)', req: 1 },
-            { k: 'waist_upper', l: 'Waist (کمر)', req: 0 },
-            { k: 'shoulder', l: 'Shoulder (تیرا)', req: 1 },
-            { k: 'sleeves', l: 'Sleeves (بازو)', req: 1 },
-            { k: 'collar', l: 'Collar (کالر/گلا)', req: 1 },
-            { k: 'daman', l: 'Daman (دامن)', req: 1 },
-        ],
-
-        defaultLowerFields: [
-            { k: 'shalwar_length', l: 'Length (شلوار لمبائی)', req: 1 },
-            { k: 'waist_lower', l: 'Waist (کمر)', req: 0 },
-            { k: 'hip', l: 'Hip (ہپ/سیٹ)', req: 0 },
-            { k: 'paincha', l: 'Paincha (پانچہ)', req: 1 },
-            { k: 'thigh', l: 'Thigh (ران)', req: 0 },
-            { k: 'asan', l: 'Asan (آسن)', req: 0 },
-        ],
-
-        // Categorized fields for the active modal service
-        get mUpperFields() {
-            if (this.mService && Array.isArray(this.mService.measurement_fields) && this.mService.measurement_fields.length > 0) {
-                const list = this.mService.measurement_fields.filter(f => f.type === 'upper');
-                if (list.length > 0) {
-                    return list.map(f => ({ k: f.key, l: f.label, req: f.required ? 1 : 0 }));
-                }
-            }
-            return this.defaultUpperFields;
-        },
-
-        get mLowerFields() {
-            if (this.mService && Array.isArray(this.mService.measurement_fields) && this.mService.measurement_fields.length > 0) {
-                const list = this.mService.measurement_fields.filter(f => f.type === 'lower');
-                if (list.length > 0) {
-                    return list.map(f => ({ k: f.key, l: f.label, req: f.required ? 1 : 0 }));
-                }
-            }
-            return this.defaultLowerFields;
-        },
-
-        get mOtherFields() {
-            if (!this.mService || !this.mService.measurement_fields) return [];
-            return this.mService.measurement_fields
-                .filter(f => f.type !== 'upper' && f.type !== 'lower')
-                .map(f => ({ k: f.key, l: f.label, req: f.required ? 1 : 0 }));
-        },
 
         async openDropdown() {
             this.showDropdown = true;
@@ -1165,10 +1701,59 @@ function orderWizard() {
                 const params = new URLSearchParams({ customer_id: this.form.customer_id });
                 if (this.form.member_id) params.append('member_id', this.form.member_id);
                 this.services = await (await fetch('{{ route("api.orders.memberServices") }}?' + params, { headers: { 'Accept': 'application/json' } })).json();
+                if (!this.editOrder && this.services.length > 0 && this.selectedServices.length === 0) {
+                    this.addServiceRow();
+                }
             } catch (e) {
                 this.services = [];
             }
             this.servicesLoading = false;
+        },
+
+        async changeService(oldId, newId) {
+            newId = parseInt(newId);
+            if (!newId || oldId === newId) return;
+            const newSvc = this.services.find(s => s.id === newId);
+            if (!newSvc) return;
+
+            const oldIdx = this.selectedServices.findIndex(s => s.id === oldId);
+            if (oldIdx > -1) {
+                const prevQty = this.serviceQty[oldId] || 1;
+                const prevNote = this.serviceNotes[oldId] || '';
+
+                delete this.serviceMeasurements[oldId];
+                delete this.servicePrices[oldId];
+                delete this.serviceTiers[oldId];
+                delete this.serviceQty[oldId];
+                delete this.servicePrev[oldId];
+                delete this.serviceNotes[oldId];
+
+                this.selectedServices.splice(oldIdx, 1, newSvc);
+
+                this.serviceTiers[newId] = 'standard';
+                this.servicePrices[newId] = this.getTierPrice(newSvc, 'standard') || newSvc.price;
+                this.serviceQty[newId] = prevQty;
+                this.serviceNotes[newId] = prevNote;
+                this.serviceMeasurements[newId] = {};
+                this.servicePrev[newId] = null;
+                await this.loadPreviousFor(newSvc);
+            }
+        },
+
+        addServiceRow() {
+            const uid = 'new_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+            const row = { id: uid, name: '', days: null, price: 0, pricing_tiers: null, measurement_fields: [] };
+            this.selectedServices.push(row);
+            this.serviceTiers[uid] = 'standard';
+            this.servicePrices[uid] = 0;
+            this.serviceQty[uid] = 1;
+            this.serviceNotes[uid] = '';
+            this.serviceMeasurements[uid] = {};
+            this.servicePrev[uid] = null;
+        },
+
+        addFirstAvailableService() {
+            this.addServiceRow();
         },
 
         isSelected(svc) {
@@ -1185,12 +1770,14 @@ function orderWizard() {
                 delete this.serviceTiers[svc.id];
                 delete this.serviceQty[svc.id];
                 delete this.servicePrev[svc.id];
+                delete this.serviceNotes[svc.id];
                 return;
             }
             this.selectedServices.push(svc);
             this.serviceTiers[svc.id] = 'standard';
             this.servicePrices[svc.id] = this.getTierPrice(svc, 'standard') || svc.price;
             this.serviceQty[svc.id] = 1;
+            this.serviceNotes[svc.id] = '';
             this.serviceMeasurements[svc.id] = {};
             this.servicePrev[svc.id] = null;
             if (!this.form.due_date) {
@@ -1207,13 +1794,14 @@ function orderWizard() {
             delete this.serviceTiers[id];
             delete this.serviceQty[id];
             delete this.servicePrev[id];
+            delete this.serviceNotes[id];
         },
 
         // Smart measurement value matcher
         getSmartValue(fieldKey, rawData) {
             if (!rawData) return '';
-            if (rawData[fieldKey] !== undefined && rawData[fieldKey] !== '') {
-                return rawData[fieldKey];
+            if (rawData[fieldKey] !== undefined && rawData[fieldKey] !== null && rawData[fieldKey] !== '') {
+                return Array.isArray(rawData[fieldKey]) ? rawData[fieldKey].join(', ') : String(rawData[fieldKey]);
             }
             const aliasMap = {
                 'kameez_length': ['length', 'shirt_length', 'upper_length'],
@@ -1221,7 +1809,8 @@ function orderWizard() {
                 'coat_length': ['length', 'upper_length'],
                 'kurta_length': ['length', 'kameez_length', 'upper_length'],
                 'chest': ['chest', 'chaati'],
-                'waist': ['waist', 'kamar'],
+                'waist_upper': ['waist_upper', 'waist', 'kamar'],
+                'waist': ['waist', 'waist_upper', 'kamar'],
                 'shoulder': ['shoulder', 'shoulder_teera', 'teera'],
                 'shoulder_teera': ['shoulder', 'teera'],
                 'sleeves': ['sleeves', 'sleeve_length', 'sleeves_baazu', 'bazu'],
@@ -1239,8 +1828,9 @@ function orderWizard() {
                 'trouser_length': ['trouser_length', 'lower_length', 'shalwar_length', 'pajama_length', 'pant_length', 'length'],
                 'pant_length': ['trouser_length', 'lower_length', 'shalwar_length', 'pajama_length', 'length'],
                 'pajama_length': ['trouser_length', 'lower_length', 'shalwar_length', 'pant_length', 'length'],
-                'pant_waist': ['trouser_waist', 'lower_waist', 'waist'],
-                'trouser_waist': ['trouser_waist', 'lower_waist', 'pant_waist', 'waist'],
+                'waist_lower': ['waist_lower', 'trouser_waist', 'lower_waist', 'pant_waist', 'waist'],
+                'pant_waist': ['trouser_waist', 'lower_waist', 'waist_lower', 'waist'],
+                'trouser_waist': ['trouser_waist', 'lower_waist', 'waist_lower', 'pant_waist', 'waist'],
                 'hip': ['hip', 'seat'],
                 'inseam': ['inseam'],
                 'paincha': ['paincha', 'paincha_bottom', 'bottom_ankle', 'bottom'],
@@ -1253,7 +1843,7 @@ function orderWizard() {
             const aliases = aliasMap[fieldKey.toLowerCase()] || [];
             for (const a of aliases) {
                 if (rawData[a] !== undefined && rawData[a] !== null && rawData[a] !== '') {
-                    return Array.isArray(rawData[a]) ? rawData[a].join(', ') : rawData[a];
+                    return Array.isArray(rawData[a]) ? rawData[a].join(', ') : String(rawData[a]);
                 }
             }
             return '';
@@ -1264,8 +1854,8 @@ function orderWizard() {
                 return svc.measurement_fields;
             }
             return [
-                ...this.defaultUpperFields.map(f => ({ key: f.k, label: f.l, type: 'upper', required: f.req })),
-                ...this.defaultLowerFields.map(f => ({ key: f.k, label: f.l, type: 'lower', required: f.req }))
+                ...this.mUpperFields.map(f => ({ key: f.key, label: f.label, type: 'upper' })),
+                ...this.mLowerFields.map(f => ({ key: f.key, label: f.label, type: 'lower' }))
             ];
         },
 
@@ -1284,7 +1874,8 @@ function orderWizard() {
                     const mapped = {};
                     const fields = this.getServiceMeasurementFields(svc);
                     fields.forEach(f => {
-                        mapped[f.key] = this.getSmartValue(f.key, d.measurements);
+                        const sm = this.getSmartValue(f.key, d.measurements);
+                        if (sm) mapped[f.key] = sm;
                     });
                     result = { measurements: mapped, prev: d };
                 }
@@ -1298,18 +1889,84 @@ function orderWizard() {
             this.mService = svc;
             this.mFieldErrors = {};
             this.mToast = '';
+            this.loadMFieldsFromStorage();
+
             const existing = this.serviceMeasurements[svc.id] || {};
             const prevObj = this.servicePrev[svc.id];
             this.mLoadedFromGeneral = !!prevObj;
             this.mSavedDate = prevObj?.saved_date || '';
             this.mCustomerStyles = prevObj?.measurements?.__style || null;
 
+            // Merge any custom fields from prev measurements if present
+            if (prevObj?.measurements?.__custom_fields && Array.isArray(prevObj.measurements.__custom_fields)) {
+                prevObj.measurements.__custom_fields.forEach(cf => {
+                    if (cf.section === 'lower') {
+                        if (!this.mLowerFields.some(f => f.key === cf.key)) {
+                            this.mLowerFields.push({ key: cf.key, label: cf.label, urdu: cf.urdu || cf.label, isCustom: true });
+                        }
+                    } else {
+                        if (!this.mUpperFields.some(f => f.key === cf.key)) {
+                            this.mUpperFields.push({ key: cf.key, label: cf.label, urdu: cf.urdu || cf.label, isCustom: true });
+                        }
+                    }
+                });
+                this.saveMFieldsToStorage();
+            }
+
             // Initialize values with smart mapping
             this.mValues = {};
-            const fields = this.getServiceMeasurementFields(svc);
-            fields.forEach(f => {
-                this.mValues[f.key] = existing[f.key] ?? this.getSmartValue(f.key, prevObj?.measurements);
+            this.mOptionValues = {};
+            this.mActiveUpperKeys = [];
+            this.mActiveLowerKeys = [];
+
+            // Populate upper fields
+            this.mUpperFields.forEach(f => {
+                let raw = existing[f.key];
+                let prevRaw = this.getSmartValue(f.key, prevObj?.measurements);
+                if (raw === undefined || raw === null || raw === '') {
+                    raw = prevRaw;
+                }
+                const allVals = [
+                    ...this.parseValues(raw),
+                    ...this.parseValues(prevRaw)
+                ];
+                this.mOptionValues[f.key] = [...new Set(allVals)];
+
+                if (raw !== undefined && raw !== null && raw !== '') {
+                    this.mValues[f.key] = Array.isArray(raw) ? raw.join(', ') : String(raw);
+                    if (this.parseValues(this.mValues[f.key]).length > 0) {
+                        this.mActiveUpperKeys.push(f.key);
+                    }
+                } else {
+                    this.mValues[f.key] = '';
+                }
             });
+
+            // Populate lower fields
+            this.mLowerFields.forEach(f => {
+                let raw = existing[f.key];
+                let prevRaw = this.getSmartValue(f.key, prevObj?.measurements);
+                if (raw === undefined || raw === null || raw === '') {
+                    raw = prevRaw;
+                }
+                const allVals = [
+                    ...this.parseValues(raw),
+                    ...this.parseValues(prevRaw)
+                ];
+                this.mOptionValues[f.key] = [...new Set(allVals)];
+
+                if (raw !== undefined && raw !== null && raw !== '') {
+                    this.mValues[f.key] = Array.isArray(raw) ? raw.join(', ') : String(raw);
+                    if (this.parseValues(this.mValues[f.key]).length > 0) {
+                        this.mActiveLowerKeys.push(f.key);
+                    }
+                } else {
+                    this.mValues[f.key] = '';
+                }
+            });
+
+            this.upperLabelsOpen = false;
+            this.lowerLabelsOpen = false;
             this.mModal = true;
         },
 
@@ -1322,46 +1979,47 @@ function orderWizard() {
             return !!this.mFieldErrors[k];
         },
 
-        async saveMeasurements() {
+        saveMeasurements() {
             this.mFieldErrors = {};
             this.mToast = '';
             const svc = this.mService;
             if (!svc) return;
 
-            let ok = true;
-            this.mFields(svc).forEach(f => {
-                if (f.req && !(this.mValues[f.k] || '').toString().trim()) {
-                    this.mFieldErrors[f.k] = true;
-                    ok = false;
+            const result = {};
+            for (const key of Object.keys(this.mValues)) {
+                const parsed = this.parseValues(this.mValues[key]);
+                if (parsed.length > 0) {
+                    result[key] = parsed;
                 }
-            });
-            if (!ok) {
-                this.mToast = 'Please fill all required (*) measurement fields';
-                return;
             }
 
-            this.serviceMeasurements[svc.id] = { ...this.mValues };
+            // Persist custom fields meta in service measurements if any
+            const customUpper = this.mUpperFields.filter(f => f.isCustom).map(f => ({ section: 'upper', key: f.key, label: f.label, urdu: f.urdu }));
+            const customLower = this.mLowerFields.filter(f => f.isCustom).map(f => ({ section: 'lower', key: f.key, label: f.label, urdu: f.urdu }));
+            const allCustomDefs = [...customUpper, ...customLower];
+            if (allCustomDefs.length > 0) {
+                result.__custom_fields = allCustomDefs;
+            }
+            if (this.mCustomerStyles) {
+                result.__style = this.mCustomerStyles;
+            }
+
+            this.serviceMeasurements[svc.id] = result;
             this.mModal = false;
         },
 
         mStatusLabel(id) {
-            const svc = this.selectedServices.find(x => x.id === id);
-            const fields = svc ? this.mFields(svc) : [];
-            if (!fields.length) return 'No Specs';
             const data = this.serviceMeasurements[id] || {};
-            const filled = fields.filter(f => ((data[f.k] || '').toString().trim() !== '')).length;
-            if (filled === fields.length && fields.length > 0) return '✓ Ready (' + filled + '/' + fields.length + ')';
-            return (filled === 0 ? '+ Add Specs' : filled + '/' + fields.length + ' filled');
+            const filled = Object.keys(data).filter(k => !k.startsWith('__') && this.parseValues(data[k]).length > 0).length;
+            if (filled > 0) return '✓ Ready (' + filled + ' specs)';
+            return '+ Add Specs';
         },
 
         mStatusClass(id) {
-            const svc = this.selectedServices.find(x => x.id === id);
-            const fields = svc ? this.mFields(svc) : [];
-            if (!fields.length) return 'bg-slate-100 text-slate-500';
             const data = this.serviceMeasurements[id] || {};
-            const filled = fields.filter(f => ((data[f.k] || '').toString().trim() !== '')).length;
-            if (filled === fields.length && fields.length > 0) return 'bg-emerald-50 text-emerald-700 border border-emerald-200';
-            return filled > 0 ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100';
+            const filled = Object.keys(data).filter(k => !k.startsWith('__') && this.parseValues(data[k]).length > 0).length;
+            if (filled > 0) return 'bg-emerald-50 text-emerald-700 border border-emerald-200';
+            return 'bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100';
         },
 
         money(v) {
@@ -1378,10 +2036,12 @@ function orderWizard() {
             let ok = true;
             if (!this.form.customer_id) { this.errors.customer = 'Please select a customer'; ok = false; }
             if (this.selectedMemberId === null) { this.errors.member = 'Please select a member'; ok = false; }
-            if (this.selectedServices.length === 0) { this.errors.service = 'Please select at least one service'; ok = false; return ok; }
+            const picked = this.selectedServices.filter(s => s.name);
+            if (picked.length === 0) { this.errors.service = 'Please select at least one service'; ok = false; return ok; }
 
             let missing = [];
             this.selectedServices.forEach(svc => {
+                if (!svc.name) { this.errors['service.' + svc.id] = 'Select a service for this row'; ok = false; return; }
                 const qty = parseInt(this.serviceQty[svc.id]);
                 if (!qty || qty < 1) {
                     this.errors['qty.' + svc.id] = 'Min 1';
@@ -1493,7 +2153,7 @@ function orderWizard() {
             const container = document.getElementById('hidden_services_container');
             if (container) {
                 container.innerHTML = '';
-                this.selectedServices.forEach(svc => {
+                this.selectedServices.filter(s => s.name).forEach(svc => {
                     const sId = document.createElement('input');
                     sId.type = 'hidden'; sId.name = 'service_ids[]'; sId.value = svc.id;
                     container.appendChild(sId);
@@ -1514,6 +2174,11 @@ function orderWizard() {
                     sMeas.type = 'hidden'; sMeas.name = 'measurements_json[]';
                     sMeas.value = JSON.stringify(this.serviceMeasurements[svc.id] || {});
                     container.appendChild(sMeas);
+
+                    const sNote = document.createElement('input');
+                    sNote.type = 'hidden'; sNote.name = 'service_notes[]';
+                    sNote.value = this.serviceNotes[svc.id] || '';
+                    container.appendChild(sNote);
                 });
             }
 

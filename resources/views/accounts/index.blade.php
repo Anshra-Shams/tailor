@@ -289,10 +289,13 @@
                         Balance Type <span class="text-red-500">*</span>
                     </label>
                     <select x-model="accForm.type"
-                        class="w-full py-2.5 px-3 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                        class="w-full py-2.5 px-3 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                        :class="accErrors.type ? 'border-red-400 bg-red-50' : ''">
+                        <option value="">— Select Type —</option>
                         <option value="debit">Debit</option>
                         <option value="credit">Credit</option>
                     </select>
+                    <p x-show="accErrors.type" x-text="accErrors.type" class="mt-1 text-xs text-red-600"></p>
                 </div>
 
                 <p x-show="accErrors.general" x-text="accErrors.general" class="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2"></p>
@@ -365,6 +368,7 @@
                     <label class="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">Balance Type <span class="text-red-500">*</span></label>
                     <select x-model="editAccForm.type"
                         class="w-full py-2.5 px-3 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                        <option value="">— Select Type —</option>
                         <option value="debit">Debit</option>
                         <option value="credit">Credit</option>
                     </select>
@@ -405,7 +409,7 @@ function chartOfAccounts() {
 
         // ── Account modal ──
         accModalOpen: false,
-        accForm: { category_id: '', name: '', opening_balance: 0, type: 'debit' },
+        accForm: { category_id: '', name: '', opening_balance: 0, type: '' },
         accErrors: {},
         accSaving: false,
 
@@ -513,18 +517,18 @@ function chartOfAccounts() {
         // ACCOUNT MODAL
         // ────────────────────────────────
         openAccountModal() {
-            this.accForm = { category_id: '', name: '', opening_balance: 0, type: 'debit' };
+            this.accForm = { category_id: '', name: '', opening_balance: 0, type: '' };
             this.accErrors = {};
             this.accModalOpen = true;
         },
         openAccountModalFor(cat) {
-            this.accForm = { category_id: cat.id, name: '', opening_balance: 0, type: 'debit' };
+            this.accForm = { category_id: cat.id, name: '', opening_balance: 0, type: '' };
             this.accErrors = {};
             this.accModalOpen = true;
         },
         closeAccountModal() {
             this.accModalOpen = false;
-            this.accForm = { category_id: '', name: '', opening_balance: 0, type: 'debit' };
+            this.accForm = { category_id: '', name: '', opening_balance: 0, type: '' };
             this.accErrors = {};
         },
 
@@ -532,6 +536,7 @@ function chartOfAccounts() {
             this.accErrors = {};
             if (!this.accForm.category_id) { this.accErrors.category_id = 'Please select a category.'; return; }
             if (!this.accForm.name.trim()) { this.accErrors.name = 'Account name is required.'; return; }
+            if (!this.accForm.type) { this.accErrors.type = 'Please select a balance type.'; return; }
 
             this.accSaving = true;
             try {
@@ -616,6 +621,7 @@ function chartOfAccounts() {
         async saveEditAccount() {
             this.editAccError = '';
             if (!this.editAccForm.name.trim()) { this.editAccError = 'Account name is required.'; return; }
+            if (!this.editAccForm.type) { this.editAccError = 'Please select a balance type.'; return; }
             this.editAccSaving = true;
             try {
                 const fd = new FormData();

@@ -176,12 +176,13 @@
         <div class="flex-1 flex flex-col overflow-hidden">
             <!-- Top Navbar -->
             <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 sm:px-6 flex-shrink-0">
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-2.5">
                     <button onclick="toggleSidebar()" class="lg:hidden p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
                         </svg>
                     </button>
+                    @yield('back_button')
                     <h1 class="text-lg font-bold text-slate-800">@yield('title', 'Dashboard')</h1>
                 </div>
 

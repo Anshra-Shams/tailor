@@ -76,7 +76,7 @@ class MeasurementController extends Controller
 
     public function edit(Measurement $measurement)
     {
-        $measurement->load(['customer', 'member', 'service']);
+        $measurement->load(['customer.members', 'member', 'service']);
 
         return view('measurements.edit', compact('measurement'));
     }
@@ -110,6 +110,10 @@ class MeasurementController extends Controller
             'data'        => $cleanedData,
             'notes'       => $validated['notes'] ?? null,
         ]);
+
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'message' => 'Measurement updated successfully!']);
+        }
 
         return redirect()->route('measurements.index')->with('success', 'Measurement updated successfully!');
     }

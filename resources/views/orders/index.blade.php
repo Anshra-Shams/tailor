@@ -50,7 +50,8 @@
                             <th class="px-4 py-3 font-semibold text-slate-500 text-xs uppercase tracking-wide">Service</th>
                             <th class="px-4 py-3 font-semibold text-slate-500 text-xs uppercase tracking-wide text-right">Total</th>
                             <th class="px-4 py-3 font-semibold text-slate-500 text-xs uppercase tracking-wide text-right">Paid</th>
-                            <th class="px-4 py-3 font-semibold text-slate-500 text-xs uppercase tracking-wide">Delivery</th>
+                            <th class="px-4 py-3 font-semibold text-slate-500 text-xs uppercase tracking-wide whitespace-nowrap">Order Date</th>
+                            <th class="px-4 py-3 font-semibold text-slate-500 text-xs uppercase tracking-wide whitespace-nowrap">Delivery</th>
                             <th class="px-4 py-3 font-semibold text-slate-500 text-xs uppercase tracking-wide">Status</th>
                             <th class="px-4 py-3 font-semibold text-slate-500 text-xs uppercase tracking-wide text-right">Actions</th>
                         </tr>
@@ -79,6 +80,12 @@
                                 </td>
                                 <td class="px-4 py-3.5 text-right font-semibold text-slate-800 whitespace-nowrap">Rs. {{ number_format($total) }}</td>
                                 <td class="px-4 py-3.5 text-right font-medium text-emerald-600 whitespace-nowrap">{{ (float) $o->paid_amount > 0 ? ('Rs. ' . number_format((float) $o->paid_amount)) : '—' }}</td>
+                                <td class="px-4 py-3.5 whitespace-nowrap">
+                                    <div class="text-slate-700 font-medium">{{ ($o->order_date ?? $o->created_at)?->format('d M Y') ?? '—' }}</div>
+                                    @if ($o->created_at)
+                                        <div class="text-xs text-slate-400 mt-0.5">{{ $o->created_at->format('h:i A') }}</div>
+                                    @endif
+                                </td>
                                 <td class="px-4 py-3.5 whitespace-nowrap">
                                     <span class="@if($overdue) text-red-600 font-semibold @else text-slate-600 @endif">{{ $o->due_date?->format('d M Y') }}</span>
                                     @if ($overdue)

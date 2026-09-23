@@ -19,6 +19,9 @@ Route::get('/dashboard', function () {
     $newOrders = \App\Models\Order::where('status', 'pending')->count();
 
     $todayReceived = (float) \App\Models\Payment::whereDate('created_at', today())->sum('amount');
+    $monthlyReceived = (float) \App\Models\Payment::whereYear('created_at', now()->year)
+        ->whereMonth('created_at', now()->month)
+        ->sum('amount');
     $totalOutstanding = (float) \App\Models\Order::whereIn('payment_status', ['unpaid', 'partial'])
         ->sum(\Illuminate\Support\Facades\DB::raw('price * quantity - paid_amount'));
     $recentPayments = \App\Models\Payment::with(['order.customer:id,name'])
@@ -33,7 +36,7 @@ Route::get('/dashboard', function () {
             'date'     => $p->created_at->diffForHumans(),
         ]);
 
-    return view('dashboard', compact('totalCustomers', 'totalServices', 'newOrders', 'todayReceived', 'totalOutstanding', 'recentPayments'));
+    return view('dashboard', compact('totalCustomers', 'totalServices', 'newOrders', 'todayReceived', 'monthlyReceived', 'totalOutstanding', 'recentPayments'));
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {

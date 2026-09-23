@@ -75,6 +75,8 @@ class OrderController extends Controller
             'account_id'          => ['nullable', Rule::requiredIf(fn () => (float) $request->input('paid_amount', 0) > 0), 'exists:accounts,id'],
             'service_ids'         => 'required|array|min:1',
             'service_ids.*'       => 'required|exists:services,id',
+            'service_notes'       => 'nullable|array',
+            'service_notes.*'     => 'nullable|string',
             'tiers'               => 'nullable|array',
             'prices'              => 'required|array',
             'prices.*'            => 'required|numeric|min:0',
@@ -113,8 +115,9 @@ class OrderController extends Controller
 
             $advanceAmount = $i === 0 ? (float) ($validated['paid_amount'] ?? 0) : 0;
 
+            $serviceNote = !empty($request->input('service_notes')[$i]) ? trim($request->input('service_notes')[$i]) : null;
             $tierLabel = !empty($request->input('tiers')[$i]) ? ucfirst($request->input('tiers')[$i]) . ' Stitching' : null;
-            $noteParts = array_filter([$tierLabel, $validated['notes'] ?? null]);
+            $noteParts = array_filter([$serviceNote, $tierLabel, $validated['notes'] ?? null]);
             $orderNotes = !empty($noteParts) ? implode(' — ', $noteParts) : null;
 
             $order = Order::create([
@@ -175,6 +178,8 @@ class OrderController extends Controller
             'paid_amount'         => 'nullable|numeric|min:0',
             'service_ids'         => 'required|array|min:1',
             'service_ids.*'       => 'required|exists:services,id',
+            'service_notes'       => 'nullable|array',
+            'service_notes.*'     => 'nullable|string',
             'prices'              => 'required|array',
             'prices.*'            => 'required|numeric|min:0',
             'quantities'          => 'required|array',
@@ -199,6 +204,10 @@ class OrderController extends Controller
             }
         }
 
+        $serviceNote = !empty($request->input('service_notes')[0]) ? trim($request->input('service_notes')[0]) : null;
+        $noteParts = array_filter([$serviceNote, $validated['notes'] ?? null]);
+        $orderNotes = !empty($noteParts) ? implode(' — ', $noteParts) : null;
+
         $order->update([
             'member_id'    => $validated['member_id'] ?: null,
             'service_id'   => $validated['service_ids'][0],
@@ -207,7 +216,7 @@ class OrderController extends Controller
             'paid_amount'  => $validated['paid_amount'] ?? 0,
             'due_date'     => $validated['due_date'],
             'measurements' => json_encode($decoded),
-            'notes'        => $validated['notes'] ?? null,
+            'notes'        => $orderNotes,
         ]);
         $order->refreshPaymentStatus();
         $order->save();
