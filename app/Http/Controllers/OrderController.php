@@ -16,7 +16,7 @@ class OrderController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Order::with(['customer', 'member', 'service']);
+        $query = Order::with(['customer.members', 'member', 'service', 'cuttingEmployee', 'stitchingEmployee']);
 
         $q = trim($request->input('q', ''));
         if ($q !== '') {
@@ -38,7 +38,51 @@ class OrderController extends Controller
             });
         }
 
-        $orders = $query->latest()->paginate(15)->withQueryString();
+        $allOrders = $query->latest('id')->get();
+
+        $groupedBatches = collect();
+        $processedIds = [];
+
+        foreach ($allOrders as $o) {
+            if (in_array($o->id, $processedIds)) {
+                continue;
+            }
+
+            $createdTime = $o->created_at;
+            $siblings = Order::with(['customer.members', 'member', 'service', 'cuttingEmployee', 'stitchingEmployee'])
+                ->where('customer_id', $o->customer_id)
+                ->where('order_date', $o->order_date)
+                ->whereBetween('created_at', [
+                    $createdTime->copy()->subSeconds(30),
+                    $createdTime->copy()->addSeconds(30)
+                ])
+                ->orderBy('id', 'asc')
+                ->get();
+
+            if ($siblings->isEmpty()) {
+                $siblings = collect([$o]);
+            }
+
+            foreach ($siblings as $s) {
+                $processedIds[] = $s->id;
+            }
+
+            $primaryOrder = $siblings->first();
+            $primaryOrder->setAttribute('batch_items', $siblings);
+            $groupedBatches->push($primaryOrder);
+        }
+
+        $page = (int) $request->input('page', 1);
+        $perPage = 15;
+        $paginatedItems = $groupedBatches->slice(($page - 1) * $perPage, $perPage)->values();
+
+        $orders = new \Illuminate\Pagination\LengthAwarePaginator(
+            $paginatedItems,
+            $groupedBatches->count(),
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
 
         return view('orders.index', compact('orders', 'q'));
     }
@@ -48,7 +92,20 @@ class OrderController extends Controller
         $editOrder = null;
         if ($request->filled('edit')) {
             $editOrder = Order::with(['customer.members', 'member', 'service'])
-                ->findOrFail($request->edit);
+                ->find($request->edit);
+            if ($editOrder) {
+                $createdTime = $editOrder->created_at;
+                $siblingOrders = Order::with(['service', 'member'])
+                    ->where('customer_id', $editOrder->customer_id)
+                    ->where('order_date', $editOrder->order_date)
+                    ->whereBetween('created_at', [
+                        $createdTime->copy()->subSeconds(30),
+                        $createdTime->copy()->addSeconds(30)
+                    ])
+                    ->orderBy('id', 'asc')
+                    ->get();
+                $editOrder->setAttribute('sibling_orders', $siblingOrders);
+            }
         }
 
         $accounts = Account::with('category')
@@ -93,71 +150,206 @@ class OrderController extends Controller
             return back()->withInput()->withErrors(['general' => 'Service data mismatch. Please try again.']);
         }
 
-        foreach ($validated['service_ids'] as $i => $serviceId) {
-            $decoded = json_decode($validated['measurements_json'][$i] ?? '{}', true);
-            if (!is_array($decoded)) {
-                $decoded = [];
-            }
-
-            // If no inline measurements, pull the latest saved measurement for this customer/member/service
-            if (empty($decoded)) {
-                $latest = \App\Models\Measurement::where('customer_id', $validated['customer_id'])
-                    ->where(function ($q) use ($serviceId) {
-                        $q->where('service_id', $serviceId)->orWhereNull('service_id');
-                    })
-                    ->when(!empty($validated['member_id']), fn ($q) => $q->where('member_id', $validated['member_id']), fn ($q) => $q->whereNull('member_id'))
-                    ->latest()
-                    ->first();
-                if ($latest) {
-                    $decoded = $latest->data ?? [];
+            $firstOrder = null;
+            foreach ($validated['service_ids'] as $i => $serviceId) {
+                $decoded = json_decode($validated['measurements_json'][$i] ?? '{}', true);
+                if (!is_array($decoded)) {
+                    $decoded = [];
                 }
-            }
 
-            $advanceAmount = $i === 0 ? (float) ($validated['paid_amount'] ?? 0) : 0;
+                // If no inline measurements, pull the latest saved measurement for this customer/member/service
+                if (empty($decoded)) {
+                    $latest = \App\Models\Measurement::where('customer_id', $validated['customer_id'])
+                        ->where(function ($q) use ($serviceId) {
+                            $q->where('service_id', $serviceId)->orWhereNull('service_id');
+                        })
+                        ->when(!empty($validated['member_id']), fn ($q) => $q->where('member_id', $validated['member_id']), fn ($q) => $q->whereNull('member_id'))
+                        ->latest()
+                        ->first();
+                    if ($latest) {
+                        $decoded = $latest->data ?? [];
+                    }
+                }
 
-            $serviceNote = !empty($request->input('service_notes')[$i]) ? trim($request->input('service_notes')[$i]) : null;
-            $tierLabel = !empty($request->input('tiers')[$i]) ? ucfirst($request->input('tiers')[$i]) . ' Stitching' : null;
-            $noteParts = array_filter([$serviceNote, $tierLabel, $validated['notes'] ?? null]);
-            $orderNotes = !empty($noteParts) ? implode(' — ', $noteParts) : null;
+                $advanceAmount = $i === 0 ? (float) ($validated['paid_amount'] ?? 0) : 0;
 
-            $order = Order::create([
-                'customer_id'  => $validated['customer_id'],
-                'member_id'    => !empty($validated['member_id']) ? $validated['member_id'] : null,
-                'service_id'   => $serviceId,
-                'price'        => $validated['prices'][$i],
-                'quantity'     => $validated['quantities'][$i] ?? 1,
-                'paid_amount'  => $advanceAmount,
-                'status'       => 'pending',
-                'order_date'   => now()->toDateString(),
-                'due_date'     => $validated['due_date'],
-                'measurements' => json_encode($decoded),
-                'notes'        => $orderNotes,
-            ]);
-            $order->refreshPaymentStatus();
-            $order->save();
+                $serviceNote = !empty($request->input('service_notes')[$i]) ? trim($request->input('service_notes')[$i]) : null;
+                $noteParts = array_filter([$serviceNote, $validated['notes'] ?? null]);
+                $orderNotes = !empty($noteParts) ? implode(' — ', $noteParts) : null;
 
-            // If an advance was paid, record it and credit the selected account
-            if ($advanceAmount > 0) {
-                $account = Account::find($validated['account_id']);
-
-                Payment::create([
-                    'order_id'   => $order->id,
-                    'account_id' => $account?->id,
-                    'amount'     => $advanceAmount,
-                    'method'     => $account ? $account->paymentMethod() : 'other',
-                    'notes'      => 'Advance payment at order creation',
+                $order = Order::create([
+                    'customer_id'  => $validated['customer_id'],
+                    'member_id'    => !empty($validated['member_id']) ? $validated['member_id'] : null,
+                    'service_id'   => $serviceId,
+                    'price'        => $validated['prices'][$i],
+                    'quantity'     => $validated['quantities'][$i] ?? 1,
+                    'paid_amount'  => $advanceAmount,
+                    'status'       => 'pending',
+                    'order_date'   => now()->toDateString(),
+                    'due_date'     => $validated['due_date'],
+                    'measurements' => json_encode($decoded),
+                    'notes'        => $orderNotes,
                 ]);
+                $order->refreshPaymentStatus();
+                $order->save();
 
-                if ($account) {
-                    $account->increment('current_balance', $advanceAmount);
+                if (!$firstOrder) {
+                    $firstOrder = $order;
+                }
+
+                // If an advance was paid, record it and credit the selected account
+                if ($advanceAmount > 0) {
+                    $account = Account::find($validated['account_id']);
+
+                    Payment::create([
+                        'order_id'   => $order->id,
+                        'account_id' => $account?->id,
+                        'amount'     => $advanceAmount,
+                        'method'     => $account ? $account->paymentMethod() : 'other',
+                        'notes'      => 'Advance payment at order creation',
+                    ]);
+
+                    if ($account) {
+                        $account->increment('current_balance', $advanceAmount);
+                    }
                 }
             }
+
+            return redirect()->route('orders.invoice', $firstOrder ? $firstOrder->id : $order->id)->with('success', "Order created successfully!");
         }
 
-        return redirect()->route('orders.index')->with('success', "{$count} order(s) created successfully!");
-    }
+        public function invoice(Order $order)
+        {
+            $order->load(['customer.members', 'member', 'service', 'payments']);
 
-    public function edit(Order $order)
+            // Fetch sibling orders created in the same batch/timeframe for this customer
+            $createdTime = $order->created_at;
+            $siblingOrders = Order::with(['service', 'member'])
+                ->where('customer_id', $order->customer_id)
+                ->where('order_date', $order->order_date)
+                ->where('due_date', $order->due_date)
+                ->whereBetween('created_at', [
+                    $createdTime->copy()->subSeconds(30),
+                    $createdTime->copy()->addSeconds(30)
+                ])
+                ->orderBy('id', 'asc')
+                ->get();
+
+            if ($siblingOrders->isEmpty()) {
+                $siblingOrders = collect([$order]);
+            }
+
+            // Helper to map a raw measurements dictionary to Upper (1-14) and Lower (15-26) data arrays
+            $buildMeasurements = function (array $measurementsArray) {
+                $getVal = function ($keys) use ($measurementsArray) {
+                    foreach ((array) $keys as $k) {
+                        if (isset($measurementsArray[$k]) && trim((string)$measurementsArray[$k]) !== '') {
+                            $val = trim((string)$measurementsArray[$k]);
+                            if (str_contains($val, ',')) {
+                                $parts = array_values(array_filter(array_map('trim', explode(',', $val)), fn($p) => $p !== ''));
+                                return $parts[0] ?? '';
+                            }
+                            return $val;
+                        }
+                    }
+
+                    // Check custom fields or dynamic keys matching pattern
+                    foreach ($measurementsArray as $mKey => $mVal) {
+                        if (str_starts_with($mKey, '__')) continue;
+                        if (trim((string)$mVal) === '') continue;
+
+                        foreach ((array)$keys as $k) {
+                            if (strlen($k) >= 4 && str_contains(strtolower($mKey), strtolower($k))) {
+                                $val = trim((string)$mVal);
+                                if (str_contains($val, ',')) {
+                                    $parts = array_values(array_filter(array_map('trim', explode(',', $val)), fn($p) => $p !== ''));
+                                    return $parts[0] ?? '';
+                                }
+                                return $val;
+                            }
+                        }
+                    }
+
+                    return '';
+                };
+
+                $upperData = [
+                    1  => $getVal(['point', 'Point']),
+                    2  => $getVal(['gending', 'Gending']),
+                    3  => $getVal(['kameez_length', 'length_shoulder_to_bottom', 'length', 'Length']),
+                    4  => $getVal(['shoulder', 'Shoulder']),
+                    5  => $getVal(['chest', 'Chest']),
+                    6  => $getVal(['waist_upper', 'waist', 'Waist']),
+                    7  => $getVal(['hip_upper', 'hip', 'Hip']),
+                    8  => $getVal(['in_said', 'insaid', 'daman', 'Daman / Ghera', 'ghera']),
+                    9  => $getVal(['flair', 'Flair']),
+                    10 => $getVal(['choke', 'Choke', 'cross_back', 'Cross Back']),
+                    11 => (function() use ($getVal) {
+                        $f = $getVal(['sleeves', 'sleeves_full', 'Sleeves']);
+                        $h = $getVal(['sleeves_half', 'Sleeves Half']);
+                        $q = $getVal(['sleeves_qtr', 'Sleeves Qtr']);
+                        $all = array_filter([$f, $h, $q]);
+                        return !empty($all) ? implode(' / ', $all) : $getVal(['sleeves', 'sleeves_full', 'Sleeves', 'sleeves_half', 'Sleeves Half']);
+                    })(),
+                    12 => $getVal(['bicep', 'upper_arm', 'Upper Arm']),
+                    13 => $getVal(['wrist', 'Wrist', 'cuff']),
+                    14 => $getVal(['collar', 'neck', 'Neck']),
+                ];
+
+                $lowerData = [
+                    15 => $getVal(['shalwar_length', 'trouser_length', 'length_lower', 'lower_length']),
+                    16 => $getVal(['wrist_lower', 'waist_lower', 'wrist_bottom']),
+                    17 => $getVal(['half_belt_elastic', 'belt_elastic', 'half_belt']),
+                    18 => $getVal(['full_elastic', 'elastic', 'elastic_extra']),
+                    19 => $getVal(['hip_lower', 'hip', 'Hip']),
+                    20 => $getVal(['belt', 'Belt', 'back', 'Back']),
+                    21 => $getVal(['asan', 'fly', 'Fly']),
+                    22 => $getVal(['inseam', 'inside', 'Inside']),
+                    23 => $getVal(['thigh', 'thai', 'Thai']),
+                    24 => $getVal(['knee', 'Knee']),
+                    25 => $getVal(['paincha', 'bottom', 'Bottom']),
+                    26 => $getVal(['ankle', 'ankle_circumference', 'Ankle']),
+                ];
+
+                return [
+                    'upper' => $upperData,
+                    'lower' => $lowerData,
+                ];
+            };
+
+            // Build individual measurements for each service/order
+            $servicesMeasurements = [];
+            foreach ($siblingOrders as $sOrder) {
+                $raw = $sOrder->measurements;
+                $decoded = is_string($raw) ? json_decode($raw, true) : (is_array($raw) ? $raw : []);
+                $parsed = [];
+                if (is_array($decoded)) {
+                    foreach ($decoded as $k => $v) {
+                        if ($v !== null && $v !== '') {
+                            $parsed[$k] = is_array($v) ? reset($v) : (string) $v;
+                        }
+                    }
+                }
+                $mData = $buildMeasurements($parsed);
+                $servicesMeasurements[] = [
+                    'order'        => $sOrder,
+                    'service_name' => $sOrder->service?->name ?? 'Service #' . $sOrder->id,
+                    'upper'        => $mData['upper'],
+                    'lower'        => $mData['lower'],
+                ];
+            }
+
+            // Fallback upperData and lowerData
+            $upperData = $servicesMeasurements[0]['upper'] ?? [];
+            $lowerData = $servicesMeasurements[0]['lower'] ?? [];
+
+            $grandTotal = $siblingOrders->sum(fn ($o) => (float) $o->price * (int) $o->quantity);
+            $totalPaid = $siblingOrders->sum(fn ($o) => (float) $o->paid_amount);
+
+            return view('orders.invoice', compact('order', 'siblingOrders', 'servicesMeasurements', 'upperData', 'lowerData', 'grandTotal', 'totalPaid'));
+        }
+
+        public function edit(Order $order)
     {
         $order->load(['customer.members', 'member', 'service']);
 
@@ -188,38 +380,89 @@ class OrderController extends Controller
             'measurements_json.*' => 'nullable|string',
         ]);
 
-        $decoded = json_decode($validated['measurements_json'][0] ?? '{}', true);
-        if (!is_array($decoded)) {
-            $decoded = [];
+        $createdTime = $order->created_at;
+        $siblingOrders = Order::where('customer_id', $order->customer_id)
+            ->where('order_date', $order->order_date)
+            ->whereBetween('created_at', [
+                $createdTime->copy()->subSeconds(30),
+                $createdTime->copy()->addSeconds(30)
+            ])
+            ->orderBy('id', 'asc')
+            ->get();
+
+        if ($siblingOrders->isEmpty()) {
+            $siblingOrders = collect([$order]);
         }
 
-        if (empty($decoded)) {
-            $latest = \App\Models\Measurement::where('customer_id', $order->customer_id)
-                ->where('service_id', $validated['service_ids'][0])
-                ->when($validated['member_id'], fn ($q) => $q->where('member_id', $validated['member_id']), fn ($q) => $q->whereNull('member_id'))
-                ->latest()
-                ->first();
-            if ($latest) {
-                $decoded = $latest->data ?? [];
+        $serviceCount = count($validated['service_ids']);
+
+        for ($i = 0; $i < $serviceCount; $i++) {
+            $serviceId = $validated['service_ids'][$i];
+            $price = $validated['prices'][$i];
+            $qty = $validated['quantities'][$i] ?? 1;
+            $serviceNote = !empty($request->input('service_notes')[$i]) ? trim($request->input('service_notes')[$i]) : null;
+            $noteParts = array_filter([$serviceNote, $validated['notes'] ?? null]);
+            $orderNotes = !empty($noteParts) ? implode(' — ', $noteParts) : null;
+            $advanceAmount = $i === 0 ? (float) ($validated['paid_amount'] ?? 0) : 0;
+
+            $decoded = json_decode($validated['measurements_json'][$i] ?? '{}', true);
+            if (!is_array($decoded)) {
+                $decoded = [];
+            }
+            if (empty($decoded)) {
+                $latest = \App\Models\Measurement::where('customer_id', $order->customer_id)
+                    ->where(function ($q) use ($serviceId) {
+                        $q->where('service_id', $serviceId)->orWhereNull('service_id');
+                    })
+                    ->when($validated['member_id'], fn ($q, $mid) => $q->where('member_id', $mid), fn ($q) => $q->whereNull('member_id'))
+                    ->latest()
+                    ->first();
+                if ($latest) {
+                    $decoded = $latest->data ?? [];
+                }
+            }
+
+            if (isset($siblingOrders[$i])) {
+                $sOrd = $siblingOrders[$i];
+                $sOrd->update([
+                    'member_id'    => $validated['member_id'] ?: null,
+                    'service_id'   => $serviceId,
+                    'price'        => $price,
+                    'quantity'     => $qty,
+                    'paid_amount'  => $advanceAmount,
+                    'due_date'     => $validated['due_date'],
+                    'measurements' => json_encode($decoded),
+                    'notes'        => $orderNotes,
+                ]);
+                $sOrd->refreshPaymentStatus();
+                $sOrd->save();
+            } else {
+                $newOrd = Order::create([
+                    'customer_id'  => $order->customer_id,
+                    'member_id'    => $validated['member_id'] ?: null,
+                    'service_id'   => $serviceId,
+                    'price'        => $price,
+                    'quantity'     => $qty,
+                    'paid_amount'  => 0,
+                    'status'       => $order->status ?? 'pending',
+                    'order_date'   => $order->order_date,
+                    'due_date'     => $validated['due_date'],
+                    'measurements' => json_encode($decoded),
+                    'notes'        => $orderNotes,
+                    'created_at'   => $order->created_at,
+                ]);
+                $newOrd->created_at = $order->created_at;
+                $newOrd->save();
+                $newOrd->refreshPaymentStatus();
+                $newOrd->save();
             }
         }
 
-        $serviceNote = !empty($request->input('service_notes')[0]) ? trim($request->input('service_notes')[0]) : null;
-        $noteParts = array_filter([$serviceNote, $validated['notes'] ?? null]);
-        $orderNotes = !empty($noteParts) ? implode(' — ', $noteParts) : null;
-
-        $order->update([
-            'member_id'    => $validated['member_id'] ?: null,
-            'service_id'   => $validated['service_ids'][0],
-            'price'        => $validated['prices'][0],
-            'quantity'     => $validated['quantities'][0] ?? 1,
-            'paid_amount'  => $validated['paid_amount'] ?? 0,
-            'due_date'     => $validated['due_date'],
-            'measurements' => json_encode($decoded),
-            'notes'        => $orderNotes,
-        ]);
-        $order->refreshPaymentStatus();
-        $order->save();
+        if ($siblingOrders->count() > $serviceCount) {
+            for ($i = $serviceCount; $i < $siblingOrders->count(); $i++) {
+                $siblingOrders[$i]->delete();
+            }
+        }
 
         return redirect()->route('orders.index')->with('success', "Order #" . str_pad($order->id, 4, '0', STR_PAD_LEFT) . " updated successfully!");
     }
@@ -227,19 +470,28 @@ class OrderController extends Controller
     public function updateStatus(Request $request, Order $order)
     {
         $validated = $request->validate([
-            'status' => 'required|in:pending,in_progress,completed,delivered,cancelled',
+            'status' => 'required|in:pending,cutting,stitching,in_progress,completed,delivered,cancelled',
         ]);
 
-        $order->update(['status' => $validated['status']]);
+        $order->status = $validated['status'];
+        $order->save();
 
-        return response()->json(['success' => true, 'status' => $order->status]);
+        return response()->json(['success' => true, 'status' => $validated['status']]);
     }
 
     public function destroy(Order $order)
     {
-        $order->delete();
+        $createdTime = $order->created_at;
+        Order::where('customer_id', $order->customer_id)
+            ->where('order_date', $order->order_date)
+            ->where('due_date', $order->due_date)
+            ->whereBetween('created_at', [
+                $createdTime->copy()->subSeconds(30),
+                $createdTime->copy()->addSeconds(30)
+            ])
+            ->delete();
 
-        return redirect()->route('orders.index')->with('success', 'Order deleted successfully!');
+        return redirect()->route('orders.index')->with('success', 'Order batch deleted successfully!');
     }
 
     // ── API: Customer ledger ──
@@ -272,10 +524,10 @@ class OrderController extends Controller
                 'id'                 => $s->id,
                 'name'               => $s->name,
                 'price'              => (float) $s->price,
-                'pricing_tiers'      => $s->pricing_tiers ?? [
-                    'basic' => (float) $s->price,
-                    'standard' => (float) $s->price,
-                    'premium' => (float) $s->price,
+                'pricing_tiers'      => [
+                    'basic'    => (isset($s->pricing_tiers['basic']) && $s->pricing_tiers['basic'] !== '') ? (float)$s->pricing_tiers['basic'] : round((float)$s->price * 0.75),
+                    'standard' => (isset($s->pricing_tiers['standard']) && $s->pricing_tiers['standard'] !== '') ? (float)$s->pricing_tiers['standard'] : (float)$s->price,
+                    'premium'  => (isset($s->pricing_tiers['premium']) && $s->pricing_tiers['premium'] !== '') ? (float)$s->pricing_tiers['premium'] : round((float)$s->price * 1.6),
                 ],
                 'days'               => $s->estimated_days,
                 'measurement_fields' => $s->measurement_fields ?? [],
@@ -459,10 +711,15 @@ class OrderController extends Controller
     public function apiServices()
     {
         return Service::where('is_active', true)->get()->map(fn($s) => [
-            'id'                => $s->id,
-            'name'              => $s->name,
-            'price'             => (float) $s->price,
-            'days'              => $s->estimated_days,
+            'id'                 => $s->id,
+            'name'               => $s->name,
+            'price'              => (float) $s->price,
+            'pricing_tiers'      => [
+                'basic'    => (isset($s->pricing_tiers['basic']) && $s->pricing_tiers['basic'] !== '') ? (float)$s->pricing_tiers['basic'] : round((float)$s->price * 0.75),
+                'standard' => (isset($s->pricing_tiers['standard']) && $s->pricing_tiers['standard'] !== '') ? (float)$s->pricing_tiers['standard'] : (float)$s->price,
+                'premium'  => (isset($s->pricing_tiers['premium']) && $s->pricing_tiers['premium'] !== '') ? (float)$s->pricing_tiers['premium'] : round((float)$s->price * 1.6),
+            ],
+            'days'               => $s->estimated_days,
             'measurement_fields' => $s->measurement_fields ?? [],
         ]);
     }
@@ -490,14 +747,67 @@ class OrderController extends Controller
             ->latest('id')
             ->first();
 
-        if (!$measurement || !$measurement->data) {
-            return response()->json(['measurements' => null]);
+        $parseVals = function ($val) {
+            if (is_array($val)) return array_map('trim', array_filter($val));
+            if (is_string($val)) return array_map('trim', array_filter(explode(',', $val)));
+            return [];
+        };
+
+        $allHistory = [];
+
+        $allMeasurements = Measurement::where('customer_id', $request->customer_id)
+            ->when(
+                $request->member_id,
+                fn ($q, $mid) => $q->where(fn ($w) => $w->where('member_id', $mid)->orWhereNull('member_id')),
+                fn ($q) => $q->whereNull('member_id')
+            )
+            ->latest('id')
+            ->get();
+
+        foreach ($allMeasurements as $m) {
+            if (is_array($m->data)) {
+                foreach ($m->data as $k => $v) {
+                    if ($k && !str_starts_with($k, '__')) {
+                        foreach ($parseVals($v) as $singleV) {
+                            $allHistory[$k][] = $singleV;
+                        }
+                    }
+                }
+            }
+        }
+
+        $allOrders = Order::where('customer_id', $request->customer_id)
+            ->when(
+                $request->member_id,
+                fn ($q, $mid) => $q->where(fn ($w) => $w->where('member_id', $mid)->orWhereNull('member_id')),
+                fn ($q) => $q->whereNull('member_id')
+            )
+            ->whereNotNull('measurements')
+            ->latest('id')
+            ->get();
+
+        foreach ($allOrders as $o) {
+            $data = is_array($o->measurements) ? $o->measurements : (is_string($o->measurements) ? json_decode($o->measurements, true) : null);
+            if (is_array($data)) {
+                foreach ($data as $k => $v) {
+                    if ($k && !str_starts_with($k, '__')) {
+                        foreach ($parseVals($v) as $singleV) {
+                            $allHistory[$k][] = $singleV;
+                        }
+                    }
+                }
+            }
+        }
+
+        foreach ($allHistory as $k => $vals) {
+            $allHistory[$k] = array_values(array_unique($vals));
         }
 
         return response()->json([
-            'measurements'  => $measurement->data,
-            'saved_date'    => $measurement->created_at?->format('M d, Y'),
-            'measurement_id' => $measurement->id,
+            'measurements'   => $measurement ? $measurement->data : null,
+            'saved_date'     => $measurement ? $measurement->created_at?->format('M d, Y') : null,
+            'measurement_id' => $measurement ? $measurement->id : null,
+            'all_history'    => $allHistory,
         ]);
     }
 }

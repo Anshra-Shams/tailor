@@ -642,60 +642,72 @@
                         {{-- Dynamic Active Input Fields Grid (2-per-row) --}}
                         <div x-show="mActiveUpperKeys.length > 0" class="grid grid-cols-2 gap-2 pt-1">
                             <template x-for="f in activeUpperFieldsList" :key="'minp_u_'+f.key">
-                                <div class="bg-slate-50/80 hover:bg-slate-50 border border-slate-200/90 rounded-xl p-2.5 transition focus-within:border-indigo-400 focus-within:ring-2 focus-within:ring-indigo-100 shadow-2xs">
-                                    <div class="flex items-center justify-between mb-1 gap-1">
-                                        <label :for="'mf_'+f.key" class="text-xs font-bold text-slate-800 truncate" x-text="f.label"></label>
-                                        <div class="flex items-center gap-0.5 flex-shrink-0">
-                                            <button type="button" @click="toggleUpperField(f.key)"
-                                                class="text-slate-400 hover:text-slate-600 p-0.5 rounded hover:bg-slate-200 transition"
-                                                title="Close this field">
-                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                                <div class="bg-slate-50/80 hover:bg-slate-50 border border-slate-200/90 rounded-xl p-1.5 transition focus-within:border-indigo-400 focus-within:ring-2 focus-within:ring-indigo-100 shadow-2xs flex items-center justify-between gap-1" @click.outside="mChipsOpen[f.key] = false">
+                                    <div class="flex items-center gap-1 min-w-0">
+                                        {{-- Label --}}
+                                        <label :for="'mf_'+f.key" class="text-[11px] font-bold text-slate-800 truncate flex-shrink-0 max-w-[55px]" x-text="f.label"></label>
+                                        
+                                        {{-- Input and Separate Dropdown Button --}}
+                                        <div class="flex items-center gap-1 relative" @click.outside="mChipsOpen[f.key] = false">
+                                            
+                                            {{-- Dropdown Toggle Button (Hide if no options) --}}
+                                            <button type="button" tabindex="-1"
+                                                x-show="getFieldOptions(f.key).length > 0"
+                                                @click="mChipsOpen[f.key] = !mChipsOpen[f.key]"
+                                                class="flex-shrink-0 w-6 h-6 flex items-center justify-center bg-white border border-slate-300 rounded-md text-slate-500 hover:text-indigo-600 hover:border-indigo-400 transition cursor-pointer shadow-2xs">
+                                                <svg class="w-3 h-3 transition-transform duration-200"
+                                                    :class="mChipsOpen[f.key] ? 'rotate-180' : ''"
+                                                    fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/>
                                                 </svg>
                                             </button>
+
+                                            {{-- Input Field (Hidden initially until size selected or custom clicked) --}}
+                                            <div class="relative w-16" x-show="mInputShow[f.key] || (mValues[f.key] && String(mValues[f.key]).trim() !== '')">
+                                                <input type="text" :id="'mf_'+f.key" x-model="mValues[f.key]"
+                                                    :placeholder="getFieldOptions(f.key).length > 0 ? getFieldOptions(f.key)[0] : ''"
+                                                    class="w-full pl-1.5 pr-4 py-0.5 bg-white border border-slate-300 rounded-md text-xs font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition cursor-text shadow-2xs">
+                                                <span class="absolute inset-y-0 right-0 pr-1 flex items-center pointer-events-none text-[9px] text-slate-400 font-medium">in</span>
+                                            </div>
+                                            
+                                            {{-- Floating Vertical Dropdown (Column) --}}
+                                            <div x-show="mChipsOpen[f.key]" 
+                                                x-transition:enter="transition ease-out duration-150"
+                                                x-transition:enter-start="opacity-0 translate-y-2"
+                                                x-transition:enter-end="opacity-100 translate-y-0"
+                                                x-transition:leave="transition ease-in duration-100"
+                                                x-transition:leave-start="opacity-100 translate-y-0"
+                                                x-transition:leave-end="opacity-0 translate-y-2"
+                                                class="absolute left-0 bottom-full mb-1 z-50 min-w-[75px] bg-white border border-slate-200 rounded-lg shadow-lg max-h-40 overflow-y-auto py-1">
+                                                <template x-if="getFieldOptions(f.key).length === 0">
+                                                    <div class="px-2 py-1.5 text-center">
+                                                        <p class="text-[10px] text-slate-400 mb-1">No sizes</p>
+                                                        <button type="button" @click="mInputShow[f.key] = true; mChipsOpen[f.key] = false"
+                                                            class="px-1.5 py-0.5 bg-indigo-50 text-indigo-600 rounded text-[9px] font-bold hover:bg-indigo-100 transition">
+                                                            + Custom
+                                                        </button>
+                                                    </div>
+                                                </template>
+                                                <template x-for="(val, idx) in getFieldOptions(f.key)" :key="idx">
+                                                    <button type="button" @click="selectSingleMeasurement(f.key, val); mChipsOpen[f.key] = false"
+                                                        :class="isOptionSelected(f.key, val) ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-slate-700 hover:bg-slate-50'"
+                                                        class="w-full text-left px-3 py-1.5 text-xs transition cursor-pointer flex justify-between items-center">
+                                                        <span x-text="val"></span>
+                                                        <span x-show="isOptionSelected(f.key, val)" class="text-indigo-500 font-bold">✓</span>
+                                                    </button>
+                                                </template>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="flex items-center gap-1">
-                                        <div class="relative flex-1">
-                                            <input type="text" :id="'mf_'+f.key" x-model="mValues[f.key]"
-                                                placeholder="32, 34..."
-                                                class="w-full pl-2.5 pr-6 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-semibold text-slate-800 placeholder-slate-300 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition">
-                                            <span class="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none text-[11px] text-slate-400 font-medium">in</span>
-                                        </div>
-                                        {{-- Chips Toggle Button --}}
-                                        <button type="button"
-                                            x-show="getFieldOptions(f.key).length > 0"
-                                            @click="mChipsOpen[f.key] = !mChipsOpen[f.key]"
-                                            :title="mChipsOpen[f.key] ? 'Hide options' : 'Show options'"
-                                            :class="mChipsOpen[f.key] ? 'bg-indigo-100 text-indigo-600 border-indigo-300' : 'bg-white text-slate-400 border-slate-200 hover:text-indigo-500 hover:border-indigo-300'"
-                                            class="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-lg border transition cursor-pointer">
-                                            <svg class="w-3 h-3 transition-transform duration-200"
-                                                :class="mChipsOpen[f.key] ? 'rotate-180' : ''"
-                                                fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/>
-                                            </svg>
-                                        </button>
-                                    </div>
-                                    {{-- Selectable Values Chips --}}
-                                    <div x-show="mChipsOpen[f.key] && getFieldOptions(f.key).length > 0"
-                                        x-transition:enter="transition ease-out duration-150"
-                                        x-transition:enter-start="opacity-0 -translate-y-1"
-                                        x-transition:enter-end="opacity-100 translate-y-0"
-                                        x-transition:leave="transition ease-in duration-100"
-                                        x-transition:leave-start="opacity-100 translate-y-0"
-                                        x-transition:leave-end="opacity-0 -translate-y-1"
-                                        class="flex flex-wrap items-center gap-1 mt-1.5 pt-1.5 border-t border-slate-200/60">
-                                        <template x-for="(val, idx) in getFieldOptions(f.key)" :key="idx">
-                                            <button type="button" @click="selectSingleMeasurement(f.key, val)"
-                                                :class="isOptionSelected(f.key, val)
-                                                    ? 'bg-indigo-600 text-white border-indigo-700 shadow-sm font-extrabold ring-1 ring-indigo-300'
-                                                    : 'bg-indigo-50/80 hover:bg-indigo-100 text-indigo-700 border-indigo-200'"
-                                                class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-bold border transition shadow-2xs cursor-pointer"
-                                                :title="'Click to select ' + val + ' in'">
-                                                <span x-text="val + ' in'"></span>
-                                            </button>
-                                        </template>
-                                    </div>
+                                    
+                                    {{-- Close Button --}}
+                                    <button type="button" @click="toggleUpperField(f.key)"
+                                        class="text-slate-400 hover:text-red-500 p-1 rounded-lg hover:bg-red-50 transition flex-shrink-0"
+                                        title="Close this field">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                                        </svg>
+                                    </button>
                                 </div>
                             </template>
                         </div>
@@ -769,60 +781,72 @@
                         {{-- Dynamic Active Input Fields Grid (2-per-row) --}}
                         <div x-show="mActiveLowerKeys.length > 0" class="grid grid-cols-2 gap-2 pt-1">
                             <template x-for="f in activeLowerFieldsList" :key="'minp_l_'+f.key">
-                                <div class="bg-slate-50/80 hover:bg-slate-50 border border-slate-200/90 rounded-xl p-2.5 transition focus-within:border-emerald-400 focus-within:ring-2 focus-within:ring-emerald-100 shadow-2xs">
-                                    <div class="flex items-center justify-between mb-1 gap-1">
-                                        <label :for="'mf_'+f.key" class="text-xs font-bold text-slate-800 truncate" x-text="f.label"></label>
-                                        <div class="flex items-center gap-0.5 flex-shrink-0">
-                                            <button type="button" @click="toggleLowerField(f.key)"
-                                                class="text-slate-400 hover:text-slate-600 p-0.5 rounded hover:bg-slate-200 transition"
-                                                title="Close this field">
-                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                                <div class="bg-slate-50/80 hover:bg-slate-50 border border-slate-200/90 rounded-xl p-1.5 transition focus-within:border-emerald-400 focus-within:ring-2 focus-within:ring-emerald-100 shadow-2xs flex items-center justify-between gap-1" @click.outside="mChipsOpen[f.key] = false">
+                                    <div class="flex items-center gap-1 min-w-0">
+                                        {{-- Label --}}
+                                        <label :for="'mf_'+f.key" class="text-[11px] font-bold text-slate-800 truncate flex-shrink-0 max-w-[55px]" x-text="f.label"></label>
+                                        
+                                        {{-- Input and Separate Dropdown Button --}}
+                                        <div class="flex items-center gap-1 relative" @click.outside="mChipsOpen[f.key] = false">
+                                            
+                                            {{-- Dropdown Toggle Button (Hide if no options) --}}
+                                            <button type="button" tabindex="-1"
+                                                x-show="getFieldOptions(f.key).length > 0"
+                                                @click="mChipsOpen[f.key] = !mChipsOpen[f.key]"
+                                                class="flex-shrink-0 w-6 h-6 flex items-center justify-center bg-white border border-slate-300 rounded-md text-slate-500 hover:text-emerald-600 hover:border-emerald-400 transition cursor-pointer shadow-2xs">
+                                                <svg class="w-3 h-3 transition-transform duration-200"
+                                                    :class="mChipsOpen[f.key] ? 'rotate-180' : ''"
+                                                    fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/>
                                                 </svg>
                                             </button>
+
+                                            {{-- Input Field (Hidden initially until size selected or custom clicked) --}}
+                                            <div class="relative w-16" x-show="mInputShow[f.key] || (mValues[f.key] && String(mValues[f.key]).trim() !== '')">
+                                                <input type="text" :id="'mf_'+f.key" x-model="mValues[f.key]"
+                                                    :placeholder="getFieldOptions(f.key).length > 0 ? getFieldOptions(f.key)[0] : ''"
+                                                    class="w-full pl-1.5 pr-4 py-0.5 bg-white border border-slate-300 rounded-md text-xs font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition cursor-text shadow-2xs">
+                                                <span class="absolute inset-y-0 right-0 pr-1 flex items-center pointer-events-none text-[9px] text-slate-400 font-medium">in</span>
+                                            </div>
+                                            
+                                            {{-- Floating Vertical Dropdown (Column) --}}
+                                            <div x-show="mChipsOpen[f.key]" 
+                                                x-transition:enter="transition ease-out duration-150"
+                                                x-transition:enter-start="opacity-0 translate-y-2"
+                                                x-transition:enter-end="opacity-100 translate-y-0"
+                                                x-transition:leave="transition ease-in duration-100"
+                                                x-transition:leave-start="opacity-100 translate-y-0"
+                                                x-transition:leave-end="opacity-0 translate-y-2"
+                                                class="absolute left-0 bottom-full mb-1 z-50 min-w-[75px] bg-white border border-slate-200 rounded-lg shadow-lg max-h-40 overflow-y-auto py-1">
+                                                <template x-if="getFieldOptions(f.key).length === 0">
+                                                    <div class="px-2 py-1.5 text-center">
+                                                        <p class="text-[10px] text-slate-400 mb-1">No sizes</p>
+                                                        <button type="button" @click="mInputShow[f.key] = true; mChipsOpen[f.key] = false"
+                                                            class="px-1.5 py-0.5 bg-emerald-50 text-emerald-600 rounded text-[9px] font-bold hover:bg-emerald-100 transition">
+                                                            + Custom
+                                                        </button>
+                                                    </div>
+                                                </template>
+                                                <template x-for="(val, idx) in getFieldOptions(f.key)" :key="idx">
+                                                    <button type="button" @click="selectSingleMeasurement(f.key, val); mChipsOpen[f.key] = false"
+                                                        :class="isOptionSelected(f.key, val) ? 'bg-emerald-50 text-emerald-700 font-bold' : 'text-slate-700 hover:bg-slate-50'"
+                                                        class="w-full text-left px-3 py-1.5 text-xs transition cursor-pointer flex justify-between items-center">
+                                                        <span x-text="val"></span>
+                                                        <span x-show="isOptionSelected(f.key, val)" class="text-emerald-500 font-bold">✓</span>
+                                                    </button>
+                                                </template>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="flex items-center gap-1">
-                                        <div class="relative flex-1">
-                                            <input type="text" :id="'mf_'+f.key" x-model="mValues[f.key]"
-                                                placeholder="38, 40..."
-                                                class="w-full pl-2.5 pr-6 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-semibold text-slate-800 placeholder-slate-300 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition">
-                                            <span class="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none text-[11px] text-slate-400 font-medium">in</span>
-                                        </div>
-                                        {{-- Chips Toggle Button --}}
-                                        <button type="button"
-                                            x-show="getFieldOptions(f.key).length > 0"
-                                            @click="mChipsOpen[f.key] = !mChipsOpen[f.key]"
-                                            :title="mChipsOpen[f.key] ? 'Hide options' : 'Show options'"
-                                            :class="mChipsOpen[f.key] ? 'bg-emerald-100 text-emerald-600 border-emerald-300' : 'bg-white text-slate-400 border-slate-200 hover:text-emerald-500 hover:border-emerald-300'"
-                                            class="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-lg border transition cursor-pointer">
-                                            <svg class="w-3 h-3 transition-transform duration-200"
-                                                :class="mChipsOpen[f.key] ? 'rotate-180' : ''"
-                                                fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/>
-                                            </svg>
-                                        </button>
-                                    </div>
-                                    {{-- Selectable Values Chips --}}
-                                    <div x-show="mChipsOpen[f.key] && getFieldOptions(f.key).length > 0"
-                                        x-transition:enter="transition ease-out duration-150"
-                                        x-transition:enter-start="opacity-0 -translate-y-1"
-                                        x-transition:enter-end="opacity-100 translate-y-0"
-                                        x-transition:leave="transition ease-in duration-100"
-                                        x-transition:leave-start="opacity-100 translate-y-0"
-                                        x-transition:leave-end="opacity-0 -translate-y-1"
-                                        class="flex flex-wrap items-center gap-1 mt-1.5 pt-1.5 border-t border-slate-200/60">
-                                        <template x-for="(val, idx) in getFieldOptions(f.key)" :key="idx">
-                                            <button type="button" @click="selectSingleMeasurement(f.key, val)"
-                                                :class="isOptionSelected(f.key, val)
-                                                    ? 'bg-emerald-600 text-white border-emerald-700 shadow-sm font-extrabold ring-1 ring-emerald-300'
-                                                    : 'bg-emerald-50/80 hover:bg-emerald-100 text-emerald-700 border-emerald-200'"
-                                                class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-bold border transition shadow-2xs cursor-pointer"
-                                                :title="'Click to select ' + val + ' in'">
-                                                <span x-text="val + ' in'"></span>
-                                            </button>
-                                        </template>
-                                    </div>
+                                    
+                                    {{-- Close Button --}}
+                                    <button type="button" @click="toggleLowerField(f.key)"
+                                        class="text-slate-400 hover:text-red-500 p-1 rounded-lg hover:bg-red-50 transition flex-shrink-0"
+                                        title="Close this field">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                                        </svg>
+                                    </button>
                                 </div>
                             </template>
                         </div>
@@ -1049,6 +1073,7 @@ function orderWizard() {
         mSaving: false,
         mService: null,
         mValues: {},
+        mInputShow: {},
         mOptionValues: {},
         mCustomerStyles: null,
         mLoadedFromGeneral: false,
@@ -1088,16 +1113,7 @@ function orderWizard() {
         },
 
         getFieldOptions(key) {
-            const currentParsed = this.parseValues(this.mValues[key]);
-            const stored = this.mOptionValues[key] || [];
-            // If current input has multiple comma-separated values, update option pool
-            if (currentParsed.length > 1) {
-                currentParsed.forEach(v => {
-                    if (!stored.includes(v)) stored.push(v);
-                });
-                this.mOptionValues[key] = stored;
-            }
-            return stored;
+            return this.mOptionValues[key] || [];
         },
 
         isOptionSelected(key, val) {
@@ -1107,6 +1123,7 @@ function orderWizard() {
 
         selectSingleMeasurement(key, val) {
             this.mValues[key] = String(val).trim();
+            this.mInputShow[key] = true;
         },
 
         // Searchable Service Dropdown in Table
@@ -1118,37 +1135,49 @@ function orderWizard() {
         activePriceDropdown: null,
         priceDropRect: null,
 
+        _priceScrollHandler: null,
+
         repositionPriceDropdown() {
             const id = this.activePriceDropdown;
             if (!id) return;
             const btn = document.getElementById('tier_btn_' + id);
             if (btn) {
                 const r = btn.getBoundingClientRect();
-                this.priceDropRect = { id, top: r.bottom + 6, left: r.left, width: Math.max(r.width, 150) };
+                this.priceDropRect = { id, top: r.bottom + 6, left: r.left, width: Math.max(r.width, 160) };
             }
         },
 
         get priceDropdownStyle() {
             const r = this.priceDropRect && this.priceDropRect.id === this.activePriceDropdown ? this.priceDropRect : null;
             return r
-                ? { position: 'fixed', top: r.top + 'px', left: r.left + 'px', width: r.width + 'px' }
+                ? { position: 'fixed', top: r.top + 'px', left: r.left + 'px', width: r.width + 'px', zIndex: 9999 }
                 : { display: 'none' };
         },
 
         openPriceDropdown(svcId) {
             this.activePriceDropdown = svcId;
-            window.addEventListener('scroll', this.repositionPriceDropdown, true);
+            if (this._priceScrollHandler) {
+                window.removeEventListener('scroll', this._priceScrollHandler, true);
+                window.removeEventListener('resize', this._priceScrollHandler);
+            }
+            this._priceScrollHandler = () => this.repositionPriceDropdown();
+            window.addEventListener('scroll', this._priceScrollHandler, true);
+            window.addEventListener('resize', this._priceScrollHandler);
             this.$nextTick(() => {
                 const btn = document.getElementById('tier_btn_' + svcId);
                 if (btn) {
                     const r = btn.getBoundingClientRect();
-                    this.priceDropRect = { id: svcId, top: r.bottom + 6, left: r.left, width: Math.max(r.width, 150) };
+                    this.priceDropRect = { id: svcId, top: r.bottom + 6, left: r.left, width: Math.max(r.width, 160) };
                 }
             });
         },
 
         closePriceDropdown(svcId) {
-            window.removeEventListener('scroll', this.repositionPriceDropdown, true);
+            if (this._priceScrollHandler) {
+                window.removeEventListener('scroll', this._priceScrollHandler, true);
+                window.removeEventListener('resize', this._priceScrollHandler);
+                this._priceScrollHandler = null;
+            }
             if (this.activePriceDropdown === svcId) {
                 this.activePriceDropdown = null;
                 this.priceDropRect = null;
@@ -1167,50 +1196,86 @@ function orderWizard() {
             return t === 'basic' ? 'Basic' : t === 'premium' ? 'Premium' : 'Standard';
         },
 
+        _svcScrollHandler: null,
+
+        _calcSvcDropdownRect(svcId) {
+            const inp = document.getElementById('svc_input_' + svcId);
+            if (!inp) return null;
+            const r = inp.getBoundingClientRect();
+            // Always open below the input field
+            return { id: svcId, top: r.bottom + 6, left: r.left, width: Math.max(r.width, 240) };
+        },
+
         repositionDropdown() {
             const id = this.activeServiceDropdown;
             if (!id) return;
-            const inp = document.getElementById('svc_input_' + id);
-            if (inp) {
-                const r = inp.getBoundingClientRect();
-                this.dropdownRect = { id, top: r.bottom + 6, left: r.left, width: Math.max(r.width, 240) };
-            }
+            const rect = this._calcSvcDropdownRect(id);
+            if (rect) this.dropdownRect = rect;
         },
 
         get dropdownStyle() {
             const r = this.dropdownRect && this.dropdownRect.id === this.activeServiceDropdown ? this.dropdownRect : null;
             return r
-                ? { position: 'fixed', top: r.top + 'px', left: r.left + 'px', width: r.width + 'px' }
+                ? { position: 'fixed', top: r.top + 'px', left: r.left + 'px', width: r.width + 'px', zIndex: 9999 }
                 : { display: 'none' };
         },
 
         openServiceDropdown(svcId, svc) {
+            // Close any other open dropdown first
+            if (this.activeServiceDropdown && this.activeServiceDropdown !== svcId) {
+                this._closeSvcDropdownInternal();
+            }
             this.activeServiceDropdown = svcId;
             this.serviceFilterQuery[svcId] = '';
-            window.addEventListener('scroll', this.repositionDropdown, true);
+
+            // Clean up old handler
+            if (this._svcScrollHandler) {
+                window.removeEventListener('scroll', this._svcScrollHandler, true);
+                window.removeEventListener('resize', this._svcScrollHandler);
+            }
+            // Store bound arrow fn so it always has correct `this`
+            this._svcScrollHandler = () => this.repositionDropdown();
+            window.addEventListener('scroll', this._svcScrollHandler, true);
+            window.addEventListener('resize', this._svcScrollHandler);
+
             this.$nextTick(() => {
-                const inp = document.getElementById('svc_input_' + svcId);
-                if (inp) {
-                    const r = inp.getBoundingClientRect();
-                    this.dropdownRect = { id: svcId, top: r.bottom + 6, left: r.left, width: Math.max(r.width, 240) };
-                    inp.select();
+                const rect = this._calcSvcDropdownRect(svcId);
+                if (rect) {
+                    this.dropdownRect = rect;
+                    const inp = document.getElementById('svc_input_' + svcId);
+                    if (inp) inp.select();
                 }
             });
         },
 
+        _closeSvcDropdownInternal() {
+            if (this._svcScrollHandler) {
+                window.removeEventListener('scroll', this._svcScrollHandler, true);
+                window.removeEventListener('resize', this._svcScrollHandler);
+                this._svcScrollHandler = null;
+            }
+            this.activeServiceDropdown = null;
+            this.dropdownRect = null;
+        },
+
         closeServiceDropdown(svcId) {
-            window.removeEventListener('scroll', this.repositionDropdown, true);
             if (this.activeServiceDropdown === svcId) {
-                this.activeServiceDropdown = null;
-                this.dropdownRect = null;
+                this._closeSvcDropdownInternal();
                 delete this.serviceFilterQuery[svcId];
             }
         },
 
         getFilteredServicesFor(svcId) {
             const q = (this.serviceFilterQuery[svcId] || '').trim().toLowerCase();
-            if (!q) return this.services;
+            // Dedup by name+days to prevent visually identical entries
+            const seen = new Set();
             return this.services.filter(s => {
+                // Deduplicate by name+days key (handles DB duplicates with different IDs)
+                const key = (s.name || '') + '|' + (s.days ?? '');
+                if (seen.has(key)) return false;
+                seen.add(key);
+
+                if (!q) return true;
                 const name = (s.name || '').toLowerCase();
                 const days = s.days ? String(s.days) : '';
                 return name.includes(q) || days.includes(q);
@@ -1236,6 +1301,11 @@ function orderWizard() {
                 this.mActiveUpperKeys.splice(idx, 1);
             } else {
                 this.mActiveUpperKeys.push(key);
+                this.mInputShow[key] = true;
+                const opts = this.getFieldOptions(key);
+                if (opts.length > 0 && (!this.mValues[key] || String(this.mValues[key]).trim() === '')) {
+                    // DO NOT auto-assign value, just let placeholder show it
+                }
             }
         },
 
@@ -1245,6 +1315,11 @@ function orderWizard() {
                 this.mActiveLowerKeys.splice(idx, 1);
             } else {
                 this.mActiveLowerKeys.push(key);
+                this.mInputShow[key] = true;
+                const opts = this.getFieldOptions(key);
+                if (opts.length > 0 && (!this.mValues[key] || String(this.mValues[key]).trim() === '')) {
+                    // DO NOT auto-assign value
+                }
             }
         },
 
@@ -1470,6 +1545,7 @@ function orderWizard() {
 
         async initEditOrder() {
             const eo = window.__editOrder;
+            if (!eo || !eo.customer) return;
             const customer = eo.customer;
             this.selectedCustomer = {
                 id: customer.id,
@@ -1489,15 +1565,40 @@ function orderWizard() {
             this.searchQuery = '';
 
             await this.loadMemberServices();
-            const svc = this.services.find(s => s.id === eo.service_id);
-            if (svc) {
-                await this.toggleService(svc);
-                this.servicePrices[svc.id] = eo.price;
-                this.serviceQty[svc.id] = eo.quantity;
-                this.serviceNotes[svc.id] = eo.notes || '';
-                const measurements = typeof eo.measurements === 'object' ? eo.measurements : JSON.parse(eo.measurements || '{}');
-                this.serviceMeasurements[svc.id] = measurements;
+
+            // Clear any blank auto-added service rows
+            this.selectedServices = [];
+
+            const ordersToLoad = (eo.sibling_orders && Array.isArray(eo.sibling_orders) && eo.sibling_orders.length > 0)
+                ? eo.sibling_orders
+                : [eo];
+
+            for (const ord of ordersToLoad) {
+                let svc = this.services.find(s => s.id == ord.service_id);
+                if (!svc && ord.service) {
+                    svc = ord.service;
+                    if (!this.services.some(s => s.id == svc.id)) {
+                        this.services.push(svc);
+                    }
+                }
+                if (svc) {
+                    if (!this.selectedServices.some(s => s.id == svc.id)) {
+                        this.selectedServices.push(svc);
+                    }
+                    this.servicePrices[svc.id] = ord.price;
+                    this.serviceTiers[svc.id] = this.detectTierFromPrice(svc, ord.price);
+                    this.serviceQty[svc.id] = ord.quantity || 1;
+                    this.serviceNotes[svc.id] = ord.notes || '';
+                    let measurements = {};
+                    if (typeof ord.measurements === 'object' && ord.measurements !== null) {
+                        measurements = ord.measurements;
+                    } else if (typeof ord.measurements === 'string' && ord.measurements.trim() !== '') {
+                        try { measurements = JSON.parse(ord.measurements); } catch(e) {}
+                    }
+                    this.serviceMeasurements[svc.id] = measurements;
+                }
             }
+
             this.form.paid_amount = eo.paid_amount || '';
             this.form.due_date = eo.due_date ? eo.due_date.substring(0, 10) : '';
             this.form.notes = eo.notes || '';
@@ -1560,13 +1661,24 @@ function orderWizard() {
         // Pricing tier helper methods
         getTierPrice(svc, tier = 'standard') {
             if (!svc) return 0;
-            if (svc.pricing_tiers && svc.pricing_tiers[tier] !== undefined) {
-                return parseFloat(svc.pricing_tiers[tier]) || 0;
+            const tiers = svc.pricing_tiers || {};
+            if (tiers[tier] !== undefined && tiers[tier] !== null && tiers[tier] !== '') {
+                return parseFloat(tiers[tier]) || 0;
             }
             const base = parseFloat(svc.price) || 0;
             if (tier === 'basic') return Math.round(base * 0.75);
             if (tier === 'premium') return Math.round(base * 1.6);
             return base;
+        },
+
+        detectTierFromPrice(svc, price) {
+            if (!svc) return 'standard';
+            const numPrice = parseFloat(price) || 0;
+            const tiers = svc.pricing_tiers || {};
+            if (tiers.basic !== undefined && parseFloat(tiers.basic) === numPrice) return 'basic';
+            if (tiers.premium !== undefined && parseFloat(tiers.premium) === numPrice) return 'premium';
+            if (tiers.standard !== undefined && parseFloat(tiers.standard) === numPrice) return 'standard';
+            return 'standard';
         },
 
         getServiceTier(serviceId) {
@@ -1700,8 +1812,15 @@ function orderWizard() {
             try {
                 const params = new URLSearchParams({ customer_id: this.form.customer_id });
                 if (this.form.member_id) params.append('member_id', this.form.member_id);
-                this.services = await (await fetch('{{ route("api.orders.memberServices") }}?' + params, { headers: { 'Accept': 'application/json' } })).json();
-                if (!this.editOrder && this.services.length > 0 && this.selectedServices.length === 0) {
+                const rawServices = await (await fetch('{{ route("api.orders.memberServices") }}?' + params, { headers: { 'Accept': 'application/json' } })).json();
+                // Deduplicate by id to prevent double entries
+                const seenIds = new Set();
+                this.services = rawServices.filter(s => {
+                    if (seenIds.has(s.id)) return false;
+                    seenIds.add(s.id);
+                    return true;
+                });
+                if (!this.editMode && this.services.length > 0 && this.selectedServices.length === 0) {
                     this.addServiceRow();
                 }
             } catch (e) {
@@ -1711,9 +1830,8 @@ function orderWizard() {
         },
 
         async changeService(oldId, newId) {
-            newId = parseInt(newId);
-            if (!newId || oldId === newId) return;
-            const newSvc = this.services.find(s => s.id === newId);
+            if (!newId || oldId == newId) return;
+            const newSvc = this.services.find(s => s.id == newId);
             if (!newSvc) return;
 
             const oldIdx = this.selectedServices.findIndex(s => s.id === oldId);
@@ -1757,7 +1875,7 @@ function orderWizard() {
         },
 
         isSelected(svc) {
-            return this.selectedServices.some(x => x.id === svc.id);
+            return this.selectedServices.some(x => x.id == svc.id);
         },
 
         async toggleService(svc) {
@@ -1880,16 +1998,92 @@ function orderWizard() {
                     result = { measurements: mapped, prev: d };
                 }
             } catch (e) {}
-            this.serviceMeasurements[svc.id] = result.measurements;
             this.servicePrev[svc.id] = result.prev;
+            if (!this.serviceMeasurements[svc.id] || Object.keys(this.serviceMeasurements[svc.id]).length === 0) {
+                this.serviceMeasurements[svc.id] = result.measurements;
+            }
             this.loadingServiceIds = this.loadingServiceIds.filter(id => id !== svc.id);
         },
 
-        goMeasurements(svc) {
+        getSmartHistory(fieldKey, historyObj, prevObj, existingObj) {
+            const vals = [];
+            const aliasMap = {
+                'kameez_length': ['length', 'shirt_length', 'upper_length', 'kameez_length'],
+                'shirt_length': ['length', 'kameez_length', 'upper_length', 'shirt_length'],
+                'coat_length': ['length', 'upper_length', 'coat_length'],
+                'kurta_length': ['length', 'kameez_length', 'upper_length', 'kurta_length'],
+                'chest': ['chest', 'chaati'],
+                'waist_upper': ['waist_upper', 'waist', 'kamar'],
+                'waist': ['waist', 'waist_upper', 'kamar'],
+                'shoulder': ['shoulder', 'shoulder_teera', 'teera'],
+                'shoulder_teera': ['shoulder', 'teera'],
+                'sleeves': ['sleeves', 'sleeve_length', 'sleeves_baazu', 'bazu'],
+                'sleeve_length': ['sleeves', 'sleeves_baazu', 'bazu'],
+                'sleeves_baazu': ['sleeves', 'sleeve_length', 'bazu'],
+                'collar': ['collar', 'neck', 'neck_collar', 'gala'],
+                'neck': ['collar', 'neck_collar', 'gala'],
+                'neck_collar': ['collar', 'neck', 'gala'],
+                'daman': ['daman', 'daman_ghera', 'ghera'],
+                'daman_ghera': ['daman', 'ghera'],
+                'cross_back': ['cross_back', 'peeth'],
+                'bicep': ['bicep', 'muscle'],
+                'wrist': ['wrist', 'cuff', 'mohri'],
+                'shalwar_length': ['trouser_length', 'lower_length', 'pajama_length', 'pant_length', 'length', 'shalwar_length'],
+                'trouser_length': ['trouser_length', 'lower_length', 'shalwar_length', 'pajama_length', 'pant_length', 'length'],
+                'pant_length': ['trouser_length', 'lower_length', 'shalwar_length', 'pajama_length', 'length', 'pant_length'],
+                'pajama_length': ['trouser_length', 'lower_length', 'shalwar_length', 'pant_length', 'length', 'pajama_length'],
+                'waist_lower': ['waist_lower', 'trouser_waist', 'lower_waist', 'pant_waist', 'waist'],
+                'pant_waist': ['trouser_waist', 'lower_waist', 'waist_lower', 'waist', 'pant_waist'],
+                'trouser_waist': ['trouser_waist', 'lower_waist', 'waist_lower', 'pant_waist', 'waist'],
+                'hip': ['hip', 'seat'],
+                'inseam': ['inseam'],
+                'paincha': ['paincha', 'paincha_bottom', 'bottom_ankle', 'bottom'],
+                'paincha_bottom': ['paincha', 'bottom_ankle', 'bottom'],
+                'bottom_ankle': ['paincha', 'paincha_bottom', 'bottom'],
+                'thigh': ['thigh', 'raan'],
+                'asan': ['asan', 'shalwar_gher_asan', 'crotch'],
+                'shalwar_gher_asan': ['asan', 'crotch']
+            };
+            const keysToSearch = [fieldKey, ...(aliasMap[fieldKey.toLowerCase()] || [])];
+
+            if (existingObj && existingObj[fieldKey]) {
+                vals.push(...this.parseValues(existingObj[fieldKey]));
+            }
+
+            if (prevObj && prevObj.measurements) {
+                for (const k of keysToSearch) {
+                    const smartV = this.getSmartValue(k, prevObj.measurements);
+                    if (smartV) {
+                        vals.push(...this.parseValues(smartV));
+                    }
+                }
+            }
+
+            if (historyObj) {
+                for (const hKey in historyObj) {
+                    if (keysToSearch.some(k => k.toLowerCase() === hKey.toLowerCase())) {
+                        const hVals = historyObj[hKey];
+                        if (Array.isArray(hVals)) {
+                            hVals.forEach(v => vals.push(...this.parseValues(v)));
+                        } else if (hVals) {
+                            vals.push(...this.parseValues(hVals));
+                        }
+                    }
+                }
+            }
+
+            return [...new Set(vals.map(v => String(v).trim()).filter(v => v !== ''))];
+        },
+
+        async goMeasurements(svc) {
             this.mService = svc;
             this.mFieldErrors = {};
             this.mToast = '';
             this.loadMFieldsFromStorage();
+
+            if (this.form.customer_id && (!this.servicePrev[svc.id] || !this.servicePrev[svc.id].all_history)) {
+                await this.loadPreviousFor(svc);
+            }
 
             const existing = this.serviceMeasurements[svc.id] || {};
             const prevObj = this.servicePrev[svc.id];
@@ -1897,46 +2091,78 @@ function orderWizard() {
             this.mSavedDate = prevObj?.saved_date || '';
             this.mCustomerStyles = prevObj?.measurements?.__style || null;
 
-            // Merge any custom fields from prev measurements if present
-            if (prevObj?.measurements?.__custom_fields && Array.isArray(prevObj.measurements.__custom_fields)) {
-                prevObj.measurements.__custom_fields.forEach(cf => {
-                    if (cf.section === 'lower') {
-                        if (!this.mLowerFields.some(f => f.key === cf.key)) {
-                            this.mLowerFields.push({ key: cf.key, label: cf.label, urdu: cf.urdu || cf.label, isCustom: true });
-                        }
-                    } else {
-                        if (!this.mUpperFields.some(f => f.key === cf.key)) {
-                            this.mUpperFields.push({ key: cf.key, label: cf.label, urdu: cf.urdu || cf.label, isCustom: true });
-                        }
-                    }
-                });
-                this.saveMFieldsToStorage();
+            // Merge any custom fields from existing order or prev measurements
+            const customDefsToMerge = [];
+            if (existing?.__custom_fields && Array.isArray(existing.__custom_fields)) {
+                customDefsToMerge.push(...existing.__custom_fields);
             }
+            if (prevObj?.measurements?.__custom_fields && Array.isArray(prevObj.measurements.__custom_fields)) {
+                customDefsToMerge.push(...prevObj.measurements.__custom_fields);
+            }
+            customDefsToMerge.forEach(cf => {
+                if (cf.section === 'lower') {
+                    if (!this.mLowerFields.some(f => f.key === cf.key)) {
+                        this.mLowerFields.push({ key: cf.key, label: cf.label, urdu: cf.urdu || cf.label, isCustom: true });
+                    }
+                } else {
+                    if (!this.mUpperFields.some(f => f.key === cf.key)) {
+                        this.mUpperFields.push({ key: cf.key, label: cf.label, urdu: cf.urdu || cf.label, isCustom: true });
+                    }
+                }
+            });
+            for (const k in existing) {
+                if (k.startsWith('custom_u_') && !this.mUpperFields.some(f => f.key === k)) {
+                    const cleanL = k.replace(/^custom_u_/, '').replace(/_\d+$/, '').replace(/_/g, ' ');
+                    this.mUpperFields.push({ key: k, label: cleanL.charAt(0).toUpperCase() + cleanL.slice(1), isCustom: true });
+                } else if (k.startsWith('custom_l_') && !this.mLowerFields.some(f => f.key === k)) {
+                    const cleanL = k.replace(/^custom_l_/, '').replace(/_\d+$/, '').replace(/_/g, ' ');
+                    this.mLowerFields.push({ key: k, label: cleanL.charAt(0).toUpperCase() + cleanL.slice(1), isCustom: true });
+                }
+            }
+            this.saveMFieldsToStorage();
+
+            // Build unified current measurements across ALL services as a fallback
+            let unifiedCurrent = {};
+            this.selectedServices.forEach(s => {
+                if (s.id !== svc.id && this.serviceMeasurements[s.id]) {
+                    Object.assign(unifiedCurrent, this.serviceMeasurements[s.id]);
+                }
+            });
 
             // Initialize values with smart mapping
             this.mValues = {};
+            this.mInputShow = {};
             this.mOptionValues = {};
             this.mActiveUpperKeys = [];
             this.mActiveLowerKeys = [];
 
+            const historyObj = prevObj?.all_history || {};
+
             // Populate upper fields
             this.mUpperFields.forEach(f => {
                 let raw = existing[f.key];
-                let prevRaw = this.getSmartValue(f.key, prevObj?.measurements);
                 if (raw === undefined || raw === null || raw === '') {
-                    raw = prevRaw;
+                    raw = this.getSmartValue(f.key, existing);
                 }
-                const allVals = [
-                    ...this.parseValues(raw),
-                    ...this.parseValues(prevRaw)
-                ];
-                this.mOptionValues[f.key] = [...new Set(allVals)];
-
-                if (raw !== undefined && raw !== null && raw !== '') {
-                    this.mValues[f.key] = Array.isArray(raw) ? raw.join(', ') : String(raw);
-                    if (this.parseValues(this.mValues[f.key]).length > 0) {
-                        this.mActiveUpperKeys.push(f.key);
+                
+                if ((raw === undefined || raw === null || raw === '') && !this.editMode) {
+                    if (unifiedCurrent[f.key]) {
+                        raw = unifiedCurrent[f.key];
+                    } else {
+                        raw = this.getSmartValue(f.key, prevObj?.measurements);
                     }
+                }
+                
+                const opts = this.getSmartHistory(f.key, historyObj, prevObj, existing);
+                this.mOptionValues[f.key] = opts;
+
+                const parsed = this.parseValues(raw);
+                const valToUse = parsed.length > 0 ? parsed[0] : '';
+
+                if (valToUse !== '') {
+                    this.mValues[f.key] = valToUse;
+                    this.mInputShow[f.key] = true;
+                    this.mActiveUpperKeys.push(f.key);
                 } else {
                     this.mValues[f.key] = '';
                 }
@@ -1945,21 +2171,28 @@ function orderWizard() {
             // Populate lower fields
             this.mLowerFields.forEach(f => {
                 let raw = existing[f.key];
-                let prevRaw = this.getSmartValue(f.key, prevObj?.measurements);
                 if (raw === undefined || raw === null || raw === '') {
-                    raw = prevRaw;
+                    raw = this.getSmartValue(f.key, existing);
                 }
-                const allVals = [
-                    ...this.parseValues(raw),
-                    ...this.parseValues(prevRaw)
-                ];
-                this.mOptionValues[f.key] = [...new Set(allVals)];
-
-                if (raw !== undefined && raw !== null && raw !== '') {
-                    this.mValues[f.key] = Array.isArray(raw) ? raw.join(', ') : String(raw);
-                    if (this.parseValues(this.mValues[f.key]).length > 0) {
-                        this.mActiveLowerKeys.push(f.key);
+                
+                if ((raw === undefined || raw === null || raw === '') && !this.editMode) {
+                    if (unifiedCurrent[f.key]) {
+                        raw = unifiedCurrent[f.key];
+                    } else {
+                        raw = this.getSmartValue(f.key, prevObj?.measurements);
                     }
+                }
+
+                const opts = this.getSmartHistory(f.key, historyObj, prevObj, existing);
+                this.mOptionValues[f.key] = opts;
+
+                const parsed = this.parseValues(raw);
+                const valToUse = parsed.length > 0 ? parsed[0] : '';
+
+                if (valToUse !== '') {
+                    this.mValues[f.key] = valToUse;
+                    this.mInputShow[f.key] = true;
+                    this.mActiveLowerKeys.push(f.key);
                 } else {
                     this.mValues[f.key] = '';
                 }
@@ -1989,7 +2222,7 @@ function orderWizard() {
             for (const key of Object.keys(this.mValues)) {
                 const parsed = this.parseValues(this.mValues[key]);
                 if (parsed.length > 0) {
-                    result[key] = parsed;
+                    result[key] = parsed[0];
                 }
             }
 

@@ -127,11 +127,18 @@
                 </a>
 
 
-                <a href="{{ route('orders.index') }}" class="sidebar-link flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 {{ request()->routeIs('orders.*') ? 'active' : 'text-slate-400' }}">
+                <a href="{{ route('orders.index') }}" class="sidebar-link flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 {{ request()->routeIs('orders.*') && !request()->routeIs('assign-orders.*') ? 'active' : 'text-slate-400' }}">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-1.125 1.125-1.125V11.25a9 9 0 00-9-9z" />
                     </svg>
                     Orders
+                </a>
+
+                <a href="{{ route('assign-orders.index') }}" class="sidebar-link flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 {{ request()->routeIs('assign-orders.*') ? 'active' : 'text-slate-400' }}">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
+                    </svg>
+                    Assign Order
                 </a>
 
                 <a href="{{ route('payments.index') }}" class="sidebar-link flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 {{ request()->routeIs('payments.*') ? 'active' : 'text-slate-400' }}">
@@ -147,6 +154,45 @@
                     </svg>
                     Chart of Accounts
                 </a>
+
+                <!-- HR Collapsible Menu -->
+                @php
+                    $isHrActive = request()->routeIs('departments.*', 'designations.*', 'employees.*');
+                @endphp
+                <div x-data="{ open: {{ $isHrActive ? 'true' : 'false' }} }}">
+                    <button @click="open = !open"
+                            onclick="toggleHrSubmenu()"
+                            type="button"
+                            class="sidebar-link w-full flex items-center justify-between px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 cursor-pointer {{ $isHrActive ? 'active' : 'text-slate-400' }}">
+                        <div class="flex items-center gap-3">
+                            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                            <span>HR</span>
+                        </div>
+                        <svg id="hr-chevron" class="w-4 h-4 transition-transform duration-200 {{ $isHrActive ? 'rotate-180' : '' }}" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+
+                    <div id="hr-submenu"
+                         x-show="open"
+                         x-cloak
+                         class="mt-1 pl-9 pr-2 space-y-1 {{ $isHrActive ? '' : 'hidden' }}">
+                        <a href="{{ route('departments.index') }}"
+                           class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('departments.*') ? 'text-white bg-slate-800 font-semibold' : 'text-slate-400 hover:text-white hover:bg-slate-800' }}">
+                            Department
+                        </a>
+                        <a href="{{ route('designations.index') }}"
+                           class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('designations.*') ? 'text-white bg-slate-800 font-semibold' : 'text-slate-400 hover:text-white hover:bg-slate-800' }}">
+                            Designation
+                        </a>
+                        <a href="{{ route('employees.index') }}"
+                           class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('employees.*') ? 'text-white bg-slate-800 font-semibold' : 'text-slate-400 hover:text-white hover:bg-slate-800' }}">
+                            Employees
+                        </a>
+                    </div>
+                </div>
 
             </nav>
 
@@ -219,6 +265,17 @@
             const overlay = document.getElementById('sidebar-overlay');
             sidebar.classList.toggle('-translate-x-full');
             overlay.classList.toggle('hidden');
+        }
+
+        function toggleHrSubmenu() {
+            const submenu = document.getElementById('hr-submenu');
+            const chevron = document.getElementById('hr-chevron');
+            if (submenu) {
+                submenu.classList.toggle('hidden');
+            }
+            if (chevron) {
+                chevron.classList.toggle('rotate-180');
+            }
         }
 
         // Global SweetAlert confirmation for all delete forms (.js-delete-form)

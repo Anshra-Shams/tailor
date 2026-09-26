@@ -343,86 +343,7 @@
                 </div>
             </div>
 
-            {{-- Card 4: Fitting, Style & Custom Measurement Parameters --}}
-            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5">
-                <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-                    <div class="flex items-center gap-2.5">
-                        <span class="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-xs">4</span>
-                        <h3 class="text-base font-bold text-slate-800">Cutting Styles &amp; Custom Fields</h3>
-                    </div>
-                    <button type="button" @click="addCustomField()"
-                        class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition cursor-pointer">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-                        + Add Custom Field
-                    </button>
-                </div>
 
-                {{-- Style Options Grid --}}
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {{-- Fitting Type --}}
-                    <div>
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Fitting Preference</label>
-                        <select x-model="stylePreferences.fitting" class="w-full py-2 px-3 rounded-xl border border-slate-300 text-xs font-medium bg-white focus:ring-indigo-500 focus:border-indigo-500">
-                            <option value="Regular Fit">Regular Fit (Standard)</option>
-                            <option value="Slim Fit">Slim Fit (Fitting)</option>
-                            <option value="Smart Fit">Smart Fit (Medium)</option>
-                            <option value="Loose Fit">Loose Fit (Khula)</option>
-                        </select>
-                    </div>
-
-                    {{-- Collar Style --}}
-                    <div>
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Collar / Neck Style</label>
-                        <select x-model="stylePreferences.collar" class="w-full py-2 px-3 rounded-xl border border-slate-300 text-xs font-medium bg-white focus:ring-indigo-500 focus:border-indigo-500">
-                            <option value="Shirt Collar">Shirt Collar (Standard)</option>
-                            <option value="Full Ban">Full Ban (Mandarin)</option>
-                            <option value="Half Ban">Half Ban (Sherwani)</option>
-                            <option value="Kurta Collar">Kurta Open Neck</option>
-                        </select>
-                    </div>
-
-                    {{-- Daman Style --}}
-                    <div>
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Daman Style</label>
-                        <select x-model="stylePreferences.daman" class="w-full py-2 px-3 rounded-xl border border-slate-300 text-xs font-medium bg-white focus:ring-indigo-500 focus:border-indigo-500">
-                            <option value="Choras">Choras (Square / Seedha)</option>
-                            <option value="Gol">Gol (Round / Curve)</option>
-                        </select>
-                    </div>
-
-                    {{-- Pocket Preference --}}
-                    <div>
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Pocket Style</label>
-                        <select x-model="stylePreferences.pocket" class="w-full py-2 px-3 rounded-xl border border-slate-300 text-xs font-medium bg-white focus:ring-indigo-500 focus:border-indigo-500">
-                            <option value="Front Pocket + 2 Side">1 Front + 2 Side Pockets</option>
-                            <option value="Front Pocket Only">1 Front Pocket Only</option>
-                            <option value="Double Front Pocket">Double Front Pocket</option>
-                            <option value="No Front Pocket">Side Pockets Only</option>
-                        </select>
-                    </div>
-                </div>
-
-                {{-- Custom Dynamic Fields List --}}
-                <div x-show="customFields.length > 0" class="space-y-3 pt-3 border-t border-slate-100">
-                    <span class="text-xs font-bold text-slate-700">Custom Measurement Fields:</span>
-                    <template x-for="(cf, idx) in customFields" :key="idx">
-                        <div class="flex items-center gap-3 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
-                            <input type="text" x-model="cf.label" placeholder="Measurement Name (e.g. Belt, Pocket Width...)"
-                                class="flex-1 px-3 py-1.5 bg-white rounded-lg border border-slate-300 text-xs font-medium">
-                            <div class="relative w-32">
-                                <input type="text" x-model="cf.value" placeholder="0.0"
-                                    class="w-full pl-3 pr-7 py-1.5 bg-white rounded-lg border border-slate-300 text-xs font-bold">
-                                <span class="absolute inset-y-0 right-0 pr-2 flex items-center text-[11px] text-slate-400" x-text="unit"></span>
-                            </div>
-                            <button type="button" @click="removeCustomField(idx)" class="p-1.5 text-slate-400 hover:text-red-500 rounded-lg cursor-pointer">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                            </button>
-                        </div>
-                    </template>
-                </div>
-
-
-            </div>
 
             {{-- Bottom Save Actions --}}
             <div class="flex items-center justify-end gap-3 pt-2">
@@ -493,25 +414,7 @@
                             </div>
                         </div>
 
-                        {{-- Style Selections --}}
-                        <div class="pt-3 border-t border-slate-100 space-y-1.5 text-xs text-slate-600">
-                            <div class="flex items-center justify-between">
-                                <span class="text-slate-400">Fitting:</span>
-                                <span class="font-bold text-slate-700" x-text="stylePreferences.fitting"></span>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <span class="text-slate-400">Collar:</span>
-                                <span class="font-bold text-slate-700" x-text="stylePreferences.collar"></span>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <span class="text-slate-400">Daman:</span>
-                                <span class="font-bold text-slate-700" x-text="stylePreferences.daman"></span>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <span class="text-slate-400">Pocket:</span>
-                                <span class="font-bold text-slate-700" x-text="stylePreferences.pocket"></span>
-                            </div>
-                        </div>
+
 
                         {{-- Action Buttons --}}
                         <div class="pt-3 border-t border-slate-100">
@@ -1003,7 +906,7 @@ function measurementEditor() {
                     payloadData[key] = parsed;
                 }
             }
-            payloadData.__style = this.stylePreferences;
+
             if (this.customFields.length > 0) {
                 payloadData.__custom = this.customFields.filter(c => c.label.trim() !== '');
             }

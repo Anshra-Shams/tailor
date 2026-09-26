@@ -1,7 +1,11 @@
 <?php
 
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\AssignOrderController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\DepartmentController;
+use App\Http\Controllers\DesignationController;
+use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\MeasurementController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PaymentController;
@@ -44,6 +48,11 @@ Route::middleware('auth')->group(function () {
     Route::get('customers/{customer}/members', [CustomerController::class, 'getMembers'])->name('customers.members');
     Route::resource('services', ServiceController::class);
 
+    // HR Module
+    Route::resource('departments', DepartmentController::class);
+    Route::resource('designations', DesignationController::class);
+    Route::resource('employees', EmployeeController::class);
+
     // Measurements (decoupled from Orders)
     Route::get('measurements/create', [MeasurementController::class, 'create'])->name('measurements.create');
     Route::post('measurements', [MeasurementController::class, 'store'])->name('measurements.store');
@@ -57,10 +66,18 @@ Route::middleware('auth')->group(function () {
     Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
     Route::get('orders/create', [OrderController::class, 'create'])->name('orders.create');
     Route::post('orders', [OrderController::class, 'store'])->name('orders.store');
+    Route::get('orders/{order}/invoice', [OrderController::class, 'invoice'])->name('orders.invoice');
     Route::get('orders/{order}/edit', [OrderController::class, 'edit'])->name('orders.edit');
     Route::put('orders/{order}', [OrderController::class, 'update'])->name('orders.update');
     Route::patch('orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.updateStatus');
     Route::delete('orders/{order}', [OrderController::class, 'destroy'])->name('orders.destroy');
+
+    // Assign Orders (3-Step Workflow)
+    Route::get('assign-orders', [AssignOrderController::class, 'index'])->name('assign-orders.index');
+    Route::match(['get', 'post'], 'assign-orders/cutting', [AssignOrderController::class, 'cutting'])->name('assign-orders.cutting');
+    Route::match(['get', 'post'], 'assign-orders/configure', [AssignOrderController::class, 'cutting'])->name('assign-orders.configure'); // alias
+    Route::match(['get', 'post'], 'assign-orders/stitching', [AssignOrderController::class, 'stitching'])->name('assign-orders.stitching');
+    Route::post('assign-orders/save', [AssignOrderController::class, 'save'])->name('assign-orders.save');
 
     // Payments
     Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');

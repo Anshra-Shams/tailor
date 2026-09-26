@@ -15,6 +15,9 @@ class Order extends Model
         'customer_id',
         'member_id',
         'service_id',
+        'assigned_employee_id',
+        'cutting_employee_id',
+        'stitching_employee_id',
         'price',
         'quantity',
         'paid_amount',
@@ -25,6 +28,7 @@ class Order extends Model
         'completed_date',
         'measurements',
         'notes',
+        'created_at',
     ];
 
     protected $casts = [
@@ -49,6 +53,21 @@ class Order extends Model
     public function service(): BelongsTo
     {
         return $this->belongsTo(Service::class);
+    }
+
+    public function assignedEmployee(): BelongsTo
+    {
+        return $this->belongsTo(Employee::class, 'assigned_employee_id');
+    }
+
+    public function cuttingEmployee(): BelongsTo
+    {
+        return $this->belongsTo(Employee::class, 'cutting_employee_id');
+    }
+
+    public function stitchingEmployee(): BelongsTo
+    {
+        return $this->belongsTo(Employee::class, 'stitching_employee_id');
     }
 
     public function payments(): HasMany
