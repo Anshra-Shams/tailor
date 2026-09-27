@@ -2219,16 +2219,22 @@ function orderWizard() {
             if (!svc) return;
 
             const result = {};
-            for (const key of Object.keys(this.mValues)) {
-                const parsed = this.parseValues(this.mValues[key]);
-                if (parsed.length > 0) {
-                    result[key] = parsed[0];
+            const activeKeys = [
+                ...(this.mActiveUpperKeys || []),
+                ...(this.mActiveLowerKeys || [])
+            ];
+            for (const key of activeKeys) {
+                if (this.mValues[key] !== undefined && this.mValues[key] !== null) {
+                    const parsed = this.parseValues(this.mValues[key]);
+                    if (parsed.length > 0) {
+                        result[key] = parsed[0];
+                    }
                 }
             }
 
             // Persist custom fields meta in service measurements if any
-            const customUpper = this.mUpperFields.filter(f => f.isCustom).map(f => ({ section: 'upper', key: f.key, label: f.label, urdu: f.urdu }));
-            const customLower = this.mLowerFields.filter(f => f.isCustom).map(f => ({ section: 'lower', key: f.key, label: f.label, urdu: f.urdu }));
+            const customUpper = this.mUpperFields.filter(f => f.isCustom && (this.mActiveUpperKeys || []).includes(f.key)).map(f => ({ section: 'upper', key: f.key, label: f.label, urdu: f.urdu }));
+            const customLower = this.mLowerFields.filter(f => f.isCustom && (this.mActiveLowerKeys || []).includes(f.key)).map(f => ({ section: 'lower', key: f.key, label: f.label, urdu: f.urdu }));
             const allCustomDefs = [...customUpper, ...customLower];
             if (allCustomDefs.length > 0) {
                 result.__custom_fields = allCustomDefs;
@@ -2272,7 +2278,7 @@ function orderWizard() {
             const picked = this.selectedServices.filter(s => s.name);
             if (picked.length === 0) { this.errors.service = 'Please select at least one service'; ok = false; return ok; }
 
-            let missing = [];
+            let missingServices = [];
             this.selectedServices.forEach(svc => {
                 if (!svc.name) { this.errors['service.' + svc.id] = 'Select a service for this row'; ok = false; return; }
                 const qty = parseInt(this.serviceQty[svc.id]);
@@ -2284,19 +2290,19 @@ function orderWizard() {
                     this.errors['price.' + svc.id] = 'Enter a valid price';
                     ok = false;
                 }
-                this.mFields(svc).forEach(f => {
-                    if (f.req) {
-                        const v = (this.serviceMeasurements[svc.id]?.[f.k] ?? '').toString().trim();
-                        if (!v) {
-                            this.fieldErrors[svc.id + '.' + f.k] = true;
-                            missing.push(svc.name + ': ' + f.l);
-                        }
-                    }
-                });
+                
+                // Check if at least 1 measurement (upper or lower) is entered for this service
+                const data = this.serviceMeasurements[svc.id] || {};
+                const filledCount = Object.keys(data).filter(k => !k.startsWith('__') && this.parseValues(data[k]).length > 0).length;
+                if (filledCount === 0) {
+                    missingServices.push(svc);
+                }
             });
 
-            if (missing.length > 0) {
-                this.errors.measurements = 'Missing required measurements: ' + missing.join(', ');
+            if (missingServices.length > 0) {
+                const names = missingServices.map(s => s.name).join(', ');
+                this.errors.measurements = 'No measurements entered for: ' + names;
+                this.firstMissingSvc = missingServices[0];
                 ok = false;
             }
             if ((parseFloat(this.form.paid_amount) || 0) < 0) { this.errors.paid_amount = 'Invalid amount'; ok = false; }
@@ -2316,18 +2322,17 @@ function orderWizard() {
                 const scrollContainer = document.querySelector('main') || window;
                 scrollContainer.scrollTo({ top: 0, behavior: 'smooth' });
 
-                // If measurements are missing, prompt user with SweetAlert to open specs or continue!
+                // If measurements are missing (0 measurements), prompt user with mandatory SweetAlert to open specs!
                 if (this.errors.measurements) {
                     if (typeof Swal !== 'undefined') {
-                        const firstMissingSvc = this.selectedServices.find(s => {
-                            return this.mFields(s).some(f => f.req && !(this.serviceMeasurements[s.id]?.[f.k] ?? '').toString().trim());
-                        });
+                        const firstMissingSvc = this.firstMissingSvc || this.selectedServices[0];
 
                         Swal.fire({
                             icon: 'warning',
                             title: 'Measurements Incomplete',
-                            html: `<div class="text-sm text-left"><p class="mb-2 text-slate-600">The following required measurements are missing:</p><div class="p-2.5 bg-red-50 text-red-700 rounded-xl font-medium text-xs mb-3 border border-red-200">${this.errors.measurements}</div><p class="text-xs text-slate-500">Would you like to enter measurements now, or save order anyway?</p></div>`,
+                            html: `<div class="text-sm text-left"><p class="mb-2 text-slate-700 font-bold">No measurements entered for selected service(s).</p><div class="p-3 bg-amber-50 text-amber-800 rounded-xl font-semibold text-xs mb-3 border border-amber-200 flex items-start gap-2"><svg class="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/></svg><span>${this.errors.measurements}</span></div><p class="text-xs text-slate-500">Would you like to enter measurements now, or save order anyway?</p></div>`,
                             showCancelButton: true,
+                            showCloseButton: true,
                             confirmButtonText: 'Add Measurements',
                             cancelButtonText: 'Save Order Anyway',
                             confirmButtonColor: '#4f46e5',

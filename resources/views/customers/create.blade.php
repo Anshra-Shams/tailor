@@ -32,13 +32,13 @@
         </div>
 
         {{-- Quick Header Actions --}}
-        <div class="flex items-center gap-2.5">
+        <div class="flex items-center gap-3">
             <a href="{{ route('customers.index') }}"
-                class="px-4 py-2 text-xs font-semibold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl transition shadow-xs">
+                class="px-5 py-2.5 text-sm font-semibold text-slate-600 bg-white border border-slate-300 hover:bg-slate-50 rounded-xl transition shadow-xs">
                 Cancel
             </a>
             <button type="submit" form="customer-form"
-                class="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-xs font-semibold rounded-xl shadow-sm shadow-indigo-500/25 transition">
+                class="inline-flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-sm font-semibold rounded-xl shadow-md shadow-indigo-500/25 transition">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                 </svg>
@@ -82,7 +82,7 @@
                             </svg>
                         </div>
                         <div>
-                            <h3 class="text-sm font-bold text-slate-800 leading-tight">Primary Account Details</h3>
+                            <h3 class="text-sm font-bold text-slate-800 leading-tight">Customer Details</h3>
                             <p class="text-[11px] text-slate-400">Head of family or primary client</p>
                         </div>
                     </div>
@@ -184,14 +184,14 @@
                     <p class="text-[11px] text-slate-400">
                         Measurements can be added immediately after saving.
                     </p>
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-3">
                         <a href="{{ route('customers.index') }}"
-                            class="px-3.5 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition">
+                            class="px-5 py-2.5 text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition">
                             Cancel
                         </a>
                         <button type="submit"
-                            class="inline-flex items-center gap-1.5 px-4 py-1.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-xs font-semibold rounded-xl shadow-sm shadow-indigo-500/25 transition">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            class="inline-flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-sm font-semibold rounded-xl shadow-md shadow-indigo-500/25 transition">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                             </svg>
                             Save Customer
