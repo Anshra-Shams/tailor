@@ -319,6 +319,8 @@ class OrderController extends Controller
 
             // Build individual measurements for each service/order
             $servicesMeasurements = [];
+            $upperSpecificKeys = ['kameez_length', 'length_shoulder_to_bottom', 'shoulder', 'chest', 'waist_upper', 'collar', 'daman', 'cross_back', 'bicep', 'sleeves', 'sleeves_full', 'sleeves_half', 'sleeves_qtr', 'point', 'gending', 'flair', 'choke'];
+
             foreach ($siblingOrders as $sOrder) {
                 $raw = $sOrder->measurements;
                 $decoded = is_string($raw) ? json_decode($raw, true) : (is_array($raw) ? $raw : []);
@@ -330,7 +332,30 @@ class OrderController extends Controller
                         }
                     }
                 }
+
+                $serviceFields = $sOrder->service?->measurement_fields;
+                $hasUpperInService = null;
+                if (is_array($serviceFields) && count($serviceFields) > 0) {
+                    $hasUpperInService = collect($serviceFields)->contains(fn($f) => ($f['type'] ?? $f['section'] ?? '') === 'upper');
+                }
+
+                $hasUpperInParsed = false;
+                foreach ($upperSpecificKeys as $ukey) {
+                    if (!empty($parsed[$ukey])) {
+                        $hasUpperInParsed = true;
+                        break;
+                    }
+                }
+
                 $mData = $buildMeasurements($parsed);
+
+                // If service explicitly has no upper fields OR no upper-specific keys were recorded, clear upper columns
+                if ($hasUpperInService === false || !$hasUpperInParsed) {
+                    foreach ($mData['upper'] as $k => $v) {
+                        $mData['upper'][$k] = '';
+                    }
+                }
+
                 $servicesMeasurements[] = [
                     'order'        => $sOrder,
                     'service_name' => $sOrder->service?->name ?? 'Service #' . $sOrder->id,
