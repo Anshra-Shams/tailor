@@ -599,17 +599,19 @@
                         {{-- Interactive Label Buttons Bar --}}
                         <div class="space-y-1.5">
                             <button type="button" @click="upperLabelsOpen = !upperLabelsOpen"
-                                class="w-full flex items-center justify-between text-left group">
-                                <p class="text-xs font-semibold text-slate-500 group-hover:text-indigo-600 transition-colors">
+                                class="w-full flex items-center justify-between text-left group cursor-pointer">
+                                <p class="text-xs font-semibold text-slate-600 group-hover:text-indigo-600 transition-colors">
                                     Click label buttons to open input fields <span class="text-slate-400 font-normal">(e.g. 32, 34, 36)</span>:
                                 </p>
                                 <div class="flex items-center gap-2 flex-shrink-0 ml-2">
-                                    <span class="text-[11px] text-slate-400" x-text="mActiveUpperKeys.length + ' selected'"></span>
-                                    <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-500 transition-all duration-200"
-                                        :class="upperLabelsOpen ? 'rotate-180' : ''"
-                                        fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/>
-                                    </svg>
+                                    <span class="text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-200/90 px-2.5 py-0.5 rounded-lg shadow-2xs" x-text="mActiveUpperKeys.length + ' selected'"></span>
+                                    <span class="w-6 h-6 rounded-lg bg-indigo-600 group-hover:bg-indigo-700 text-white flex items-center justify-center shadow-xs transition-all duration-200">
+                                        <svg class="w-3.5 h-3.5 transition-transform duration-200"
+                                            :class="upperLabelsOpen ? 'rotate-180' : ''"
+                                            fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/>
+                                        </svg>
+                                    </span>
                                 </div>
                             </button>
 
@@ -738,17 +740,19 @@
                         {{-- Interactive Label Buttons Bar --}}
                         <div class="space-y-1.5">
                             <button type="button" @click="lowerLabelsOpen = !lowerLabelsOpen"
-                                class="w-full flex items-center justify-between text-left group">
-                                <p class="text-xs font-semibold text-slate-500 group-hover:text-emerald-600 transition-colors">
+                                class="w-full flex items-center justify-between text-left group cursor-pointer">
+                                <p class="text-xs font-semibold text-slate-600 group-hover:text-emerald-600 transition-colors">
                                     Click label buttons to open input fields <span class="text-slate-400 font-normal">(e.g. 38, 40)</span>:
                                 </p>
                                 <div class="flex items-center gap-2 flex-shrink-0 ml-2">
-                                    <span class="text-[11px] text-slate-400" x-text="mActiveLowerKeys.length + ' selected'"></span>
-                                    <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-emerald-500 transition-all duration-200"
-                                        :class="lowerLabelsOpen ? 'rotate-180' : ''"
-                                        fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/>
-                                    </svg>
+                                    <span class="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/90 px-2.5 py-0.5 rounded-lg shadow-2xs" x-text="mActiveLowerKeys.length + ' selected'"></span>
+                                    <span class="w-6 h-6 rounded-lg bg-emerald-600 group-hover:bg-emerald-700 text-white flex items-center justify-center shadow-xs transition-all duration-200">
+                                        <svg class="w-3.5 h-3.5 transition-transform duration-200"
+                                            :class="lowerLabelsOpen ? 'rotate-180' : ''"
+                                            fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/>
+                                        </svg>
+                                    </span>
                                 </div>
                             </button>
 

@@ -145,8 +145,10 @@
                                     ];
                                 })->values();
 
+                                $displayOrderId = str_pad($o->id, 4, '0', STR_PAD_LEFT);
+
                                 $viewData = [
-                                    'order_id'       => str_pad($o->id, 4, '0', STR_PAD_LEFT),
+                                    'order_id'       => $displayOrderId,
                                     'order_date'     => ($o->order_date ?? $o->created_at)?->format('d M Y, h:i A') ?? '—',
                                     'due_date'       => $o->due_date?->format('d M Y') ?? '—',
                                     'status'         => ucfirst(str_replace('_', ' ', $o->status)),
@@ -163,7 +165,7 @@
                                 ];
                             @endphp
                             <tr class="hover:bg-slate-50/70 transition-colors">
-                                <td class="px-4 py-3.5 align-middle text-slate-400 font-medium whitespace-nowrap">{{ str_pad($o->id, 4, '0', STR_PAD_LEFT) }}</td>
+                                <td class="px-4 py-3.5 align-middle text-slate-400 font-medium whitespace-nowrap">{{ $displayOrderId }}</td>
                                 <td class="px-4 py-3.5 align-middle min-w-[150px]">
                                     <div class="font-bold text-slate-800 truncate max-w-[180px]">{{ $o->customer?->name ?? '—' }}</div>
                                     <div class="text-xs text-slate-400 mt-0.5">

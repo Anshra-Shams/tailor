@@ -38,51 +38,7 @@ class OrderController extends Controller
             });
         }
 
-        $allOrders = $query->latest('id')->get();
-
-        $groupedBatches = collect();
-        $processedIds = [];
-
-        foreach ($allOrders as $o) {
-            if (in_array($o->id, $processedIds)) {
-                continue;
-            }
-
-            $createdTime = $o->created_at;
-            $siblings = Order::with(['customer.members', 'member', 'service', 'cuttingEmployee', 'stitchingEmployee'])
-                ->where('customer_id', $o->customer_id)
-                ->where('order_date', $o->order_date)
-                ->whereBetween('created_at', [
-                    $createdTime->copy()->subSeconds(30),
-                    $createdTime->copy()->addSeconds(30)
-                ])
-                ->orderBy('id', 'asc')
-                ->get();
-
-            if ($siblings->isEmpty()) {
-                $siblings = collect([$o]);
-            }
-
-            foreach ($siblings as $s) {
-                $processedIds[] = $s->id;
-            }
-
-            $primaryOrder = $siblings->first();
-            $primaryOrder->setAttribute('batch_items', $siblings);
-            $groupedBatches->push($primaryOrder);
-        }
-
-        $page = (int) $request->input('page', 1);
-        $perPage = 15;
-        $paginatedItems = $groupedBatches->slice(($page - 1) * $perPage, $perPage)->values();
-
-        $orders = new \Illuminate\Pagination\LengthAwarePaginator(
-            $paginatedItems,
-            $groupedBatches->count(),
-            $perPage,
-            $page,
-            ['path' => $request->url(), 'query' => $request->query()]
-        );
+        $orders = $query->latest('id')->paginate(15)->withQueryString();
 
         return view('orders.index', compact('orders', 'q'));
     }
@@ -258,8 +214,10 @@ class OrderController extends Controller
                         if (str_starts_with($mKey, '__')) continue;
                         if (trim((string)$mVal) === '') continue;
 
+                        $mKeyLower = strtolower($mKey);
                         foreach ((array)$keys as $k) {
-                            if (strlen($k) >= 4 && str_contains(strtolower($mKey), strtolower($k))) {
+                            $kLower = strtolower($k);
+                            if (strlen($kLower) >= 3 && str_contains($mKeyLower, $kLower)) {
                                 $val = trim((string)$mVal);
                                 if (str_contains($val, ',')) {
                                     $parts = array_values(array_filter(array_map('trim', explode(',', $val)), fn($p) => $p !== ''));
@@ -276,24 +234,24 @@ class OrderController extends Controller
                 $upperData = [
                     1  => $getVal(['point', 'Point']),
                     2  => $getVal(['gending', 'Gending']),
-                    3  => $getVal(['kameez_length', 'length_shoulder_to_bottom', 'length', 'Length']),
-                    4  => $getVal(['shoulder', 'Shoulder']),
-                    5  => $getVal(['chest', 'Chest']),
-                    6  => $getVal(['waist_upper', 'waist', 'Waist']),
-                    7  => $getVal(['hip_upper', 'hip', 'Hip']),
+                    3  => $getVal(['kameez_length', 'length_shoulder_to_bottom', 'length', 'Length', 'shirt_length', 'upper_length', 'coat_length', 'kurta_length']),
+                    4  => $getVal(['shoulder', 'Shoulder', 'teera', 'shoulder_teera']),
+                    5  => $getVal(['chest', 'Chest', 'chaati']),
+                    6  => $getVal(['waist_upper', 'waist', 'Waist', 'kamar']),
+                    7  => $getVal(['hip_upper', 'hip', 'Hip', 'seat']),
                     8  => $getVal(['in_said', 'insaid', 'daman', 'Daman / Ghera', 'ghera']),
                     9  => $getVal(['flair', 'Flair']),
-                    10 => $getVal(['choke', 'Choke', 'cross_back', 'Cross Back']),
+                    10 => $getVal(['choke', 'Choke', 'cross_back', 'Cross Back', 'peeth']),
                     11 => (function() use ($getVal) {
-                        $f = $getVal(['sleeves', 'sleeves_full', 'Sleeves']);
+                        $f = $getVal(['sleeves', 'sleeves_full', 'Sleeves', 'sleeve_length', 'sleeves_baazu', 'bazu']);
                         $h = $getVal(['sleeves_half', 'Sleeves Half']);
                         $q = $getVal(['sleeves_qtr', 'Sleeves Qtr']);
                         $all = array_filter([$f, $h, $q]);
-                        return !empty($all) ? implode(' / ', $all) : $getVal(['sleeves', 'sleeves_full', 'Sleeves', 'sleeves_half', 'Sleeves Half']);
+                        return !empty($all) ? implode(' / ', $all) : $getVal(['sleeves', 'sleeves_full', 'Sleeves', 'sleeve_length', 'sleeves_baazu', 'bazu', 'sleeves_half', 'Sleeves Half']);
                     })(),
-                    12 => $getVal(['bicep', 'upper_arm', 'Upper Arm']),
-                    13 => $getVal(['wrist', 'Wrist', 'cuff']),
-                    14 => $getVal(['collar', 'neck', 'Neck']),
+                    12 => $getVal(['bicep', 'upper_arm', 'Upper Arm', 'muscle']),
+                    13 => $getVal(['wrist', 'Wrist', 'cuff', 'mohri']),
+                    14 => $getVal(['collar', 'neck', 'Neck', 'neck_collar', 'gala']),
                 ];
 
                 $lowerData = [
@@ -319,7 +277,6 @@ class OrderController extends Controller
 
             // Build individual measurements for each service/order
             $servicesMeasurements = [];
-            $upperSpecificKeys = ['kameez_length', 'length_shoulder_to_bottom', 'shoulder', 'chest', 'waist_upper', 'collar', 'daman', 'cross_back', 'bicep', 'sleeves', 'sleeves_full', 'sleeves_half', 'sleeves_qtr', 'point', 'gending', 'flair', 'choke'];
 
             foreach ($siblingOrders as $sOrder) {
                 $raw = $sOrder->measurements;
@@ -333,28 +290,7 @@ class OrderController extends Controller
                     }
                 }
 
-                $serviceFields = $sOrder->service?->measurement_fields;
-                $hasUpperInService = null;
-                if (is_array($serviceFields) && count($serviceFields) > 0) {
-                    $hasUpperInService = collect($serviceFields)->contains(fn($f) => ($f['type'] ?? $f['section'] ?? '') === 'upper');
-                }
-
-                $hasUpperInParsed = false;
-                foreach ($upperSpecificKeys as $ukey) {
-                    if (!empty($parsed[$ukey])) {
-                        $hasUpperInParsed = true;
-                        break;
-                    }
-                }
-
                 $mData = $buildMeasurements($parsed);
-
-                // If service explicitly has no upper fields OR no upper-specific keys were recorded, clear upper columns
-                if ($hasUpperInService === false || !$hasUpperInParsed) {
-                    foreach ($mData['upper'] as $k => $v) {
-                        $mData['upper'][$k] = '';
-                    }
-                }
 
                 $servicesMeasurements[] = [
                     'order'        => $sOrder,

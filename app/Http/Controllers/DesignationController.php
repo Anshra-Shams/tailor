@@ -20,7 +20,10 @@ class DesignationController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        return view('designations.index', compact('designations', 'search'));
+        $totalDesignations = Designation::count();
+        $totalEmployeesInDesigs = \App\Models\Employee::whereNotNull('designation_id')->count();
+
+        return view('designations.index', compact('designations', 'search', 'totalDesignations', 'totalEmployeesInDesigs'));
     }
 
     public function store(Request $request)

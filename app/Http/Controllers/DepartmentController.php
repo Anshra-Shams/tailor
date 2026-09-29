@@ -20,7 +20,10 @@ class DepartmentController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        return view('departments.index', compact('departments', 'search'));
+        $totalDepartments = Department::count();
+        $totalEmployeesInDepts = \App\Models\Employee::whereNotNull('department_id')->count();
+
+        return view('departments.index', compact('departments', 'search', 'totalDepartments', 'totalEmployeesInDepts'));
     }
 
     public function store(Request $request)

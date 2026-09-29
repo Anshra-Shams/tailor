@@ -19,6 +19,32 @@
         </button>
     </div>
 
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Total Designations</p>
+                <h3 class="text-2xl font-bold text-slate-800 mt-1">{{ $totalDesignations }}</h3>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+            </div>
+        </div>
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Staff with Designation</p>
+                <h3 class="text-2xl font-bold text-indigo-600 mt-1">{{ $totalEmployeesInDesigs }}</h3>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+            </div>
+        </div>
+    </div>
+
     <!-- Search Bar (Above Table) -->
     <div class="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-sm">
         <form method="GET" action="{{ route('designations.index') }}">
@@ -104,11 +130,14 @@
                 </tbody>
             </table>
         </div>
-        @if($designations->hasPages())
-            <div class="px-6 py-4 border-t border-slate-200/80 bg-slate-50/50">
+        <div class="px-6 py-4 border-t border-slate-200/80 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <p class="text-xs text-slate-500 font-medium">
+                Showing <span class="font-semibold text-slate-700">{{ $designations->firstItem() ?? 0 }}</span> to <span class="font-semibold text-slate-700">{{ $designations->lastItem() ?? 0 }}</span> of <span class="font-semibold text-slate-700">{{ $designations->total() }}</span> designations (10 per page)
+            </p>
+            <div>
                 {{ $designations->links() }}
             </div>
-        @endif
+        </div>
     </div>
 </div>
 

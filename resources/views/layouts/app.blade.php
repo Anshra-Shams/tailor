@@ -157,7 +157,7 @@
 
                 <!-- HR Collapsible Menu -->
                 @php
-                    $isHrActive = request()->routeIs('departments.*', 'designations.*', 'employees.*');
+                    $isHrActive = request()->routeIs('departments.*', 'designations.*', 'employees.*', 'attendances.*', 'salaries.*');
                 @endphp
                 <div x-data="{ open: {{ $isHrActive ? 'true' : 'false' }} }}">
                     <button @click="open = !open"
@@ -190,6 +190,14 @@
                         <a href="{{ route('employees.index') }}"
                            class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('employees.*') ? 'text-white bg-slate-800 font-semibold' : 'text-slate-400 hover:text-white hover:bg-slate-800' }}">
                             Employees
+                        </a>
+                        <a href="{{ route('attendances.index') }}"
+                           class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('attendances.*') ? 'text-white bg-slate-800 font-semibold' : 'text-slate-400 hover:text-white hover:bg-slate-800' }}">
+                            Attendance
+                        </a>
+                        <a href="{{ route('salaries.index') }}"
+                           class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('salaries.*') ? 'text-white bg-slate-800 font-semibold' : 'text-slate-400 hover:text-white hover:bg-slate-800' }}">
+                            Pay Salary
                         </a>
                     </div>
                 </div>

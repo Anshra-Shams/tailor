@@ -34,7 +34,21 @@ class EmployeeController extends Controller
         $departments = Department::all();
         $designations = Designation::all();
 
-        return view('employees.index', compact('employees', 'departments', 'designations', 'search'));
+        $totalEmployees = Employee::count();
+        $monthlyEmployees = Employee::where('salary_type', 'monthly')->count();
+        $weeklyEmployees = Employee::where('salary_type', 'weekly')->count();
+        $projectEmployees = Employee::where('salary_type', 'project')->count();
+
+        return view('employees.index', compact(
+            'employees', 
+            'departments', 
+            'designations', 
+            'search',
+            'totalEmployees',
+            'monthlyEmployees',
+            'weeklyEmployees',
+            'projectEmployees'
+        ));
     }
 
     public function store(Request $request)

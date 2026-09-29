@@ -35,4 +35,14 @@ class Employee extends Model
     {
         return $this->hasMany(Order::class, 'assigned_employee_id');
     }
+
+    public function attendances()
+    {
+        return $this->hasMany(Attendance::class);
+    }
+
+    public function salaries()
+    {
+        return $this->hasMany(Salary::class);
+    }
 }

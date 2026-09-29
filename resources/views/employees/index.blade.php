@@ -5,7 +5,7 @@
 @section('content')
 <div class="space-y-6">
     <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
             <h2 class="text-2xl font-bold text-slate-800 tracking-tight">Employees</h2>
             <p class="text-sm text-slate-500 mt-1">Manage shop staff, designations, and salary structures</p>
@@ -17,6 +17,61 @@
             </svg>
             Add Employee
         </button>
+    </div>
+
+    <!-- Stats Cards (Single Row) -->
+    <div class="grid grid-cols-4 gap-4">
+        <!-- Total Employees -->
+        <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
+            <div class="min-w-0">
+                <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 truncate">Total Employees</p>
+                <h3 class="text-2xl font-bold text-slate-800 mt-1">{{ $totalEmployees }}</h3>
+            </div>
+            <div class="w-11 h-11 shrink-0 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+            </div>
+        </div>
+
+        <!-- Monthly -->
+        <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
+            <div class="min-w-0">
+                <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 truncate">Monthly Paid</p>
+                <h3 class="text-2xl font-bold text-indigo-600 mt-1">{{ $monthlyEmployees }}</h3>
+            </div>
+            <div class="w-11 h-11 shrink-0 rounded-xl bg-indigo-50/80 text-indigo-600 flex items-center justify-center">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+            </div>
+        </div>
+
+        <!-- Weekly -->
+        <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
+            <div class="min-w-0">
+                <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 truncate">Weekly Paid</p>
+                <h3 class="text-2xl font-bold text-amber-600 mt-1">{{ $weeklyEmployees }}</h3>
+            </div>
+            <div class="w-11 h-11 shrink-0 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+        </div>
+
+        <!-- Project Based -->
+        <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
+            <div class="min-w-0">
+                <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 truncate">Project Based</p>
+                <h3 class="text-2xl font-bold text-emerald-600 mt-1">{{ $projectEmployees }}</h3>
+            </div>
+            <div class="w-11 h-11 shrink-0 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+        </div>
     </div>
 
     <!-- Search Bar (Above Table) -->
@@ -161,31 +216,34 @@
                 </tbody>
             </table>
         </div>
-        @if($employees->hasPages())
-            <div class="px-6 py-4 border-t border-slate-200/80 bg-slate-50/50">
+        <div class="px-6 py-4 border-t border-slate-200/80 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <p class="text-xs text-slate-500 font-medium">
+                Showing <span class="font-semibold text-slate-700">{{ $employees->firstItem() ?? 0 }}</span> to <span class="font-semibold text-slate-700">{{ $employees->lastItem() ?? 0 }}</span> of <span class="font-semibold text-slate-700">{{ $employees->total() }}</span> employees (10 per page)
+            </p>
+            <div>
                 {{ $employees->links() }}
             </div>
-        @endif
+        </div>
     </div>
 </div>
 
-<!-- Create Modal Dialog (Compact) -->
+<!-- Create Modal Dialog -->
 <div id="createEmployeeModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden overflow-y-auto">
-    <div class="bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden my-auto transform transition-all" style="max-width: 520px; width: 100%;">
+    <div class="bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden my-auto transform transition-all" style="max-width: 580px; width: 100%;">
         <!-- Modal Header -->
-        <div class="flex items-center justify-between px-5 py-3.5 bg-gradient-to-r from-slate-50 to-indigo-50/40 border-b border-slate-100">
-            <div class="flex items-center gap-2.5">
-                <div class="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center shadow-sm">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-slate-50 to-indigo-50/40 border-b border-slate-100">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-sm">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                     </svg>
                 </div>
                 <div>
-                    <h3 class="text-sm font-bold text-slate-800">Add New Employee</h3>
-                    <p class="text-[11px] text-slate-500">Enter staff personal and payroll details</p>
+                    <h3 class="text-base font-bold text-slate-800">Add New Employee</h3>
+                    <p class="text-xs text-slate-500">Enter staff personal and payroll details</p>
                 </div>
             </div>
-            <button type="button" onclick="document.getElementById('createEmployeeModal').classList.add('hidden')" class="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 rounded-lg transition">
+            <button type="button" onclick="document.getElementById('createEmployeeModal').classList.add('hidden')" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 rounded-xl transition">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -193,35 +251,35 @@
         </div>
 
         <!-- Form -->
-        <form action="{{ route('employees.store') }}" method="POST" class="p-5 space-y-3">
+        <form action="{{ route('employees.store') }}" method="POST" class="p-6 space-y-4">
             @csrf
 
             <!-- Full Name -->
             <div>
-                <label class="block text-xs font-semibold text-slate-700 mb-1">Full Name <span class="text-rose-500">*</span></label>
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Full Name <span class="text-rose-500">*</span></label>
                 <input type="text" name="name" required placeholder="e.g. Mohammad Ali" 
-                       class="w-full bg-slate-50/50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 px-3 py-2 transition">
+                       class="w-full bg-slate-50/50 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 px-3.5 py-2.5 transition">
             </div>
 
             <!-- Phone & Email -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1">Phone Number <span class="text-slate-400 font-normal text-[10px]">(optional)</span></label>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">Phone Number <span class="text-slate-400 font-normal text-xs">(optional)</span></label>
                     <input type="text" name="phone" placeholder="0300-1234567" 
-                           class="w-full bg-slate-50/50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 px-3 py-2 transition">
+                           class="w-full bg-slate-50/50 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 px-3.5 py-2.5 transition">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1">Email Address <span class="text-slate-400 font-normal text-[10px]">(optional)</span></label>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">Email Address <span class="text-slate-400 font-normal text-xs">(optional)</span></label>
                     <input type="email" name="email" placeholder="ali@example.com" 
-                           class="w-full bg-slate-50/50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 px-3 py-2 transition">
+                           class="w-full bg-slate-50/50 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 px-3.5 py-2.5 transition">
                 </div>
             </div>
 
             <!-- Department & Designation -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1">Department <span class="text-rose-500">*</span></label>
-                    <select name="department_id" required class="w-full bg-slate-50/50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 px-3 py-2 transition">
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">Department <span class="text-rose-500">*</span></label>
+                    <select name="department_id" required class="w-full bg-slate-50/50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 px-3.5 py-2.5 transition">
                         <option value="">-- Select Department --</option>
                         @foreach($departments as $dept)
                             <option value="{{ $dept->id }}">{{ $dept->name }}</option>
@@ -229,8 +287,8 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1">Designation <span class="text-slate-400 font-normal text-[10px]">(optional)</span></label>
-                    <select name="designation_id" class="w-full bg-slate-50/50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 px-3 py-2 transition">
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">Designation <span class="text-slate-400 font-normal text-xs">(optional)</span></label>
+                    <select name="designation_id" class="w-full bg-slate-50/50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 px-3.5 py-2.5 transition">
                         <option value="">-- Optional (None) --</option>
                         @foreach($designations as $desig)
                             <option value="{{ $desig->id }}">{{ $desig->name }}</option>
@@ -240,38 +298,38 @@
             </div>
 
             <!-- Salary Type & Salary Amount -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1">Salary Type <span class="text-rose-500">*</span></label>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">Salary Type <span class="text-rose-500">*</span></label>
                     <select name="salary_type" required onchange="updateSalaryLabel('create', this.value)" 
-                            class="w-full bg-slate-50/50 border border-slate-200 rounded-xl text-xs text-slate-800 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 px-3 py-2 transition">
+                            class="w-full bg-slate-50/50 border border-slate-200 rounded-xl text-sm text-slate-800 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 px-3.5 py-2.5 transition">
                         <option value="monthly" selected>Monthly</option>
                         <option value="weekly">Weekly</option>
                         <option value="project">Project Based</option>
                     </select>
                 </div>
                 <div>
-                    <label id="create_salary_label" class="block text-xs font-semibold text-slate-700 mb-1">Monthly Salary (PKR)</label>
+                    <label id="create_salary_label" class="block text-sm font-semibold text-slate-700 mb-1.5">Monthly Salary (PKR)</label>
                     <input type="number" step="0.01" name="salary" placeholder="30000" 
-                           class="w-full bg-slate-50/50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 px-3 py-2 transition">
+                           class="w-full bg-slate-50/50 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 px-3.5 py-2.5 transition">
                 </div>
             </div>
 
             <!-- Joining Date -->
             <div>
-                <label class="block text-xs font-semibold text-slate-700 mb-1">Joining Date <span class="text-slate-400 font-normal text-[10px]">(optional)</span></label>
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Joining Date <span class="text-slate-400 font-normal text-xs">(optional)</span></label>
                 <input type="date" name="joining_date" 
-                       class="w-full bg-slate-50/50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 px-3 py-2 transition">
+                       class="w-full bg-slate-50/50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 px-3.5 py-2.5 transition">
             </div>
 
             <!-- Footer Buttons -->
-            <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
+            <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
                 <button type="button" onclick="document.getElementById('createEmployeeModal').classList.add('hidden')" 
-                        class="px-3.5 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-xl transition">
+                        class="px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-xl transition">
                     Cancel
                 </button>
                 <button type="submit" 
-                        class="px-4 py-2 text-xs font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl shadow-md shadow-indigo-500/20 hover:shadow-indigo-500/30 transition">
+                        class="px-5 py-2.5 text-sm font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl shadow-md shadow-indigo-500/20 hover:shadow-indigo-500/30 transition">
                     Save Employee
                 </button>
             </div>
@@ -279,23 +337,23 @@
     </div>
 </div>
 
-<!-- Edit Modal Dialog (Compact) -->
+<!-- Edit Modal Dialog -->
 <div id="editEmployeeModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden overflow-y-auto">
-    <div class="bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden my-auto transform transition-all" style="max-width: 520px; width: 100%;">
+    <div class="bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden my-auto transform transition-all" style="max-width: 580px; width: 100%;">
         <!-- Modal Header -->
-        <div class="flex items-center justify-between px-5 py-3.5 bg-gradient-to-r from-slate-50 to-indigo-50/40 border-b border-slate-100">
-            <div class="flex items-center gap-2.5">
-                <div class="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center shadow-sm">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-slate-50 to-indigo-50/40 border-b border-slate-100">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-sm">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                     </svg>
                 </div>
                 <div>
-                    <h3 class="text-sm font-bold text-slate-800">Edit Employee</h3>
-                    <p class="text-[11px] text-slate-500">Update staff member information</p>
+                    <h3 class="text-base font-bold text-slate-800">Edit Employee</h3>
+                    <p class="text-xs text-slate-500">Update staff member information</p>
                 </div>
             </div>
-            <button type="button" onclick="document.getElementById('editEmployeeModal').classList.add('hidden')" class="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 rounded-lg transition">
+            <button type="button" onclick="document.getElementById('editEmployeeModal').classList.add('hidden')" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 rounded-xl transition">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -303,37 +361,37 @@
         </div>
 
         <!-- Form -->
-        <form id="editEmployeeForm" method="POST" class="p-5 space-y-3">
+        <form id="editEmployeeForm" method="POST" class="p-6 space-y-4">
             @csrf
             @method('PUT')
 
             <!-- Full Name -->
             <div>
-                <label class="block text-xs font-semibold text-slate-700 mb-1">Full Name <span class="text-rose-500">*</span></label>
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Full Name <span class="text-rose-500">*</span></label>
                 <input type="text" id="edit_emp_name" name="name" required 
-                       class="w-full bg-slate-50/50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 px-3 py-2 transition">
+                       class="w-full bg-slate-50/50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 px-3.5 py-2.5 transition">
             </div>
 
             <!-- Phone & Email -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1">Phone Number <span class="text-slate-400 font-normal text-[10px]">(optional)</span></label>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">Phone Number <span class="text-slate-400 font-normal text-xs">(optional)</span></label>
                     <input type="text" id="edit_emp_phone" name="phone" 
-                           class="w-full bg-slate-50/50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 px-3 py-2 transition">
+                       class="w-full bg-slate-50/50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 px-3.5 py-2.5 transition">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1">Email Address <span class="text-slate-400 font-normal text-[10px]">(optional)</span></label>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">Email Address <span class="text-slate-400 font-normal text-xs">(optional)</span></label>
                     <input type="email" id="edit_emp_email" name="email" 
-                           class="w-full bg-slate-50/50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 px-3 py-2 transition">
+                           class="w-full bg-slate-50/50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 px-3.5 py-2.5 transition">
                 </div>
             </div>
 
             <!-- Department & Designation -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1">Department <span class="text-rose-500">*</span></label>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">Department <span class="text-rose-500">*</span></label>
                     <select id="edit_emp_department_id" name="department_id" required 
-                            class="w-full bg-slate-50/50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 px-3 py-2 transition">
+                            class="w-full bg-slate-50/50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 px-3.5 py-2.5 transition">
                         <option value="">-- Select Department --</option>
                         @foreach($departments as $dept)
                             <option value="{{ $dept->id }}">{{ $dept->name }}</option>
@@ -341,9 +399,9 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1">Designation <span class="text-slate-400 font-normal text-[10px]">(optional)</span></label>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">Designation <span class="text-slate-400 font-normal text-xs">(optional)</span></label>
                     <select id="edit_emp_designation_id" name="designation_id" 
-                            class="w-full bg-slate-50/50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 px-3 py-2 transition">
+                            class="w-full bg-slate-50/50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 px-3.5 py-2.5 transition">
                         <option value="">-- Optional (None) --</option>
                         @foreach($designations as $desig)
                             <option value="{{ $desig->id }}">{{ $desig->name }}</option>
@@ -353,38 +411,38 @@
             </div>
 
             <!-- Salary Type & Salary Amount -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1">Salary Type <span class="text-rose-500">*</span></label>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">Salary Type <span class="text-rose-500">*</span></label>
                     <select id="edit_emp_salary_type" name="salary_type" required onchange="updateSalaryLabel('edit', this.value)" 
-                            class="w-full bg-slate-50/50 border border-slate-200 rounded-xl text-xs text-slate-800 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 px-3 py-2 transition">
+                            class="w-full bg-slate-50/50 border border-slate-200 rounded-xl text-sm text-slate-800 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 px-3.5 py-2.5 transition">
                         <option value="monthly">Monthly</option>
                         <option value="weekly">Weekly</option>
                         <option value="project">Project Based</option>
                     </select>
                 </div>
                 <div>
-                    <label id="edit_salary_label" class="block text-xs font-semibold text-slate-700 mb-1">Monthly Salary (PKR)</label>
+                    <label id="edit_salary_label" class="block text-sm font-semibold text-slate-700 mb-1.5">Monthly Salary (PKR)</label>
                     <input type="number" step="0.01" id="edit_emp_salary" name="salary" 
-                           class="w-full bg-slate-50/50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 px-3 py-2 transition">
+                           class="w-full bg-slate-50/50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 px-3.5 py-2.5 transition">
                 </div>
             </div>
 
             <!-- Joining Date -->
             <div>
-                <label class="block text-xs font-semibold text-slate-700 mb-1">Joining Date <span class="text-slate-400 font-normal text-[10px]">(optional)</span></label>
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Joining Date <span class="text-slate-400 font-normal text-xs">(optional)</span></label>
                 <input type="date" id="edit_emp_joining_date" name="joining_date" 
-                       class="w-full bg-slate-50/50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 px-3 py-2 transition">
+                       class="w-full bg-slate-50/50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 px-3.5 py-2.5 transition">
             </div>
 
             <!-- Footer Buttons -->
-            <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
+            <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
                 <button type="button" onclick="document.getElementById('editEmployeeModal').classList.add('hidden')" 
-                        class="px-3.5 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-xl transition">
+                        class="px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-xl transition">
                     Cancel
                 </button>
                 <button type="submit" 
-                        class="px-4 py-2 text-xs font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl shadow-md shadow-indigo-500/20 hover:shadow-indigo-500/30 transition">
+                        class="px-5 py-2.5 text-sm font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl shadow-md shadow-indigo-500/20 hover:shadow-indigo-500/30 transition">
                     Update Employee
                 </button>
             </div>
