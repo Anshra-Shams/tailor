@@ -9,26 +9,22 @@
     <form id="select-orders-form" method="POST" :action="nextStepAction" @submit="validateSubmission($event)">
         @csrf
 
-        {{-- Header --}}
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-            <div>
-                <div class="flex items-center gap-2">
-                    <span class="px-2.5 py-0.5 rounded-md bg-indigo-100 text-indigo-700 text-xs font-bold uppercase tracking-wider">Step 1 of 3</span>
-                    <h2 class="text-2xl font-bold text-slate-800">Select Orders to Assign</h2>
-                </div>
-                <p class="text-slate-500 mt-1">Select orders using checkboxes and click Next to assign Cutting (Step 2) or Stitching (Step 3) tailors.</p>
+        {{-- Top Stepper & Action Bar (Side by Side, Clean Centered Layout) --}}
+        <div class="relative flex items-end justify-center mb-6 min-h-[5rem]">
+            <div class="w-full max-w-4xl">
+                @include('orders._wizard_steps', ['currentStep' => 1])
             </div>
 
-            {{-- Top Next Button --}}
-            <div class="flex items-center gap-3 shrink-0">
+            {{-- Top Next Button (Larger pill size, positioned to the right) --}}
+            <div class="absolute right-0 bottom-0 mb-1">
                 <button type="submit"
                     :class="areAllSelectedInCutting ? 'from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 shadow-teal-500/25 hover:shadow-teal-500/35' : 'from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-indigo-500/25 hover:shadow-indigo-500/35'"
-                    class="group inline-flex items-center gap-2.5 px-5 py-2.5 bg-gradient-to-r text-white font-bold text-sm rounded-xl shadow-md transition-all duration-200 transform hover:scale-[1.02] active:scale-95 whitespace-nowrap shrink-0">
-                    <span x-text="nextStepLabel"></span>
+                    class="group inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r text-white font-bold text-base rounded-full shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-[1.02] active:scale-95 whitespace-nowrap shrink-0 cursor-pointer">
+                    <span>Next</span>
                     <span x-show="selectedOrders.length > 0" x-cloak x-text="selectedOrders.length"
                         :class="areAllSelectedInCutting ? 'text-teal-700' : 'text-indigo-700'"
                         class="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-white text-xs font-black shadow-xs"></span>
-                    <svg class="w-4 h-4 transition-transform group-hover:translate-x-0.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <svg class="w-5 h-5 transition-transform group-hover:translate-x-1 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/>
                     </svg>
                 </button>
@@ -36,44 +32,44 @@
         </div>
 
         {{-- Stats Overview --}}
-        <div class="grid grid-cols-4 gap-2 sm:gap-3 mb-6">
-            <div class="bg-white px-2.5 py-3 rounded-xl border border-slate-200 shadow-sm flex items-center gap-2 min-w-0">
-                <div class="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 flex-shrink-0">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-1.125 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
+        <div class="grid grid-cols-4 gap-3 sm:gap-4 mb-6">
+            <div class="bg-white px-4 py-4 sm:px-5 sm:py-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3 sm:gap-4 min-w-0">
+                <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 flex-shrink-0">
+                    <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-1.125 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
                 </div>
                 <div class="min-w-0">
-                    <span class="text-lg font-bold text-slate-800 leading-none block">{{ $stats['total'] }}</span>
-                    <p class="text-[11px] font-medium text-slate-500 truncate leading-tight mt-0.5">Total Orders</p>
+                    <span class="text-xl sm:text-2xl font-bold text-slate-800 leading-none block">{{ $stats['total'] }}</span>
+                    <p class="text-xs sm:text-sm font-medium text-slate-500 truncate leading-tight mt-1">Total Orders</p>
                 </div>
             </div>
 
-            <div class="bg-white px-2.5 py-3 rounded-xl border border-slate-200 shadow-sm flex items-center gap-2 min-w-0">
-                <div class="w-8 h-8 rounded-lg bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600 flex-shrink-0">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/></svg>
+            <div class="bg-white px-4 py-4 sm:px-5 sm:py-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3 sm:gap-4 min-w-0">
+                <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600 flex-shrink-0">
+                    <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/></svg>
                 </div>
                 <div class="min-w-0">
-                    <span class="text-lg font-bold text-amber-600 leading-none block">{{ $stats['unassigned'] }}</span>
-                    <p class="text-[11px] font-medium text-slate-500 truncate leading-tight mt-0.5">Fully Unassigned</p>
+                    <span class="text-xl sm:text-2xl font-bold text-amber-600 leading-none block">{{ $stats['unassigned'] }}</span>
+                    <p class="text-xs sm:text-sm font-medium text-slate-500 truncate leading-tight mt-1">Fully Unassigned</p>
                 </div>
             </div>
 
-            <div class="bg-white px-2.5 py-3 rounded-xl border border-slate-200 shadow-sm flex items-center gap-2 min-w-0">
-                <div class="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 flex-shrink-0">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <div class="bg-white px-4 py-4 sm:px-5 sm:py-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3 sm:gap-4 min-w-0">
+                <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 flex-shrink-0">
+                    <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 </div>
                 <div class="min-w-0">
-                    <span class="text-lg font-bold text-emerald-600 leading-none block">{{ $stats['assigned'] }}</span>
-                    <p class="text-[11px] font-medium text-slate-500 truncate leading-tight mt-0.5">Fully Assigned</p>
+                    <span class="text-xl sm:text-2xl font-bold text-emerald-600 leading-none block">{{ $stats['assigned'] }}</span>
+                    <p class="text-xs sm:text-sm font-medium text-slate-500 truncate leading-tight mt-1">Fully Assigned</p>
                 </div>
             </div>
 
-            <div class="bg-white px-2.5 py-3 rounded-xl border border-slate-200 shadow-sm flex items-center gap-2 min-w-0">
-                <div class="w-8 h-8 rounded-lg bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-600 flex-shrink-0">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+            <div class="bg-white px-4 py-4 sm:px-5 sm:py-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3 sm:gap-4 min-w-0">
+                <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-600 flex-shrink-0">
+                    <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                 </div>
                 <div class="min-w-0">
-                    <span class="text-lg font-bold text-purple-600 leading-none block">{{ $stats['employees'] }}</span>
-                    <p class="text-[11px] font-medium text-slate-500 truncate leading-tight mt-0.5">Active Workers</p>
+                    <span class="text-xl sm:text-2xl font-bold text-purple-600 leading-none block">{{ $stats['employees'] }}</span>
+                    <p class="text-xs sm:text-sm font-medium text-slate-500 truncate leading-tight mt-1">Active Workers</p>
                 </div>
             </div>
         </div>

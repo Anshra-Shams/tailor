@@ -149,6 +149,26 @@ class OrderController extends Controller
                 $order->refreshPaymentStatus();
                 $order->save();
 
+                // Auto-create permanent profile if it does not exist
+                if (!empty($decoded)) {
+                    $hasProfile = \App\Models\Measurement::where('customer_id', $validated['customer_id'])
+                        ->where(function ($q) use ($serviceId) {
+                            $q->where('service_id', $serviceId)->orWhereNull('service_id');
+                        })
+                        ->when(!empty($validated['member_id']), fn ($q) => $q->where('member_id', $validated['member_id']), fn ($q) => $q->whereNull('member_id'))
+                        ->exists();
+
+                    if (!$hasProfile) {
+                        \App\Models\Measurement::create([
+                            'customer_id' => $validated['customer_id'],
+                            'member_id'   => !empty($validated['member_id']) ? $validated['member_id'] : null,
+                            'service_id'  => $serviceId,
+                            'data'        => $decoded,
+                            'notes'       => 'Auto-saved from order creation',
+                        ]);
+                    }
+                }
+
                 if (!$firstOrder) {
                     $firstOrder = $order;
                 }

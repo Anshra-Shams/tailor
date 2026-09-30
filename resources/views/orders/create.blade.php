@@ -38,18 +38,7 @@
     </div>
     @endif
 
-    {{-- Error Banner --}}
-    <div x-show="errors.general" x-transition class="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-start gap-3">
-        <div class="w-8 h-8 rounded-lg bg-red-100 text-red-600 flex items-center justify-center flex-shrink-0 mt-0.5">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-            </svg>
-        </div>
-        <div class="flex-1">
-            <h4 class="text-sm font-bold text-red-800" x-text="errors.general"></h4>
-            <p class="text-xs text-red-600 mt-0.5" x-show="errors.measurements" x-text="errors.measurements"></p>
-        </div>
-    </div>
+
 
     {{-- Main 2-Column Grid (Matches services/create & measurements/create) --}}
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -497,18 +486,7 @@
                                 </div>
                             </div>
 
-                            {{-- Visible Error Summary in Checkout Sidebar --}}
-                            <div x-show="errors.general" x-transition class="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 space-y-1">
-                                <div class="font-bold flex items-center gap-1.5 text-red-800">
-                                    <svg class="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/></svg>
-                                    <span x-text="errors.general"></span>
-                                </div>
-                                <p x-show="errors.customer" x-text="'• ' + errors.customer" class="font-semibold text-red-600 pl-5"></p>
-                                <p x-show="errors.service" x-text="'• ' + errors.service" class="font-semibold text-red-600 pl-5"></p>
-                                <p x-show="errors.due_date" x-text="'• ' + errors.due_date" class="font-semibold text-red-600 pl-5"></p>
-                                <p x-show="errors.account_id" x-text="'• ' + errors.account_id" class="font-semibold text-red-600 pl-5"></p>
-                                <p x-show="errors.measurements" x-text="'• ' + errors.measurements" class="font-semibold text-red-600 pl-5"></p>
-                            </div>
+
 
                             {{-- Submit button --}}
                             <button type="button" @click="saveOrder()" :disabled="submitting || !selectedCustomer || selectedServices.length === 0"
@@ -1994,10 +1972,22 @@ function orderWizard() {
                 const d = await r.json();
                 if (d.measurements && Object.keys(d.measurements).length > 0) {
                     const mapped = {};
+                    
+                    // Copy all fields from previous measurements but only keep the first value
+                    for (const k in d.measurements) {
+                        const parsed = this.parseValues(d.measurements[k]);
+                        if (parsed.length > 0) {
+                            mapped[k] = parsed[0];
+                        }
+                    }
+
                     const fields = this.getServiceMeasurementFields(svc);
                     fields.forEach(f => {
                         const sm = this.getSmartValue(f.key, d.measurements);
-                        if (sm) mapped[f.key] = sm;
+                        const parsed = this.parseValues(sm);
+                        if (parsed.length > 0) {
+                            mapped[f.key] = parsed[0];
+                        }
                     });
                     result = { measurements: mapped, prev: d };
                 }

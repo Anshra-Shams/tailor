@@ -12,6 +12,8 @@ class Salary extends Model
 
     protected $fillable = [
         'employee_id',
+        'from_date',
+        'to_date',
         'salary_month',
         'payment_date',
         'basic_salary',
@@ -25,6 +27,8 @@ class Salary extends Model
     ];
 
     protected $casts = [
+        'from_date'    => 'date',
+        'to_date'      => 'date',
         'payment_date' => 'date',
         'basic_salary' => 'decimal:2',
         'bonus'        => 'decimal:2',

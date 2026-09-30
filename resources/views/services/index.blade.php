@@ -51,7 +51,7 @@
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" /></svg>
                             Edit
                         </a>
-                        <button type="button" title="View measurement fields" class="js-view-fields px-3 py-2 bg-purple-50 text-purple-600 text-sm font-medium rounded-lg hover:bg-purple-100 transition-all" data-id="{{ $service->id }}">
+                        <button type="button" title="View details" class="js-view-fields px-3 py-2 bg-purple-50 text-purple-600 text-sm font-medium rounded-lg hover:bg-purple-100 transition-all" data-id="{{ $service->id }}">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                         </button>
                         <form method="POST" action="{{ route('services.destroy', $service) }}" class="js-delete-form" data-name="{{ $service->name }}" data-title="Delete Service?">
@@ -111,35 +111,66 @@
     }
 </style>
 <script>
-window.__serviceFields = @json($services->mapWithKeys(fn ($s) => [
-    $s->id => ['name' => $s->name, 'fields' => $s->measurement_fields ?? []],
-]));
+@php
+    $serviceDetails = $services->mapWithKeys(function ($s) {
+        return [
+            $s->id => [
+                'name' => $s->name,
+                'description' => $s->description,
+                'price' => $s->price,
+                'estimated_days' => $s->estimated_days,
+                'is_active' => $s->is_active,
+                'pricing_tiers' => $s->pricing_tiers,
+            ]
+        ];
+    });
+@endphp
+window.__services = {!! json_encode($serviceDetails) !!};
 
 function escapeHtml(s) {
     return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
-function viewServiceFields(name, fields) {
-    const list = Array.isArray(fields) ? fields : [];
-    let html;
-
-    if (!list.length) {
-        html = '<p class="text-sm text-slate-500 py-4">No measurement fields defined for this service.</p>';
-    } else {
-        const rows = list.map((f, i) => `
-            <div class="flex items-center justify-between gap-3 px-3 py-2 rounded-lg border ${i % 2 ? 'bg-slate-50' : 'bg-white'} border-slate-100">
-                <span class="flex items-center gap-2 min-w-0">
-                    <span class="w-5 h-5 rounded-md bg-indigo-100 text-indigo-600 text-[11px] font-bold flex items-center justify-center flex-shrink-0">${i + 1}</span>
-                    <span class="text-sm font-medium text-slate-700 truncate">${escapeHtml(f.label || f.key)}</span>
-                    <span class="text-[10px] font-bold px-1.5 py-0.2 rounded ${f.type === 'lower' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-indigo-50 text-indigo-700 border border-indigo-200'}">${f.type === 'lower' ? '👖 Lower' : '👕 Upper'}</span>
-                </span>
-                <span class="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full whitespace-nowrap ${f.required ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-slate-100 text-slate-400 border border-slate-200'}">${f.required ? 'Required' : 'Optional'}</span>
-            </div>`).join('');
-        html = `<p class="text-xs text-slate-400 mb-3">${list.length} field${list.length === 1 ? '' : 's'}</p><div class="space-y-1.5 text-left max-h-72 overflow-y-auto pr-1">${rows}</div>`;
+function viewServiceDetails(service) {
+    let tiersHtml = '';
+    if (service.pricing_tiers) {
+        tiersHtml = `
+            <div class="mt-4 pt-3 border-t border-slate-100 text-left">
+                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Pricing Tiers</p>
+                <div class="space-y-1.5">
+                    <div class="flex justify-between items-center text-sm"><span class="text-slate-600">Basic</span> <span class="font-medium text-slate-800">Rs ${service.pricing_tiers.basic || 0}</span></div>
+                    <div class="flex justify-between items-center text-sm"><span class="text-slate-600">Standard</span> <span class="font-medium text-slate-800">Rs ${service.pricing_tiers.standard || 0}</span></div>
+                    <div class="flex justify-between items-center text-sm"><span class="text-slate-600">Premium</span> <span class="font-medium text-slate-800">Rs ${service.pricing_tiers.premium || 0}</span></div>
+                </div>
+            </div>
+        `;
     }
 
+    let html = `
+        <div class="space-y-3 text-left">
+            ${service.description ? `<p class="text-sm text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-100">${escapeHtml(service.description)}</p>` : ''}
+            
+            <div class="flex flex-col gap-1 mt-4">
+                <div class="flex items-center justify-between py-2 border-b border-slate-50">
+                    <span class="text-sm text-slate-500">Base Price</span>
+                    <span class="font-semibold text-slate-800">Rs ${service.price || 0}</span>
+                </div>
+                <div class="flex items-center justify-between py-2 border-b border-slate-50">
+                    <span class="text-sm text-slate-500">Estimated Days</span>
+                    <span class="font-medium text-slate-800">${service.estimated_days ? service.estimated_days + ' Days' : 'N/A'}</span>
+                </div>
+                <div class="flex items-center justify-between py-2 border-b border-slate-50">
+                    <span class="text-sm text-slate-500">Status</span>
+                    <span class="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${service.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}">${service.is_active ? 'Active' : 'Inactive'}</span>
+                </div>
+            </div>
+            
+            ${tiersHtml}
+        </div>
+    `;
+
     Swal.fire({
-        title: `<span class="text-lg font-bold text-slate-800">${escapeHtml(name)}</span>`,
+        title: `<span class="text-lg font-bold text-slate-800">${escapeHtml(service.name)}</span>`,
         html: html,
         showConfirmButton: false,
         showCloseButton: true,
@@ -155,9 +186,9 @@ function viewServiceFields(name, fields) {
 document.addEventListener('click', function (e) {
     const btn = e.target.closest('.js-view-fields');
     if (!btn) return;
-    const data = (window.__serviceFields || {})[btn.dataset.id];
+    const data = (window.__services || {})[btn.dataset.id];
     if (!data) return;
-    viewServiceFields(data.name, data.fields);
+    viewServiceDetails(data);
 });
 </script>
 @endpush

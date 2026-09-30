@@ -15,22 +15,32 @@ class SalaryController extends Controller
 {
     public function index(Request $request)
     {
-        $month = $request->query('month', Carbon::today()->format('Y-m'));
+        $fromDate = $request->query('from_date', Carbon::today()->startOfMonth()->format('Y-m-d'));
+        $toDate = $request->query('to_date', Carbon::today()->format('Y-m-d'));
         $departmentId = $request->query('department_id', '');
+        $salaryType = $request->query('salary_type', ''); // '', 'monthly', 'weekly', 'project'
         $statusFilter = $request->query('status', ''); // '', 'paid', 'unpaid'
         $search = trim($request->query('search', ''));
 
-        // Query active employees with their salary record for selected month
+        // Query active employees with their salary record for selected date range
         $employeesQuery = Employee::with([
             'department',
             'designation',
-            'salaries' => function ($q) use ($month) {
-                $q->where('salary_month', $month);
+            'salaries' => function ($q) use ($fromDate, $toDate) {
+                $q->where(function ($sub) use ($fromDate, $toDate) {
+                    $sub->where(function ($inner) use ($fromDate, $toDate) {
+                        $inner->whereDate('from_date', '>=', $fromDate)
+                              ->whereDate('to_date', '<=', $toDate);
+                    })->orWhereBetween('payment_date', [$fromDate, $toDate]);
+                })->latest('id');
             }
         ])
         ->where('is_active', true)
         ->when($departmentId !== '', function ($q) use ($departmentId) {
             $q->where('department_id', $departmentId);
+        })
+        ->when($salaryType !== '', function ($q) use ($salaryType) {
+            $q->where('salary_type', $salaryType);
         })
         ->when($search !== '', function ($q) use ($search) {
             $q->where(function ($sub) use ($search) {
@@ -42,26 +52,41 @@ class SalaryController extends Controller
 
         // If filtering by paid/unpaid status
         if ($statusFilter === 'paid') {
-            $employeesQuery->whereHas('salaries', function ($q) use ($month) {
-                $q->where('salary_month', $month)->where('status', 'paid');
+            $employeesQuery->whereHas('salaries', function ($q) use ($fromDate, $toDate) {
+                $q->where(function ($sub) use ($fromDate, $toDate) {
+                    $sub->where(function ($inner) use ($fromDate, $toDate) {
+                        $inner->whereDate('from_date', '>=', $fromDate)
+                              ->whereDate('to_date', '<=', $toDate);
+                    })->orWhereBetween('payment_date', [$fromDate, $toDate]);
+                })->where('status', 'paid');
             });
         } elseif ($statusFilter === 'unpaid') {
-            $employeesQuery->whereDoesntHave('salaries', function ($q) use ($month) {
-                $q->where('salary_month', $month)->where('status', 'paid');
+            $employeesQuery->whereDoesntHave('salaries', function ($q) use ($fromDate, $toDate) {
+                $q->where(function ($sub) use ($fromDate, $toDate) {
+                    $sub->where(function ($inner) use ($fromDate, $toDate) {
+                        $inner->whereDate('from_date', '>=', $fromDate)
+                              ->whereDate('to_date', '<=', $toDate);
+                    })->orWhereBetween('payment_date', [$fromDate, $toDate]);
+                })->where('status', 'paid');
             });
         }
 
         $employees = $employeesQuery->orderBy('name')->paginate(12)->withQueryString();
 
-        // Calculate Monthly Statistics
+        // Calculate Statistics for Selected Date Range
         $totalActiveEmployees = Employee::where('is_active', true)->count();
-        $monthlySalaries = Salary::where('salary_month', $month)->get();
+        $rangeSalaries = Salary::where(function ($sub) use ($fromDate, $toDate) {
+            $sub->where(function ($inner) use ($fromDate, $toDate) {
+                $inner->whereDate('from_date', '>=', $fromDate)
+                      ->whereDate('to_date', '<=', $toDate);
+            })->orWhereBetween('payment_date', [$fromDate, $toDate]);
+        })->get();
 
-        $totalPaidAmount = $monthlySalaries->where('status', 'paid')->sum('net_salary');
-        $paidStaffCount = $monthlySalaries->where('status', 'paid')->unique('employee_id')->count();
+        $totalPaidAmount = $rangeSalaries->where('status', 'paid')->sum('net_salary');
+        $paidStaffCount = $rangeSalaries->where('status', 'paid')->unique('employee_id')->count();
         $unpaidStaffCount = max(0, $totalActiveEmployees - $paidStaffCount);
-        $totalBonusPaid = $monthlySalaries->where('status', 'paid')->sum('bonus');
-        $totalDeductions = $monthlySalaries->where('status', 'paid')->sum('deductions');
+        $totalBonusPaid = $rangeSalaries->where('status', 'paid')->sum('bonus');
+        $totalDeductions = $rangeSalaries->where('status', 'paid')->sum('deductions');
 
         $departments = Department::orderBy('name')->get();
         $accounts = Account::where('is_active', true)->orderBy('name')->get();
@@ -72,8 +97,10 @@ class SalaryController extends Controller
 
         return view('salaries.index', compact(
             'employees',
-            'month',
+            'fromDate',
+            'toDate',
             'departmentId',
+            'salaryType',
             'statusFilter',
             'search',
             'totalActiveEmployees',
@@ -91,14 +118,15 @@ class SalaryController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'salary_id'      => 'nullable|exists:salaries,id',
             'employee_id'    => 'required|exists:employees,id',
-            'salary_month'   => 'required|string|max:7',
+            'from_date'      => 'required|date',
+            'to_date'        => 'required|date',
             'payment_date'   => 'required|date',
             'basic_salary'   => 'required|numeric|min:0',
             'bonus'          => 'nullable|numeric|min:0',
             'deductions'     => 'nullable|numeric|min:0',
             'net_salary'     => 'required|numeric|min:0',
-            'payment_method' => 'required|string|max:50',
             'account_id'     => 'nullable|exists:accounts,id',
             'status'         => 'required|in:paid,pending,partial',
             'notes'          => 'nullable|string|max:500',
@@ -106,15 +134,16 @@ class SalaryController extends Controller
 
         $validated['bonus'] = $validated['bonus'] ?? 0;
         $validated['deductions'] = $validated['deductions'] ?? 0;
+        $validated['salary_month'] = Carbon::parse($validated['from_date'])->format('Y-m');
+        $validated['payment_method'] = 'cash';
 
-        DB::transaction(function () use ($validated) {
-            $salary = Salary::updateOrCreate(
-                [
-                    'employee_id'  => $validated['employee_id'],
-                    'salary_month' => $validated['salary_month'],
-                ],
-                $validated
-            );
+        DB::transaction(function () use ($validated, $request) {
+            if (!empty($request->salary_id)) {
+                $salary = Salary::findOrFail($request->salary_id);
+                $salary->update($validated);
+            } else {
+                $salary = Salary::create($validated);
+            }
 
             // If linked to an account and paid, update account balance
             if (!empty($validated['account_id']) && $validated['status'] === 'paid') {

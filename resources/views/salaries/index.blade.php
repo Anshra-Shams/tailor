@@ -9,25 +9,25 @@
         <div>
             <h2 class="text-2xl font-bold text-slate-800 tracking-tight">Staff Salary & Payroll</h2>
             <p class="text-sm text-slate-500 mt-1">
-                Manage monthly staff compensation, salary disbursements, bonuses, and deductions for 
-                <span class="font-semibold text-indigo-600">{{ \Carbon\Carbon::createFromFormat('Y-m', $month)->format('F Y') }}</span>
+                Manage staff compensation, salary disbursements, bonuses, and deductions for 
+                <span class="font-semibold text-indigo-600">{{ \Carbon\Carbon::parse($fromDate)->format('M d, Y') }} — {{ \Carbon\Carbon::parse($toDate)->format('M d, Y') }}</span>
             </p>
         </div>
         
         <div class="flex items-center gap-3">
             <button @click="openPayModal()" 
                     type="button"
-                    class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4.5 py-2.5 rounded-xl shadow-lg shadow-indigo-600/25 transition-all duration-200 text-sm cursor-pointer">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-bold px-5 py-2.5 rounded-xl shadow-lg shadow-indigo-600/25 hover:shadow-indigo-600/35 transition-all duration-200 text-sm cursor-pointer whitespace-nowrap">
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
                 </svg>
-                Pay Salary
+                <span>Pay Salary</span>
             </button>
         </div>
     </div>
 
-    <!-- Stats Overview Cards (Single Row) -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <!-- Stats Overview Cards (Strict Single Row) -->
+    <div class="grid grid-cols-4 gap-4">
         <!-- Total Active Staff -->
         <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
             <div class="min-w-0">
@@ -41,10 +41,10 @@
             </div>
         </div>
 
-        <!-- Total Paid Amount This Month -->
+        <!-- Total Paid Amount for Selected Period -->
         <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
             <div class="min-w-0">
-                <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 truncate">Total Disbursed ({{ \Carbon\Carbon::createFromFormat('Y-m', $month)->format('M') }})</p>
+                <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 truncate">Total Disbursed</p>
                 <h3 class="text-2xl font-bold text-emerald-600 mt-1">Rs. {{ number_format($totalPaidAmount, 0) }}</h3>
             </div>
             <div class="w-11 h-11 shrink-0 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
@@ -81,22 +81,31 @@
         </div>
     </div>
 
-    <!-- Filter & Search Toolbar (Single Row with Labels) -->
-    <div class="bg-white rounded-2xl border border-slate-200/80 p-3.5 shadow-sm">
-        <form method="GET" action="{{ route('salaries.index') }}" class="flex items-end gap-3 flex-nowrap overflow-x-auto pb-1 sm:pb-0">
-            <!-- Salary Month -->
-            <div class="w-40 shrink-0">
-                <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Salary Month</label>
-                <input type="month" 
-                       name="month" 
-                       value="{{ $month }}" 
-                       class="w-full bg-slate-50/70 border border-slate-200 rounded-xl text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 px-3.5 py-2.5 h-[42px] transition font-medium">
+    <!-- Filter & Search Toolbar (Single Row with Labels, No Horizontal Scrollbar) -->
+    <div class="bg-white rounded-2xl border border-slate-200/80 p-3.5 sm:p-4 shadow-sm">
+        <form method="GET" action="{{ route('salaries.index') }}" class="flex items-end gap-2.5 flex-nowrap w-full">
+            <!-- From Date -->
+            <div class="w-32 xl:w-36 shrink-0">
+                <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">From Date</label>
+                <input type="date" 
+                       name="from_date" 
+                       value="{{ $fromDate }}" 
+                       class="w-full bg-slate-50/70 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 px-2.5 py-2.5 h-[42px] transition font-medium">
+            </div>
+
+            <!-- To Date -->
+            <div class="w-32 xl:w-36 shrink-0">
+                <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">To Date</label>
+                <input type="date" 
+                       name="to_date" 
+                       value="{{ $toDate }}" 
+                       class="w-full bg-slate-50/70 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 px-2.5 py-2.5 h-[42px] transition font-medium">
             </div>
 
             <!-- Department Filter -->
-            <div class="w-48 shrink-0">
-                <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Department</label>
-                <select name="department_id" class="w-full bg-slate-50/70 border border-slate-200 rounded-xl text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 px-3.5 py-2.5 h-[42px] transition font-medium">
+            <div class="w-36 xl:w-44 shrink-0">
+                <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">Department</label>
+                <select name="department_id" class="w-full bg-slate-50/70 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 px-2.5 pr-6 py-2.5 h-[42px] transition font-medium">
                     <option value="">All Departments</option>
                     @foreach($departments as $dept)
                         <option value="{{ $dept->id }}" {{ $departmentId == $dept->id ? 'selected' : '' }}>{{ $dept->name }}</option>
@@ -104,20 +113,32 @@
                 </select>
             </div>
 
-            <!-- Status Filter -->
-            <div class="w-40 shrink-0">
-                <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Payment Status</label>
-                <select name="status" class="w-full bg-slate-50/70 border border-slate-200 rounded-xl text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 px-3.5 py-2.5 h-[42px] transition font-medium">
-                    <option value="">All Staff</option>
+            <!-- Salary Type Filter -->
+            <div class="w-36 xl:w-44 shrink-0">
+                <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">Salary Type</label>
+                <select name="salary_type" class="w-full bg-slate-50/70 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 px-2.5 pr-6 py-2.5 h-[42px] transition font-medium">
+                    <option value="">All Types</option>
+                    <option value="monthly" {{ $salaryType === 'monthly' ? 'selected' : '' }}>Monthly</option>
+                    <option value="weekly" {{ $salaryType === 'weekly' ? 'selected' : '' }}>Weekly</option>
+                    <option value="project" {{ $salaryType === 'project' ? 'selected' : '' }}>Project Based</option>
+                </select>
+            </div>
+
+            <!-- Payment Status Filter -->
+            <div class="w-32 xl:w-36 shrink-0">
+                <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">Payment Status</label>
+                <select name="status" class="w-full bg-slate-50/70 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 px-2.5 pr-6 py-2.5 h-[42px] transition font-medium">
+                    <option value="">All Status</option>
                     <option value="paid" {{ $statusFilter === 'paid' ? 'selected' : '' }}>Paid Only</option>
                     <option value="unpaid" {{ $statusFilter === 'unpaid' ? 'selected' : '' }}>Unpaid Only</option>
                 </select>
             </div>
 
-            <!-- Search Field (Compact, No top label) -->
-            <div class="w-60 shrink-0">
+            <!-- Search Field (Flex-1) -->
+            <div class="min-w-[130px] flex-1">
+                <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">Search Staff</label>
                 <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
                         </svg>
@@ -126,9 +147,9 @@
                            name="search" 
                            value="{{ $search }}" 
                            placeholder="Search staff name..." 
-                           class="block w-full pl-10 pr-8 py-2.5 h-[42px] bg-slate-50/70 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition">
+                           class="block w-full pl-9 pr-7 py-2.5 h-[42px] bg-slate-50/70 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition font-medium">
                     @if(!empty($search))
-                        <a href="{{ route('salaries.index', ['month' => $month, 'department_id' => $departmentId, 'status' => $statusFilter]) }}" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600" title="Clear search">
+                        <a href="{{ route('salaries.index', ['from_date' => $fromDate, 'to_date' => $toDate, 'department_id' => $departmentId, 'salary_type' => $salaryType, 'status' => $statusFilter]) }}" class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600" title="Clear search">
                             <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
                             </svg>
@@ -138,17 +159,17 @@
             </div>
 
             <!-- Filter & Reset Buttons -->
-            <div class="flex items-center gap-2 shrink-0">
+            <div class="flex items-center gap-1.5 shrink-0">
                 <button type="submit" 
-                        class="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-sm font-semibold rounded-xl shadow-lg shadow-indigo-600/25 hover:shadow-indigo-600/35 transition-all duration-200 h-[42px] cursor-pointer">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        class="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-xs sm:text-sm font-semibold rounded-xl shadow-md shadow-indigo-600/25 transition-all duration-200 h-[42px] cursor-pointer whitespace-nowrap">
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
                     </svg>
-                    Filter
+                    <span>Filter</span>
                 </button>
-                @if(!empty($search) || !empty($departmentId) || !empty($statusFilter) || $month !== \Carbon\Carbon::today()->format('Y-m'))
+                @if(!empty($search) || !empty($departmentId) || !empty($salaryType) || !empty($statusFilter) || $fromDate !== \Carbon\Carbon::today()->startOfMonth()->format('Y-m-d') || $toDate !== \Carbon\Carbon::today()->format('Y-m-d'))
                     <a href="{{ route('salaries.index') }}" 
-                       class="inline-flex items-center justify-center px-4 py-2.5 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-700 text-sm font-medium rounded-xl transition-all duration-200 h-[42px]" 
+                       class="inline-flex items-center justify-center px-3 py-2.5 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-700 text-xs sm:text-sm font-medium rounded-xl transition-all duration-200 h-[42px] whitespace-nowrap" 
                        title="Reset all filters">
                         Reset
                     </a>
@@ -170,7 +191,7 @@
                         <th class="px-6 py-4">Bonus / Deductions</th>
                         <th class="px-6 py-4">Net Salary</th>
                         <th class="px-6 py-4">Status</th>
-                        <th class="px-6 py-4">Payment Details</th>
+                        <th class="px-6 py-4">Payment Period</th>
                         <th class="px-6 py-4 text-right">Action</th>
                     </tr>
                 </thead>
@@ -213,7 +234,19 @@
                             <!-- Base Salary -->
                             <td class="px-6 py-4">
                                 <div class="font-bold text-slate-800 text-sm">Rs. {{ number_format($emp->salary ?? 0, 0) }}</div>
-                                <div class="text-[11px] text-slate-400 font-medium capitalize">{{ str_replace('_', ' ', $emp->salary_type ?? 'monthly') }}</div>
+                                @if(($emp->salary_type ?? 'monthly') === 'weekly')
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-100 mt-0.5">
+                                        Weekly
+                                    </span>
+                                @elseif(($emp->salary_type ?? 'monthly') === 'project')
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-100 mt-0.5">
+                                        Project Based
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200/60 mt-0.5">
+                                        Monthly
+                                    </span>
+                                @endif
                             </td>
 
                             <!-- Bonus & Deductions -->
@@ -262,11 +295,15 @@
                                 @endif
                             </td>
 
-                            <!-- Payment Details -->
+                            <!-- Payment Details & Range -->
                             <td class="px-6 py-4 text-xs">
-                                @if($salaryRecord && $salaryRecord->payment_date)
-                                    <div class="font-medium text-slate-700">{{ $salaryRecord->payment_date->format('M d, Y') }}</div>
-                                    <div class="text-slate-400 capitalize font-medium">{{ str_replace('_', ' ', $salaryRecord->payment_method) }}</div>
+                                @if($salaryRecord)
+                                    @if($salaryRecord->from_date && $salaryRecord->to_date)
+                                        <div class="font-bold text-slate-800">{{ \Carbon\Carbon::parse($salaryRecord->from_date)->format('M d') }} — {{ \Carbon\Carbon::parse($salaryRecord->to_date)->format('M d, Y') }}</div>
+                                    @endif
+                                    @if($salaryRecord->payment_date)
+                                        <div class="text-slate-500 font-medium">Paid: {{ $salaryRecord->payment_date->format('M d, Y') }}</div>
+                                    @endif
                                 @else
                                     <span class="text-slate-400 font-medium">Not processed</span>
                                 @endif
@@ -328,7 +365,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                                 </svg>
                                 <p class="text-base font-medium text-slate-600">No staff salary records found</p>
-                                <p class="text-xs text-slate-400 mt-1">Try changing filters or select a different salary month.</p>
+                                <p class="text-xs text-slate-400 mt-1">Try changing date filters or department selection.</p>
                             </td>
                         </tr>
                     @endforelse
@@ -382,6 +419,8 @@
                 
                 <form action="{{ route('salaries.store') }}" method="POST">
                     @csrf
+                    <input type="hidden" name="salary_id" x-model="formData.salary_id">
+
                     <!-- Modal Header -->
                     <div class="bg-gradient-to-r from-indigo-600 to-indigo-700 px-6 py-4 flex items-center justify-between text-white">
                         <div class="flex items-center gap-2.5">
@@ -392,12 +431,12 @@
                             </div>
                             <div>
                                 <h3 class="text-lg font-bold">Process Salary Disbursement</h3>
-                                <p class="text-xs text-indigo-100">Disburse monthly compensation to employee</p>
+                                <p class="text-xs text-indigo-100">Disburse salary compensation to employee</p>
                             </div>
                         </div>
-                        <button type="button" @click="isPayModalOpen = false" class="text-white/70 hover:text-white transition">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        <button type="button" @click="isPayModalOpen = false" class="w-8 h-8 rounded-full bg-white hover:bg-red-50 text-red-600 flex items-center justify-center shadow-md transition transform hover:scale-105 cursor-pointer border border-red-100" title="Close">
+                            <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: #dc2626;">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
                             </svg>
                         </button>
                     </div>
@@ -419,18 +458,28 @@
                                                 data-salary="{{ $emp->salary }}" 
                                                 data-department="{{ $emp->department->name ?? 'Unassigned' }}"
                                                 data-designation="{{ $emp->designation->name ?? 'Staff' }}">
-                                            {{ $emp->name }} ({{ $emp->designation->name ?? 'Staff' }} - Rs. {{ number_format($emp->salary ?? 0, 0) }})
+                                            {{ $emp->name }} ({{ $emp->designation->name ?? 'Staff' }} - Rs. {{ number_format($emp->salary ?? 0, 0) }} / {{ ucfirst(str_replace('_', ' ', $emp->salary_type ?? 'monthly')) }})
                                         </option>
                                     @endforeach
                                 </select>
                             </div>
 
-                            <!-- Salary Month -->
+                            <!-- From Date -->
                             <div>
-                                <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Salary Month <span class="text-rose-500">*</span></label>
-                                <input type="month" 
-                                       name="salary_month" 
-                                       x-model="formData.salary_month" 
+                                <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">From Date <span class="text-rose-500">*</span></label>
+                                <input type="date" 
+                                       name="from_date" 
+                                       x-model="formData.from_date" 
+                                       required 
+                                       class="w-full bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 px-3.5 py-2.5 transition font-medium">
+                            </div>
+
+                            <!-- To Date -->
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">To Date <span class="text-rose-500">*</span></label>
+                                <input type="date" 
+                                       name="to_date" 
+                                       x-model="formData.to_date" 
                                        required 
                                        class="w-full bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 px-3.5 py-2.5 transition font-medium">
                             </div>
@@ -479,20 +528,6 @@
                                        @input="calculateNet()" 
                                        placeholder="0.00" 
                                        class="w-full bg-rose-50/40 border border-rose-200 rounded-xl text-sm text-rose-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 px-3.5 py-2.5 transition font-bold">
-                            </div>
-
-                            <!-- Payment Method -->
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Payment Method <span class="text-rose-500">*</span></label>
-                                <select name="payment_method" 
-                                        x-model="formData.payment_method" 
-                                        required 
-                                        class="w-full bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 px-3.5 py-2.5 transition font-medium">
-                                    <option value="cash">Cash</option>
-                                    <option value="bank_transfer">Bank Transfer</option>
-                                    <option value="easypaisa">EasyPaisa / JazzCash</option>
-                                    <option value="cheque">Cheque</option>
-                                </select>
                             </div>
 
                             <!-- Linked Payment Account (Optional) -->
@@ -603,7 +638,7 @@
                         </div>
                     </div>
 
-                    <!-- Staff & Month Info -->
+                    <!-- Staff & Period Info -->
                     <div class="grid grid-cols-2 gap-4 py-4 border-b border-slate-100 text-xs">
                         <div>
                             <span class="text-slate-400 font-semibold uppercase tracking-wider block text-[10px]">Staff Name</span>
@@ -616,13 +651,12 @@
                             <span class="text-slate-500 block">Joining: <span x-text="slipData.joining_date || 'N/A'"></span></span>
                         </div>
                         <div>
-                            <span class="text-slate-400 font-semibold uppercase tracking-wider block text-[10px]">Salary Month</span>
-                            <span class="font-bold text-indigo-700 text-sm" x-text="slipData.salary_month_formatted"></span>
+                            <span class="text-slate-400 font-semibold uppercase tracking-wider block text-[10px]">Salary Period</span>
+                            <span class="font-bold text-indigo-700 text-sm" x-text="slipData.period_formatted"></span>
                         </div>
                         <div>
                             <span class="text-slate-400 font-semibold uppercase tracking-wider block text-[10px]">Payment Date</span>
                             <span class="font-bold text-slate-800" x-text="slipData.payment_date_formatted"></span>
-                            <span class="text-slate-500 block uppercase" x-text="slipData.payment_method"></span>
                         </div>
                     </div>
 
@@ -691,14 +725,15 @@ function salaryManager() {
         isPayModalOpen: false,
         isSlipModalOpen: false,
         formData: {
+            salary_id: '',
             employee_id: '',
-            salary_month: '{{ $month }}',
+            from_date: '{{ $fromDate }}',
+            to_date: '{{ $toDate }}',
             payment_date: '{{ \Carbon\Carbon::today()->format('Y-m-d') }}',
             basic_salary: 0,
             bonus: 0,
             deductions: 0,
             net_salary: 0,
-            payment_method: 'cash',
             account_id: '',
             status: 'paid',
             notes: ''
@@ -707,14 +742,15 @@ function salaryManager() {
 
         openPayModal() {
             this.formData = {
+                salary_id: '',
                 employee_id: '',
-                salary_month: '{{ $month }}',
+                from_date: '{{ $fromDate }}',
+                to_date: '{{ $toDate }}',
                 payment_date: '{{ \Carbon\Carbon::today()->format('Y-m-d') }}',
                 basic_salary: 0,
                 bonus: 0,
                 deductions: 0,
                 net_salary: 0,
-                payment_method: 'cash',
                 account_id: '',
                 status: 'paid',
                 notes: ''
@@ -723,13 +759,14 @@ function salaryManager() {
         },
 
         payForEmployee(emp) {
+            this.formData.salary_id = '';
             this.formData.employee_id = emp.id;
-            this.formData.salary_month = '{{ $month }}';
+            this.formData.from_date = '{{ $fromDate }}';
+            this.formData.to_date = '{{ $toDate }}';
             this.formData.payment_date = '{{ \Carbon\Carbon::today()->format('Y-m-d') }}';
             this.formData.basic_salary = parseFloat(emp.salary) || 0;
             this.formData.bonus = 0;
             this.formData.deductions = 0;
-            this.formData.payment_method = 'cash';
             this.formData.account_id = '';
             this.formData.status = 'paid';
             this.formData.notes = '';
@@ -738,14 +775,15 @@ function salaryManager() {
         },
 
         editSalary(salaryRecord, emp) {
+            this.formData.salary_id = salaryRecord.id;
             this.formData.employee_id = emp.id;
-            this.formData.salary_month = salaryRecord.salary_month;
-            this.formData.payment_date = (salaryRecord.payment_date || '').substring(0, 10);
+            this.formData.from_date = (salaryRecord.from_date || '{{ $fromDate }}').substring(0, 10);
+            this.formData.to_date = (salaryRecord.to_date || '{{ $toDate }}').substring(0, 10);
+            this.formData.payment_date = (salaryRecord.payment_date || '{{ \Carbon\Carbon::today()->format('Y-m-d') }}').substring(0, 10);
             this.formData.basic_salary = parseFloat(salaryRecord.basic_salary) || 0;
             this.formData.bonus = parseFloat(salaryRecord.bonus) || 0;
             this.formData.deductions = parseFloat(salaryRecord.deductions) || 0;
             this.formData.net_salary = parseFloat(salaryRecord.net_salary) || 0;
-            this.formData.payment_method = salaryRecord.payment_method || 'cash';
             this.formData.account_id = salaryRecord.account_id || '';
             this.formData.status = salaryRecord.status || 'paid';
             this.formData.notes = salaryRecord.notes || '';
@@ -776,7 +814,9 @@ function salaryManager() {
 
         openSlipModal(salaryRecord, emp) {
             const dateObj = new Date(salaryRecord.payment_date || new Date());
-            const monthStr = salaryRecord.salary_month || '{{ $month }}';
+            const fromStr = salaryRecord.from_date ? new Date(salaryRecord.from_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+            const toStr = salaryRecord.to_date ? new Date(salaryRecord.to_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+            const periodStr = fromStr && toStr ? `${fromStr} — ${toStr}` : (salaryRecord.salary_month || '');
             
             this.slipData = {
                 id: salaryRecord.id,
@@ -784,9 +824,8 @@ function salaryManager() {
                 designation: emp.designation ? emp.designation.name : 'Staff Member',
                 department: emp.department ? emp.department.name : 'Unassigned',
                 joining_date: emp.joining_date,
-                salary_month_formatted: monthStr,
+                period_formatted: periodStr,
                 payment_date_formatted: dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-                payment_method: (salaryRecord.payment_method || 'Cash').replace('_', ' '),
                 basic_salary: salaryRecord.basic_salary,
                 bonus: salaryRecord.bonus,
                 deductions: salaryRecord.deductions,
@@ -798,7 +837,6 @@ function salaryManager() {
 
         printSlip() {
             const printContents = document.getElementById('printablePayslip').innerHTML;
-            const originalContents = document.body.innerHTML;
 
             const printWindow = window.open('', '', 'height=650,width=800');
             printWindow.document.write('<html><head><title>Salary Payslip</title>');
