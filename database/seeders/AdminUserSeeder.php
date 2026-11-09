@@ -24,67 +24,67 @@ class AdminUserSeeder extends Seeder
             ]
         );
 
-        $families = [
-            [
-                'name' => 'Khan Family',
-                'phone' => '0301-1234567',
-                'gender' => 'male',
-                'address' => '123 Main Street, Lahore',
-                'members' => [
-                    ['name' => 'Asad Khan', 'gender' => 'male', 'relation' => 'son'],
-                    ['name' => 'Sara Khan', 'gender' => 'female', 'relation' => 'daughter'],
-                    ['name' => 'Rafiq Khan', 'gender' => 'male', 'relation' => 'brother'],
-                ],
-            ],
-            [
-                'name' => 'Ali Family',
-                'phone' => '0321-7654321',
-                'gender' => 'male',
-                'address' => '456 Model Town, Karachi',
-                'members' => [
-                    ['name' => 'Ayesha Ali', 'gender' => 'female', 'relation' => 'wife'],
-                    ['name' => 'Usman Ali', 'gender' => 'male', 'relation' => 'son'],
-                ],
-            ],
-            [
-                'name' => 'Raza Family',
-                'phone' => '0333-9876543',
-                'gender' => 'male',
-                'address' => '789 Gulberg, Islamabad',
-                'members' => [
-                    ['name' => 'Hina Raza', 'gender' => 'female', 'relation' => 'wife'],
-                    ['name' => 'Tariq Raza', 'gender' => 'male', 'relation' => 'son'],
-                    ['name' => 'Zain Raza', 'gender' => 'male', 'relation' => 'son'],
-                    ['name' => 'Mariam Raza', 'gender' => 'female', 'relation' => 'daughter'],
-                ],
-            ],
-            [
-                'name' => 'Noor House',
-                'phone' => '0345-5432167',
-                'gender' => 'female',
-                'address' => '321 DHA Phase 5, Lahore',
-                'members' => [
-                    ['name' => 'Bilal Noor', 'gender' => 'male', 'relation' => 'husband'],
-                ],
-            ],
-            [
-                'name' => 'Ahmed Traders',
-                'phone' => '0312-6789012',
-                'gender' => 'male',
-                'address' => '654 Faisal Town, Rawalpindi',
-                'members' => [],
-            ],
-        ];
+        // $families = [
+        //     [
+        //         'name' => 'Khan Family',
+        //         'phone' => '0301-1234567',
+        //         'gender' => 'male',
+        //         'address' => '123 Main Street, Lahore',
+        //         'members' => [
+        //             ['name' => 'Asad Khan', 'gender' => 'male', 'relation' => 'son'],
+        //             ['name' => 'Sara Khan', 'gender' => 'female', 'relation' => 'daughter'],
+        //             ['name' => 'Rafiq Khan', 'gender' => 'male', 'relation' => 'brother'],
+        //         ],
+        //     ],
+        //     [
+        //         'name' => 'Ali Family',
+        //         'phone' => '0321-7654321',
+        //         'gender' => 'male',
+        //         'address' => '456 Model Town, Karachi',
+        //         'members' => [
+        //             ['name' => 'Ayesha Ali', 'gender' => 'female', 'relation' => 'wife'],
+        //             ['name' => 'Usman Ali', 'gender' => 'male', 'relation' => 'son'],
+        //         ],
+        //     ],
+        //     [
+        //         'name' => 'Raza Family',
+        //         'phone' => '0333-9876543',
+        //         'gender' => 'male',
+        //         'address' => '789 Gulberg, Islamabad',
+        //         'members' => [
+        //             ['name' => 'Hina Raza', 'gender' => 'female', 'relation' => 'wife'],
+        //             ['name' => 'Tariq Raza', 'gender' => 'male', 'relation' => 'son'],
+        //             ['name' => 'Zain Raza', 'gender' => 'male', 'relation' => 'son'],
+        //             ['name' => 'Mariam Raza', 'gender' => 'female', 'relation' => 'daughter'],
+        //         ],
+        //     ],
+        //     [
+        //         'name' => 'Noor House',
+        //         'phone' => '0345-5432167',
+        //         'gender' => 'female',
+        //         'address' => '321 DHA Phase 5, Lahore',
+        //         'members' => [
+        //             ['name' => 'Bilal Noor', 'gender' => 'male', 'relation' => 'husband'],
+        //         ],
+        //     ],
+        //     [
+        //         'name' => 'Ahmed Traders',
+        //         'phone' => '0312-6789012',
+        //         'gender' => 'male',
+        //         'address' => '654 Faisal Town, Rawalpindi',
+        //         'members' => [],
+        //     ],
+        // ];
 
-        foreach ($families as $family) {
-            $members = $family['members'];
-            unset($family['members']);
-            $customer = Customer::create($family);
+        // foreach ($families as $family) {
+        //     $members = $family['members'];
+        //     unset($family['members']);
+        //     $customer = Customer::create($family);
 
-            foreach ($members as $member) {
-                $customer->members()->create($member);
-            }
-        }
+        //     foreach ($members as $member) {
+        //         $customer->members()->create($member);
+        //     }
+        // }
 
         $services = [
             [
@@ -150,8 +150,8 @@ class AdminUserSeeder extends Seeder
             ],
         ];
 
-        foreach ($services as $service) {
-            Service::create($service);
-        }
+        // foreach ($services as $service) {
+        //     Service::create($service);
+        // }
     }
 }
