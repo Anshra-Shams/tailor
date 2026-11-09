@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Payments')
+@section('title', 'Receipt Voucher')
 
 @section('content')
 <div class="space-y-6" x-data="paymentsPage()">
@@ -8,8 +8,8 @@
     {{-- Header --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-            <h2 class="text-2xl font-bold text-slate-800">Payments</h2>
-            <p class="text-slate-500 mt-1">View all payments and record new ones</p>
+            <h2 class="text-2xl font-bold text-slate-800">Receipt Voucher</h2>
+            <p class="text-slate-500 mt-1">View all receipt vouchers and record new customer payments</p>
         </div>
         <div class="flex items-center gap-3">
             {{-- Stats --}}
@@ -21,13 +21,13 @@
                 <p class="text-[11px] uppercase font-semibold tracking-wide text-red-400">Outstanding</p>
                 <p class="text-lg font-bold text-red-600">Rs. {{ number_format($outstandingDue) }}</p>
             </div>
-            {{-- Add Payment Button --}}
+            {{-- Add Receipt Voucher Button --}}
             <button type="button" @click="openModal()"
                 class="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl shadow-sm transition-all">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
                 </svg>
-                Add Payment
+                Add Receipt Voucher
             </button>
         </div>
     </div>
@@ -36,18 +36,42 @@
     <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden">
 
         {{-- Table toolbar --}}
-        <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-            <h3 class="text-sm font-bold text-slate-700">All Payments</h3>
-            <div class="flex items-center gap-2">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-4 border-b border-slate-100">
+            <h3 class="text-sm font-bold text-slate-700 whitespace-nowrap">All Receipt Vouchers</h3>
+            <div class="flex flex-wrap items-center gap-2">
+                {{-- Date From --}}
+                <div class="flex items-center gap-1.5 border border-slate-200 rounded-lg px-2.5 py-1.5 bg-white text-xs">
+                    <span class="text-slate-400 font-semibold">From:</span>
+                    <input type="date" x-model="dateFrom" @change="loadPayments()"
+                        class="text-xs text-slate-700 bg-transparent border-0 p-0 focus:ring-0 focus:outline-none"
+                        style="border: none !important; outline: none !important; box-shadow: none !important; padding: 0 !important; background: transparent !important;">
+                </div>
+
+                {{-- Date To --}}
+                <div class="flex items-center gap-1.5 border border-slate-200 rounded-lg px-2.5 py-1.5 bg-white text-xs">
+                    <span class="text-slate-400 font-semibold">To:</span>
+                    <input type="date" x-model="dateTo" @change="loadPayments()"
+                        class="text-xs text-slate-700 bg-transparent border-0 p-0 focus:ring-0 focus:outline-none"
+                        style="border: none !important; outline: none !important; box-shadow: none !important; padding: 0 !important; background: transparent !important;">
+                </div>
+
+                {{-- Clear dates --}}
+                <button x-show="dateFrom || dateTo" @click="dateFrom = ''; dateTo = ''; loadPayments()"
+                    type="button"
+                    title="Clear date filter"
+                    class="text-xs font-semibold text-slate-500 hover:text-rose-600 px-2 py-1.5 rounded-lg hover:bg-slate-100 transition">
+                    Reset
+                </button>
+
                 <div class="relative">
                     <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
                     </svg>
                     <input type="text" x-model="tableSearch" @input.debounce.300ms="filterTable()"
-                        placeholder="Search payments..."
+                        placeholder="Search receipt vouchers..."
                         autocomplete="off"
                         spellcheck="false"
-                        class="pl-9 pr-4 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 w-56">
+                        class="pl-9 pr-4 py-1.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 w-52">
                 </div>
                 <button @click="loadPayments()" title="Refresh"
                     class="p-2 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
@@ -64,7 +88,7 @@
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
             </svg>
-            <p class="text-xs text-slate-400 mt-2">Loading payments...</p>
+            <p class="text-xs text-slate-400 mt-2">Loading receipt vouchers...</p>
         </div>
 
         {{-- Empty state --}}
@@ -74,8 +98,8 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z"/>
                 </svg>
             </div>
-            <h4 class="text-sm font-semibold text-slate-600">No payments found</h4>
-            <p class="text-xs text-slate-400 mt-1">Click "Add Payment" to record the first payment.</p>
+            <h4 class="text-sm font-semibold text-slate-600">No receipt vouchers found</h4>
+            <p class="text-xs text-slate-400 mt-1">Click "Add Receipt Voucher" to record the first payment.</p>
         </div>
 
         {{-- Table --}}
@@ -182,7 +206,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z"/>
                         </svg>
                     </div>
-                    <h3 class="text-base font-bold text-slate-800">Add Payment</h3>
+                    <h3 class="text-base font-bold text-slate-800">Add Receipt Voucher</h3>
                 </div>
                 <button type="button" @click="closeModal()" class="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -368,6 +392,8 @@ function paymentsPage() {
         allPayments: [],
         filteredPayments: [],
         tableSearch: '',
+        dateFrom: '',
+        dateTo: '',
         tableLoading: false,
         loadingMore: false,
         hasMore: false,
@@ -400,7 +426,10 @@ function paymentsPage() {
             this.tableLoading = true;
             this.page = 1;
             try {
-                const r = await fetch('{{ route("api.payments.recent") }}?limit=50', {
+                let url = '{{ route("api.payments.recent") }}?limit=50';
+                if (this.dateFrom) url += '&date_from=' + encodeURIComponent(this.dateFrom);
+                if (this.dateTo) url += '&date_to=' + encodeURIComponent(this.dateTo);
+                const r = await fetch(url, {
                     headers: { 'Accept': 'application/json' }
                 });
                 const data = await r.json();
@@ -416,26 +445,30 @@ function paymentsPage() {
 
         filterTable() {
             const q = this.tableSearch.trim().toLowerCase();
-            if (!q) {
-                this.filteredPayments = [...this.allPayments];
-                return;
-            }
-            this.filteredPayments = this.allPayments.filter(p =>
-                (p.customer || '').toLowerCase().includes(q) ||
-                (p.phone || '').toLowerCase().includes(q) ||
-                String(p.order_no).includes(q) ||
-                (p.method || '').toLowerCase().includes(q) ||
-                (p.type || '').toLowerCase().includes(q) ||
-                (p.notes || '').toLowerCase().includes(q) ||
-                (p.member || '').toLowerCase().includes(q)
-            );
+            this.filteredPayments = this.allPayments.filter(p => {
+                const matchesSearch = !q || (
+                    (p.customer || '').toLowerCase().includes(q) ||
+                    (p.phone || '').toLowerCase().includes(q) ||
+                    String(p.order_no).includes(q) ||
+                    (p.method || '').toLowerCase().includes(q) ||
+                    (p.type || '').toLowerCase().includes(q) ||
+                    (p.notes || '').toLowerCase().includes(q) ||
+                    (p.member || '').toLowerCase().includes(q)
+                );
+                const matchesFrom = !this.dateFrom || (p.raw_date >= this.dateFrom);
+                const matchesTo = !this.dateTo || (p.raw_date <= this.dateTo);
+                return matchesSearch && matchesFrom && matchesTo;
+            });
         },
 
         async loadMore() {
             this.loadingMore = true;
             this.page++;
             try {
-                const r = await fetch(`{{ route("api.payments.recent") }}?limit=50&page=${this.page}`, {
+                let url = `{{ route("api.payments.recent") }}?limit=50&page=${this.page}`;
+                if (this.dateFrom) url += '&date_from=' + encodeURIComponent(this.dateFrom);
+                if (this.dateTo) url += '&date_to=' + encodeURIComponent(this.dateTo);
+                const r = await fetch(url, {
                     headers: { 'Accept': 'application/json' }
                 });
                 const data = await r.json();

@@ -36,6 +36,16 @@ class Employee extends Model
         return $this->hasMany(Order::class, 'assigned_employee_id');
     }
 
+    public function cuttingOrders()
+    {
+        return $this->hasMany(Order::class, 'cutting_employee_id');
+    }
+
+    public function stitchingOrders()
+    {
+        return $this->hasMany(Order::class, 'stitching_employee_id');
+    }
+
     public function attendances()
     {
         return $this->hasMany(Attendance::class);

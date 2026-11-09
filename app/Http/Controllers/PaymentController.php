@@ -26,7 +26,7 @@ class PaymentController extends Controller
     {
         return [
             'id'             => $o->id,
-            'no'             => str_pad($o->id, 4, '0', STR_PAD_LEFT),
+            'no'             => str_pad($o->order_number ?? $o->id, 4, '0', STR_PAD_LEFT),
             'customer_id'    => $o->customer_id,
             'customer'       => $o->customer?->name ?? '—',
             'phone'          => $o->customer?->phone ?? '',
@@ -77,9 +77,14 @@ class PaymentController extends Controller
         $query = self::dueQuery();
 
         if ($q !== '') {
-            $query->where(function ($w) use ($q) {
-                if (ctype_digit($q)) {
-                    $w->orWhere('orders.id', (int) $q);
+            $cleanNum = ltrim($q, '#0');
+            if ($cleanNum === '') {
+                $cleanNum = '0';
+            }
+            $query->where(function ($w) use ($q, $cleanNum) {
+                if (ctype_digit($cleanNum)) {
+                    $w->where('orders.order_number', (int) $cleanNum)
+                      ->orWhere('orders.id', (int) $cleanNum);
                 }
                 $w->orWhereHas('customer', function ($c) use ($q) {
                     $c->where('name', 'like', "%{$q}%")
@@ -121,12 +126,24 @@ class PaymentController extends Controller
 
     public function apiRecentPayments(Request $request): JsonResponse
     {
-        $limit  = min((int) $request->input('limit', 50), 200);
-        $page   = max((int) $request->input('page', 1), 1);
-        $offset = ($page - 1) * $limit;
+        $limit    = min((int) $request->input('limit', 50), 200);
+        $page     = max((int) $request->input('page', 1), 1);
+        $offset   = ($page - 1) * $limit;
+        $dateFrom = $request->input('date_from');
+        $dateTo   = $request->input('date_to');
 
-        $payments = Payment::with(['order.customer:id,name,phone', 'order.member:id,name'])
-            ->latest('payments.id')
+        $query = Payment::with(['order.customer:id,name,phone', 'order.member:id,name'])
+            ->latest('payments.id');
+
+        if ($dateFrom) {
+            $query->whereDate('payments.created_at', '>=', $dateFrom);
+        }
+
+        if ($dateTo) {
+            $query->whereDate('payments.created_at', '<=', $dateTo);
+        }
+
+        $payments = $query
             ->skip($offset)
             ->take($limit)
             ->get()
@@ -141,6 +158,7 @@ class PaymentController extends Controller
                 'method'    => str_replace('_', ' ', $p->method),
                 'notes'     => $p->notes,
                 'type'      => str_contains((string) $p->notes, 'Advance') ? 'advance' : 'payment',
+                'raw_date'  => $p->created_at->format('Y-m-d'),
                 'date'      => $p->created_at->format('d M Y'),
                 'time'      => $p->created_at->format('h:i A'),
             ]);

@@ -10,19 +10,26 @@ use App\Models\Order;
 use App\Models\Payment;
 use App\Models\Service;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class OrderController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Order::with(['customer.members', 'member', 'service', 'cuttingEmployee', 'stitchingEmployee']);
-
         $q = trim($request->input('q', ''));
+
+        $groupQuery = Order::query();
+
         if ($q !== '') {
-            $query->where(function ($w) use ($q) {
-                if (ctype_digit($q)) {
-                    $w->where('orders.id', (int) $q);
+            $cleanNum = ltrim($q, '#0');
+            if ($cleanNum === '') {
+                $cleanNum = '0';
+            }
+            $groupQuery->where(function ($w) use ($q, $cleanNum) {
+                if (ctype_digit($cleanNum)) {
+                    $w->where('orders.order_number', (int) $cleanNum)
+                      ->orWhere('orders.id', (int) $cleanNum);
                 }
                 $w->orWhereHas('customer', function ($c) use ($q) {
                     $c->where('name', 'like', "%{$q}%")
@@ -38,7 +45,42 @@ class OrderController extends Controller
             });
         }
 
-        $orders = $query->latest('id')->paginate(15)->withQueryString();
+        $paginatedGroups = $groupQuery
+            ->selectRaw('COALESCE(order_number, id) as grp_no, MIN(id) as primary_id')
+            ->groupBy(DB::raw('COALESCE(order_number, id)'))
+            ->orderByDesc('grp_no')
+            ->paginate(15)
+            ->withQueryString();
+
+        $primaryIds = collect($paginatedGroups->items())->pluck('primary_id');
+
+        $primaryOrders = Order::with(['customer.members', 'member', 'service', 'cuttingEmployee', 'stitchingEmployee'])
+            ->whereIn('id', $primaryIds)
+            ->get()
+            ->keyBy('id');
+
+        $orderNumbers = $primaryOrders->pluck('order_number')->filter()->unique();
+        $batchItemsByNumber = $orderNumbers->isNotEmpty()
+            ? Order::with(['service', 'member', 'cuttingEmployee', 'stitchingEmployee'])
+                ->whereIn('order_number', $orderNumbers)
+                ->orderBy('id', 'asc')
+                ->get()
+                ->groupBy('order_number')
+            : collect();
+
+        $orders = $paginatedGroups->through(function ($group) use ($primaryOrders, $batchItemsByNumber) {
+            $primaryOrder = $primaryOrders->get($group->primary_id);
+            if (!$primaryOrder) {
+                return null;
+            }
+            $items = ($primaryOrder->order_number && isset($batchItemsByNumber[$primaryOrder->order_number]))
+                ? $batchItemsByNumber[$primaryOrder->order_number]
+                : collect([$primaryOrder]);
+
+            $primaryOrder->setRelation('batch_items', $items);
+            $primaryOrder->batch_items = $items;
+            return $primaryOrder;
+        });
 
         return view('orders.index', compact('orders', 'q'));
     }
@@ -50,16 +92,23 @@ class OrderController extends Controller
             $editOrder = Order::with(['customer.members', 'member', 'service'])
                 ->find($request->edit);
             if ($editOrder) {
-                $createdTime = $editOrder->created_at;
-                $siblingOrders = Order::with(['service', 'member'])
-                    ->where('customer_id', $editOrder->customer_id)
-                    ->where('order_date', $editOrder->order_date)
-                    ->whereBetween('created_at', [
-                        $createdTime->copy()->subSeconds(30),
-                        $createdTime->copy()->addSeconds(30)
-                    ])
-                    ->orderBy('id', 'asc')
-                    ->get();
+                if ($editOrder->order_number) {
+                    $siblingOrders = Order::with(['service', 'member'])
+                        ->where('order_number', $editOrder->order_number)
+                        ->orderBy('id', 'asc')
+                        ->get();
+                } else {
+                    $createdTime = $editOrder->created_at;
+                    $siblingOrders = Order::with(['service', 'member'])
+                        ->where('customer_id', $editOrder->customer_id)
+                        ->where('order_date', $editOrder->order_date)
+                        ->whereBetween('created_at', [
+                            $createdTime->copy()->subSeconds(30),
+                            $createdTime->copy()->addSeconds(30)
+                        ])
+                        ->orderBy('id', 'asc')
+                        ->get();
+                }
                 $editOrder->setAttribute('sibling_orders', $siblingOrders);
             }
         }
@@ -106,101 +155,110 @@ class OrderController extends Controller
             return back()->withInput()->withErrors(['general' => 'Service data mismatch. Please try again.']);
         }
 
-            $firstOrder = null;
-            foreach ($validated['service_ids'] as $i => $serviceId) {
-                $decoded = json_decode($validated['measurements_json'][$i] ?? '{}', true);
-                if (!is_array($decoded)) {
-                    $decoded = [];
-                }
+        $nextOrderNumber = (Order::max('order_number') ?? 0) + 1;
 
-                // If no inline measurements, pull the latest saved measurement for this customer/member/service
-                if (empty($decoded)) {
-                    $latest = \App\Models\Measurement::where('customer_id', $validated['customer_id'])
-                        ->where(function ($q) use ($serviceId) {
-                            $q->where('service_id', $serviceId)->orWhereNull('service_id');
-                        })
-                        ->when(!empty($validated['member_id']), fn ($q) => $q->where('member_id', $validated['member_id']), fn ($q) => $q->whereNull('member_id'))
-                        ->latest()
-                        ->first();
-                    if ($latest) {
-                        $decoded = $latest->data ?? [];
-                    }
-                }
+        $firstOrder = null;
+        foreach ($validated['service_ids'] as $i => $serviceId) {
+            $decoded = json_decode($validated['measurements_json'][$i] ?? '{}', true);
+            if (!is_array($decoded)) {
+                $decoded = [];
+            }
 
-                $advanceAmount = $i === 0 ? (float) ($validated['paid_amount'] ?? 0) : 0;
-
-                $serviceNote = !empty($request->input('service_notes')[$i]) ? trim($request->input('service_notes')[$i]) : null;
-                $noteParts = array_filter([$serviceNote, $validated['notes'] ?? null]);
-                $orderNotes = !empty($noteParts) ? implode(' — ', $noteParts) : null;
-
-                $order = Order::create([
-                    'customer_id'  => $validated['customer_id'],
-                    'member_id'    => !empty($validated['member_id']) ? $validated['member_id'] : null,
-                    'service_id'   => $serviceId,
-                    'price'        => $validated['prices'][$i],
-                    'quantity'     => $validated['quantities'][$i] ?? 1,
-                    'paid_amount'  => $advanceAmount,
-                    'status'       => 'pending',
-                    'order_date'   => now()->toDateString(),
-                    'due_date'     => $validated['due_date'],
-                    'measurements' => json_encode($decoded),
-                    'notes'        => $orderNotes,
-                ]);
-                $order->refreshPaymentStatus();
-                $order->save();
-
-                // Auto-create permanent profile if it does not exist
-                if (!empty($decoded)) {
-                    $hasProfile = \App\Models\Measurement::where('customer_id', $validated['customer_id'])
-                        ->where(function ($q) use ($serviceId) {
-                            $q->where('service_id', $serviceId)->orWhereNull('service_id');
-                        })
-                        ->when(!empty($validated['member_id']), fn ($q) => $q->where('member_id', $validated['member_id']), fn ($q) => $q->whereNull('member_id'))
-                        ->exists();
-
-                    if (!$hasProfile) {
-                        \App\Models\Measurement::create([
-                            'customer_id' => $validated['customer_id'],
-                            'member_id'   => !empty($validated['member_id']) ? $validated['member_id'] : null,
-                            'service_id'  => $serviceId,
-                            'data'        => $decoded,
-                            'notes'       => 'Auto-saved from order creation',
-                        ]);
-                    }
-                }
-
-                if (!$firstOrder) {
-                    $firstOrder = $order;
-                }
-
-                // If an advance was paid, record it and credit the selected account
-                if ($advanceAmount > 0) {
-                    $account = Account::find($validated['account_id']);
-
-                    Payment::create([
-                        'order_id'   => $order->id,
-                        'account_id' => $account?->id,
-                        'amount'     => $advanceAmount,
-                        'method'     => $account ? $account->paymentMethod() : 'other',
-                        'notes'      => 'Advance payment at order creation',
-                    ]);
-
-                    if ($account) {
-                        $account->increment('current_balance', $advanceAmount);
-                    }
+            // If no inline measurements, pull the latest saved measurement for this customer/member/service
+            if (empty($decoded)) {
+                $latest = \App\Models\Measurement::where('customer_id', $validated['customer_id'])
+                    ->where(function ($q) use ($serviceId) {
+                        $q->where('service_id', $serviceId)->orWhereNull('service_id');
+                    })
+                    ->when(!empty($validated['member_id']), fn ($q) => $q->where('member_id', $validated['member_id']), fn ($q) => $q->whereNull('member_id'))
+                    ->latest()
+                    ->first();
+                if ($latest) {
+                    $decoded = $latest->data ?? [];
                 }
             }
 
-            return redirect()->route('orders.invoice', $firstOrder ? $firstOrder->id : $order->id)->with('success', "Order created successfully!");
+            $advanceAmount = $i === 0 ? (float) ($validated['paid_amount'] ?? 0) : 0;
+
+            $serviceNote = !empty($request->input('service_notes')[$i]) ? trim($request->input('service_notes')[$i]) : null;
+            $noteParts = array_filter([$serviceNote, $validated['notes'] ?? null]);
+            $orderNotes = !empty($noteParts) ? implode(' — ', $noteParts) : null;
+
+            $order = Order::create([
+                'order_number' => $nextOrderNumber,
+                'customer_id'  => $validated['customer_id'],
+                'member_id'    => !empty($validated['member_id']) ? $validated['member_id'] : null,
+                'service_id'   => $serviceId,
+                'price'        => $validated['prices'][$i],
+                'quantity'     => $validated['quantities'][$i] ?? 1,
+                'paid_amount'  => $advanceAmount,
+                'status'       => 'pending',
+                'order_date'   => now()->toDateString(),
+                'due_date'     => $validated['due_date'],
+                'measurements' => json_encode($decoded),
+                'notes'        => $orderNotes,
+            ]);
+            $order->refreshPaymentStatus();
+            $order->save();
+
+            // Auto-create permanent profile if it does not exist
+            if (!empty($decoded)) {
+                $hasProfile = \App\Models\Measurement::where('customer_id', $validated['customer_id'])
+                    ->where(function ($q) use ($serviceId) {
+                        $q->where('service_id', $serviceId)->orWhereNull('service_id');
+                    })
+                    ->when(!empty($validated['member_id']), fn ($q) => $q->where('member_id', $validated['member_id']), fn ($q) => $q->whereNull('member_id'))
+                    ->exists();
+
+                if (!$hasProfile) {
+                    \App\Models\Measurement::create([
+                        'customer_id' => $validated['customer_id'],
+                        'member_id'   => !empty($validated['member_id']) ? $validated['member_id'] : null,
+                        'service_id'  => $serviceId,
+                        'data'        => $decoded,
+                        'notes'       => 'Auto-saved from order creation',
+                    ]);
+                }
+            }
+
+            if (!$firstOrder) {
+                $firstOrder = $order;
+            }
+
+            // If an advance was paid, record it and credit the selected account
+            if ($advanceAmount > 0) {
+                $account = Account::find($validated['account_id']);
+
+                Payment::create([
+                    'order_id'   => $order->id,
+                    'account_id' => $account?->id,
+                    'amount'     => $advanceAmount,
+                    'method'     => $account ? $account->paymentMethod() : 'other',
+                    'notes'      => 'Advance payment at order creation',
+                ]);
+
+                if ($account) {
+                    $account->increment('current_balance', $advanceAmount);
+                }
+            }
         }
 
-        public function invoice(Order $order)
-        {
-            $order->load(['customer.members', 'member', 'service', 'payments']);
+        return redirect()->route('orders.invoice', $firstOrder ? $firstOrder->id : $order->id)->with('success', "Order created successfully!");
+    }
 
-            // Fetch sibling orders created in the same batch/timeframe for this customer
+    public function invoice(Order $order)
+    {
+        $order->load(['customer.members', 'member', 'service', 'payments']);
+
+        // Fetch sibling orders created in the same batch/order_number for this customer
+        if ($order->order_number) {
+            $siblingOrders = Order::with(['service', 'member', 'payments'])
+                ->where('order_number', $order->order_number)
+                ->orderBy('id', 'asc')
+                ->get();
+        } else {
             $createdTime = $order->created_at;
-            $siblingOrders = Order::with(['service', 'member'])
+            $siblingOrders = Order::with(['service', 'member', 'payments'])
                 ->where('customer_id', $order->customer_id)
                 ->where('order_date', $order->order_date)
                 ->where('due_date', $order->due_date)
@@ -210,10 +268,11 @@ class OrderController extends Controller
                 ])
                 ->orderBy('id', 'asc')
                 ->get();
+        }
 
-            if ($siblingOrders->isEmpty()) {
-                $siblingOrders = collect([$order]);
-            }
+        if ($siblingOrders->isEmpty()) {
+            $siblingOrders = collect([$order]);
+        }
 
             // Helper to map a raw measurements dictionary to Upper (1-14) and Lower (15-26) data arrays
             $buildMeasurements = function (array $measurementsArray) {
@@ -361,15 +420,21 @@ class OrderController extends Controller
             'measurements_json.*' => 'nullable|string',
         ]);
 
-        $createdTime = $order->created_at;
-        $siblingOrders = Order::where('customer_id', $order->customer_id)
-            ->where('order_date', $order->order_date)
-            ->whereBetween('created_at', [
-                $createdTime->copy()->subSeconds(30),
-                $createdTime->copy()->addSeconds(30)
-            ])
-            ->orderBy('id', 'asc')
-            ->get();
+        if ($order->order_number) {
+            $siblingOrders = Order::where('order_number', $order->order_number)
+                ->orderBy('id', 'asc')
+                ->get();
+        } else {
+            $createdTime = $order->created_at;
+            $siblingOrders = Order::where('customer_id', $order->customer_id)
+                ->where('order_date', $order->order_date)
+                ->whereBetween('created_at', [
+                    $createdTime->copy()->subSeconds(30),
+                    $createdTime->copy()->addSeconds(30)
+                ])
+                ->orderBy('id', 'asc')
+                ->get();
+        }
 
         if ($siblingOrders->isEmpty()) {
             $siblingOrders = collect([$order]);
@@ -406,6 +471,7 @@ class OrderController extends Controller
             if (isset($siblingOrders[$i])) {
                 $sOrd = $siblingOrders[$i];
                 $sOrd->update([
+                    'order_number' => $order->order_number,
                     'member_id'    => $validated['member_id'] ?: null,
                     'service_id'   => $serviceId,
                     'price'        => $price,
@@ -419,6 +485,7 @@ class OrderController extends Controller
                 $sOrd->save();
             } else {
                 $newOrd = Order::create([
+                    'order_number' => $order->order_number,
                     'customer_id'  => $order->customer_id,
                     'member_id'    => $validated['member_id'] ?: null,
                     'service_id'   => $serviceId,
@@ -445,7 +512,8 @@ class OrderController extends Controller
             }
         }
 
-        return redirect()->route('orders.index')->with('success', "Order #" . str_pad($order->id, 4, '0', STR_PAD_LEFT) . " updated successfully!");
+        $displayNum = str_pad($order->order_number ?? $order->id, 4, '0', STR_PAD_LEFT);
+        return redirect()->route('orders.index')->with('success', "Order #{$displayNum} updated successfully!");
     }
 
     public function updateStatus(Request $request, Order $order)
@@ -454,23 +522,31 @@ class OrderController extends Controller
             'status' => 'required|in:pending,cutting,stitching,in_progress,completed,delivered,cancelled',
         ]);
 
-        $order->status = $validated['status'];
-        $order->save();
+        if ($order->order_number) {
+            Order::where('order_number', $order->order_number)->update(['status' => $validated['status']]);
+        } else {
+            $order->status = $validated['status'];
+            $order->save();
+        }
 
         return response()->json(['success' => true, 'status' => $validated['status']]);
     }
 
     public function destroy(Order $order)
     {
-        $createdTime = $order->created_at;
-        Order::where('customer_id', $order->customer_id)
-            ->where('order_date', $order->order_date)
-            ->where('due_date', $order->due_date)
-            ->whereBetween('created_at', [
-                $createdTime->copy()->subSeconds(30),
-                $createdTime->copy()->addSeconds(30)
-            ])
-            ->delete();
+        if ($order->order_number) {
+            Order::where('order_number', $order->order_number)->delete();
+        } else {
+            $createdTime = $order->created_at;
+            Order::where('customer_id', $order->customer_id)
+                ->where('order_date', $order->order_date)
+                ->where('due_date', $order->due_date)
+                ->whereBetween('created_at', [
+                    $createdTime->copy()->subSeconds(30),
+                    $createdTime->copy()->addSeconds(30)
+                ])
+                ->delete();
+        }
 
         return redirect()->route('orders.index')->with('success', 'Order batch deleted successfully!');
     }

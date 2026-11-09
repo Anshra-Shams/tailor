@@ -135,6 +135,7 @@
                     Dashboard
                 </a>
 
+                @can('view-services')
                 <a href="{{ route('services.index') }}" class="sidebar-link flex items-center gap-3.5 px-4 py-3 text-[15px] font-medium rounded-xl transition-all duration-200 {{ request()->routeIs('services.*') ? 'active' : 'text-slate-400' }}">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.42 15.17l-5.384 3.18A1.5 1.5 0 014 17.08V5.92a1.5 1.5 0 012.036-1.42l5.384 3.18a1.5 1.5 0 010 2.58z" />
@@ -142,56 +143,117 @@
                     </svg>
                     Services
                 </a>
+                @endcan
 
+                @can('view-customers')
                 <a href="{{ route('customers.index') }}" class="sidebar-link flex items-center gap-3.5 px-4 py-3 text-[15px] font-medium rounded-xl transition-all duration-200 {{ request()->routeIs('customers.*') ? 'active' : 'text-slate-400' }}">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
                     </svg>
                     Customers
                 </a>
+                @endcan
 
+                @can('view-measurements')
                 <a href="{{ route('measurements.index') }}" class="sidebar-link flex items-center gap-3.5 px-4 py-3 text-[15px] font-medium rounded-xl transition-all duration-200 {{ request()->routeIs('measurements.*') ? 'active' : 'text-slate-400' }}">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z" />
                     </svg>
                     Measurements
                 </a>
+                @endcan
 
+                @can('view-orders')
                 <a href="{{ route('orders.index') }}" class="sidebar-link flex items-center gap-3.5 px-4 py-3 text-[15px] font-medium rounded-xl transition-all duration-200 {{ request()->routeIs('orders.*') && !request()->routeIs('assign-orders.*') ? 'active' : 'text-slate-400' }}">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-1.125 1.125-1.125V11.25a9 9 0 00-9-9z" />
                     </svg>
                     Orders
                 </a>
+                @endcan
 
+                @can('view-assign-orders')
                 <a href="{{ route('assign-orders.index') }}" class="sidebar-link flex items-center gap-3.5 px-4 py-3 text-[15px] font-medium rounded-xl transition-all duration-200 {{ request()->routeIs('assign-orders.*') ? 'active' : 'text-slate-400' }}">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
                     </svg>
                     Assign Order
                 </a>
+                @endcan
 
-                <a href="{{ route('payments.index') }}" class="sidebar-link flex items-center gap-3.5 px-4 py-3 text-[15px] font-medium rounded-xl transition-all duration-200 {{ request()->routeIs('payments.*') ? 'active' : 'text-slate-400' }}">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
-                    </svg>
-                    Payments
-                </a>
+                <!-- Vouchers Collapsible Menu -->
+                @canany(['view-payments', 'manage-accounts'])
+                @php
+                    $isVouchersActive = request()->routeIs('payments.*', 'expenses.*', 'expense-categories.*');
+                @endphp
+                <div x-data="{ open: {{ $isVouchersActive ? 'true' : 'false' }} }">
+                    <button @click="open = !open"
+                            type="button"
+                            class="sidebar-link w-full flex items-center justify-between px-4 py-3 text-[15px] font-medium rounded-xl transition-all duration-200 cursor-pointer {{ $isVouchersActive ? 'active' : 'text-slate-400' }}">
+                        <div class="flex items-center gap-3.5">
+                            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" />
+                            </svg>
+                            <span>Vouchers</span>
+                        </div>
+                        <svg id="vouchers-chevron" 
+                             class="w-4 h-4 transition-transform duration-200" 
+                             :style="open ? 'transform: rotate(180deg);' : 'transform: rotate(0deg);'"
+                             style="{{ $isVouchersActive ? 'transform: rotate(180deg);' : 'transform: rotate(0deg);' }} transition: transform 0.2s ease;"
+                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
 
+                    <div id="vouchers-submenu"
+                         x-show="open"
+                         x-cloak
+                         class="mt-1 pl-9 pr-2 space-y-1">
+                        @can('view-payments')
+                        <a href="{{ route('payments.index') }}"
+                           class="flex items-center px-3.5 py-2 text-[14.5px] font-medium rounded-lg transition-colors {{ request()->routeIs('payments.*') ? 'text-white bg-slate-800 font-semibold' : 'text-slate-400 hover:text-white hover:bg-slate-800' }}">
+                            Receipt Voucher
+                        </a>
+                        @endcan
+                        @can('manage-accounts')
+                        <a href="{{ route('expenses.index') }}"
+                           class="flex items-center px-3.5 py-2 text-[14.5px] font-medium rounded-lg transition-colors {{ request()->routeIs('expenses.*') ? 'text-white bg-slate-800 font-semibold' : 'text-slate-400 hover:text-white hover:bg-slate-800' }}">
+                            Expense Voucher
+                        </a>
+                        <a href="{{ route('expense-categories.index') }}"
+                           class="flex items-center px-3.5 py-2 text-[14.5px] font-medium rounded-lg transition-colors {{ request()->routeIs('expense-categories.*') ? 'text-white bg-slate-800 font-semibold' : 'text-slate-400 hover:text-white hover:bg-slate-800' }}">
+                            Expense Category
+                        </a>
+                        @endcan
+                    </div>
+                </div>
+                @endcanany
+
+                @can('view-accounts')
                 <a href="{{ route('accounts.index') }}" class="sidebar-link flex items-center gap-3.5 px-4 py-3 text-[15px] font-medium rounded-xl transition-all duration-200 {{ request()->routeIs('accounts.*') ? 'active' : 'text-slate-400' }}">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0-1 3m8.5-3 1 3m0 0 .5 1.5m-.5-1.5h-9.5m0 0-.5 1.5m.75-9 3-3 2.148 2.148A12.061 12.061 0 0116.5 7.605" />
                     </svg>
                     Chart of Accounts
                 </a>
+                @endcan
+
+                @can('view-reports')
+                <a href="{{ route('reports.index') }}" class="sidebar-link flex items-center gap-3.5 px-4 py-3 text-[15px] font-medium rounded-xl transition-all duration-200 {{ request()->routeIs('reports.*') ? 'active' : 'text-slate-400' }}">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                    Reports
+                </a>
+                @endcan
 
                 <!-- HR Collapsible Menu -->
+                @canany(['manage-departments', 'manage-designations', 'manage-employees', 'manage-attendance', 'manage-salaries'])
                 @php
-                    $isHrActive = request()->routeIs('departments.*', 'designations.*', 'employees.*', 'attendances.*', 'salaries.*');
+                    $isHrActive = request()->routeIs('departments.*', 'designations.*', 'employees.*', 'attendances.*', 'salaries.*', 'employee-ledger.*');
                 @endphp
-                <div x-data="{ open: {{ $isHrActive ? 'true' : 'false' }} }}">
+                <div x-data="{ open: {{ $isHrActive ? 'true' : 'false' }} }">
                     <button @click="open = !open"
-                            onclick="toggleHrSubmenu()"
                             type="button"
                             class="sidebar-link w-full flex items-center justify-between px-4 py-3 text-[15px] font-medium rounded-xl transition-all duration-200 cursor-pointer {{ $isHrActive ? 'active' : 'text-slate-400' }}">
                         <div class="flex items-center gap-3.5">
@@ -200,7 +262,11 @@
                             </svg>
                             <span>HR</span>
                         </div>
-                        <svg id="hr-chevron" class="w-4 h-4 transition-transform duration-200 {{ $isHrActive ? 'rotate-180' : '' }}" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg id="hr-chevron" 
+                             class="w-4 h-4 transition-transform duration-200" 
+                             :style="open ? 'transform: rotate(180deg);' : 'transform: rotate(0deg);'"
+                             style="{{ $isHrActive ? 'transform: rotate(180deg);' : 'transform: rotate(0deg);' }} transition: transform 0.2s ease;"
+                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                         </svg>
                     </button>
@@ -208,29 +274,96 @@
                     <div id="hr-submenu"
                          x-show="open"
                          x-cloak
-                         class="mt-1 pl-9 pr-2 space-y-1 {{ $isHrActive ? '' : 'hidden' }}">
+                         class="mt-1 pl-9 pr-2 space-y-1">
+                        @can('manage-departments')
                         <a href="{{ route('departments.index') }}"
                            class="flex items-center px-3.5 py-2 text-[14.5px] font-medium rounded-lg transition-colors {{ request()->routeIs('departments.*') ? 'text-white bg-slate-800 font-semibold' : 'text-slate-400 hover:text-white hover:bg-slate-800' }}">
                             Department
                         </a>
+                        @endcan
+                        @can('manage-designations')
                         <a href="{{ route('designations.index') }}"
                            class="flex items-center px-3.5 py-2 text-[14.5px] font-medium rounded-lg transition-colors {{ request()->routeIs('designations.*') ? 'text-white bg-slate-800 font-semibold' : 'text-slate-400 hover:text-white hover:bg-slate-800' }}">
                             Designation
                         </a>
+                        @endcan
+                        @can('manage-employees')
                         <a href="{{ route('employees.index') }}"
                            class="flex items-center px-3.5 py-2 text-[14.5px] font-medium rounded-lg transition-colors {{ request()->routeIs('employees.*') ? 'text-white bg-slate-800 font-semibold' : 'text-slate-400 hover:text-white hover:bg-slate-800' }}">
                             Employees
                         </a>
+                        @endcan
+                        @can('manage-attendance')
                         <a href="{{ route('attendances.index') }}"
                            class="flex items-center px-3.5 py-2 text-[14.5px] font-medium rounded-lg transition-colors {{ request()->routeIs('attendances.*') ? 'text-white bg-slate-800 font-semibold' : 'text-slate-400 hover:text-white hover:bg-slate-800' }}">
                             Attendance
                         </a>
+                        @endcan
+                        @can('manage-salaries')
                         <a href="{{ route('salaries.index') }}"
                            class="flex items-center px-3.5 py-2 text-[14.5px] font-medium rounded-lg transition-colors {{ request()->routeIs('salaries.*') ? 'text-white bg-slate-800 font-semibold' : 'text-slate-400 hover:text-white hover:bg-slate-800' }}">
                             Pay Salary
                         </a>
+                        @endcan
+                        @canany(['manage-employees', 'manage-salaries'])
+                        <a href="{{ route('employee-ledger.index') }}"
+                           class="flex items-center px-3.5 py-2 text-[14.5px] font-medium rounded-lg transition-colors {{ request()->routeIs('employee-ledger.*') ? 'text-white bg-slate-800 font-semibold' : 'text-slate-400 hover:text-white hover:bg-slate-800' }}">
+                            Employee Ledger
+                        </a>
+                        @endcanany
                     </div>
                 </div>
+                @endcanany
+
+                <!-- User Management Collapsible Menu -->
+                @canany(['view-users', 'view-roles', 'view-permissions'])
+                @php
+                    $isUserMgmtActive = request()->routeIs('users.*', 'roles.*', 'permissions.*');
+                @endphp
+                <div x-data="{ open: {{ $isUserMgmtActive ? 'true' : 'false' }} }">
+                    <button @click="open = !open"
+                            type="button"
+                            class="sidebar-link w-full flex items-center justify-between px-4 py-3 text-[15px] font-medium rounded-xl transition-all duration-200 cursor-pointer {{ $isUserMgmtActive ? 'active' : 'text-slate-400' }}">
+                        <div class="flex items-center gap-3.5">
+                            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                            </svg>
+                            <span>User Management</span>
+                        </div>
+                        <svg id="usermgmt-chevron" 
+                             class="w-4 h-4 transition-transform duration-200" 
+                             :style="open ? 'transform: rotate(180deg);' : 'transform: rotate(0deg);'"
+                             style="{{ $isUserMgmtActive ? 'transform: rotate(180deg);' : 'transform: rotate(0deg);' }} transition: transform 0.2s ease;"
+                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+
+                    <div id="usermgmt-submenu"
+                         x-show="open"
+                         x-cloak
+                         class="mt-1 pl-9 pr-2 space-y-1">
+                        @can('view-users')
+                        <a href="{{ route('users.index') }}"
+                           class="flex items-center px-3.5 py-2 text-[14.5px] font-medium rounded-lg transition-colors {{ request()->routeIs('users.*') ? 'text-white bg-slate-800 font-semibold' : 'text-slate-400 hover:text-white hover:bg-slate-800' }}">
+                            Users
+                        </a>
+                        @endcan
+                        @can('view-roles')
+                        <a href="{{ route('roles.index') }}"
+                           class="flex items-center px-3.5 py-2 text-[14.5px] font-medium rounded-lg transition-colors {{ request()->routeIs('roles.*') ? 'text-white bg-slate-800 font-semibold' : 'text-slate-400 hover:text-white hover:bg-slate-800' }}">
+                            Roles
+                        </a>
+                        @endcan
+                        @can('view-permissions')
+                        <a href="{{ route('permissions.index') }}"
+                           class="flex items-center px-3.5 py-2 text-[14.5px] font-medium rounded-lg transition-colors {{ request()->routeIs('permissions.*') ? 'text-white bg-slate-800 font-semibold' : 'text-slate-400 hover:text-white hover:bg-slate-800' }}">
+                            Permissions
+                        </a>
+                        @endcan
+                    </div>
+                </div>
+                @endcanany
 
             </nav>
 
@@ -292,6 +425,16 @@
                     </div>
                 @endif
 
+                @if (session('error'))
+                    <div class="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-center gap-2" x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)">
+                        <svg class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+                        </svg>
+                        {{ session('error') }}
+                        <button onclick="this.parentElement.remove()" class="ml-auto"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" /></svg></button>
+                    </div>
+                @endif
+
                 @yield('content')
             </main>
         </div>
@@ -305,9 +448,31 @@
             overlay.classList.toggle('hidden');
         }
 
+        function toggleVouchersSubmenu() {
+            const submenu = document.getElementById('vouchers-submenu');
+            const chevron = document.getElementById('vouchers-chevron');
+            if (submenu) {
+                submenu.classList.toggle('hidden');
+            }
+            if (chevron) {
+                chevron.classList.toggle('rotate-180');
+            }
+        }
+
         function toggleHrSubmenu() {
             const submenu = document.getElementById('hr-submenu');
             const chevron = document.getElementById('hr-chevron');
+            if (submenu) {
+                submenu.classList.toggle('hidden');
+            }
+            if (chevron) {
+                chevron.classList.toggle('rotate-180');
+            }
+        }
+
+        function toggleUserMgmtSubmenu() {
+            const submenu = document.getElementById('usermgmt-submenu');
+            const chevron = document.getElementById('usermgmt-chevron');
             if (submenu) {
                 submenu.classList.toggle('hidden');
             }

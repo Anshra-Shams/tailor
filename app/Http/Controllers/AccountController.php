@@ -4,7 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Account;
 use App\Models\AccountCategory;
+use App\Models\Expense;
 use App\Models\Payment;
+use App\Models\Salary;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class AccountController extends Controller
@@ -128,7 +131,7 @@ class AccountController extends Controller
             ->with('success', "Account \"{$account->name}\" {$status}.");
     }
 
-    // ── Ledger Page (Payments for this account) ──
+    // ── Ledger Page (Payments & Expenses for this account) ──
 
     public function ledger(Account $account)
     {
@@ -139,7 +142,8 @@ class AccountController extends Controller
             $needle = strtolower(trim((string) $account->name));
         }
 
-        $rows = Payment::with('order.customer')
+        // 1. Customer Payments (Money In)
+        $paymentRows = Payment::with('order.customer')
             ->orderByDesc('created_at')
             ->get()
             ->filter(function (Payment $payment) use ($account, $needle) {
@@ -156,23 +160,106 @@ class AccountController extends Controller
                 return $needle !== '' && (str_contains($method, $needle) || str_contains($needle, $method));
             })
             ->map(function (Payment $payment) {
-                $order    = $payment->order;
-                $customer = $order?->customer;
+                $order     = $payment->order;
+                $customer  = $order?->customer;
+                $isAdvance = stripos((string) $payment->notes, 'advance') !== false;
 
                 return [
-                    'id'       => $payment->id,
-                    'customer' => $customer?->name ?? 'Walk-in Customer',
-                    'phone'    => $customer?->phone ?? '—',
-                    'order_no' => $order?->id,
-                    'amount'   => (float) $payment->amount,
-                    'notes'    => $payment->notes,
-                    'date'     => $payment->created_at?->format('d M Y'),
-                    'time'     => $payment->created_at?->format('h:i A'),
+                    'id'          => 'pay_' . $payment->id,
+                    'type'        => 'payment',
+                    'badge'       => $isAdvance ? 'Advance' : 'Order Payment',
+                    'ref_no'      => $order?->id ? '#' . $order->id : '—',
+                    'title'       => $customer?->name ?? 'Walk-in Customer',
+                    'subtitle'    => $customer?->phone ?? '',
+                    'notes'       => $payment->notes,
+                    'direction'   => 'in',
+                    'amount'      => (float) $payment->amount,
+                    'date'        => $payment->created_at?->format('d M Y'),
+                    'time'        => $payment->created_at?->format('h:i A'),
+                    'timestamp'   => $payment->created_at?->timestamp ?? 0,
+                    // Backward-compatible fields
+                    'customer'    => $customer?->name ?? 'Walk-in Customer',
+                    'phone'       => $customer?->phone ?? '—',
+                    'order_no'    => $order?->id,
                 ];
-            })
-            ->values();
+            });
 
-        return view('accounts.ledger', compact('account', 'rows'));
+        // 2. Expense Vouchers (Money Out)
+        $expenseRows = Expense::with('expenseCategory')
+            ->where('account_id', $account->id)
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(function (Expense $expense) {
+                return [
+                    'id'          => 'exp_' . $expense->id,
+                    'type'        => 'expense',
+                    'badge'       => 'Expense',
+                    'ref_no'      => $expense->voucher_no ?? ('EV-' . str_pad($expense->id, 4, '0', STR_PAD_LEFT)),
+                    'title'       => $expense->expenseCategory?->name ?? $expense->category,
+                    'subtitle'    => $expense->notes ?: ($expense->paid_to ? 'Paid to: ' . $expense->paid_to : ''),
+                    'notes'       => $expense->notes,
+                    'direction'   => 'out',
+                    'amount'      => (float) $expense->amount,
+                    'date'        => $expense->date ? $expense->date->format('d M Y') : $expense->created_at?->format('d M Y'),
+                    'time'        => $expense->created_at?->format('h:i A'),
+                    'timestamp'   => $expense->created_at?->timestamp ?? 0,
+                    // Backward-compatible fields
+                    'customer'    => $expense->expenseCategory?->name ?? $expense->category,
+                    'phone'       => $expense->voucher_no ?? ('EV-' . str_pad($expense->id, 4, '0', STR_PAD_LEFT)),
+                    'order_no'    => null,
+                ];
+            });
+
+        // 3. Salary Disbursements (Money Out)
+        $salaryRows = Salary::with(['employee.designation', 'employee.department'])
+            ->where('account_id', $account->id)
+            ->whereIn('status', ['paid', 'partial'])
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(function (Salary $salary) {
+                $emp = $salary->employee;
+                $period = $salary->from_date && $salary->to_date
+                    ? $salary->from_date->format('d M') . ' - ' . $salary->to_date->format('d M Y')
+                    : ($salary->salary_month ? Carbon::parse($salary->salary_month . '-01')->format('M Y') : '');
+
+                $subtitleParts = [];
+                if ($emp?->designation?->name) {
+                    $subtitleParts[] = $emp->designation->name;
+                }
+                if ($period) {
+                    $subtitleParts[] = 'Salary Period: ' . $period;
+                }
+                if ($salary->status === 'partial') {
+                    $subtitleParts[] = '(Partial)';
+                }
+
+                return [
+                    'id'          => 'sal_' . $salary->id,
+                    'type'        => 'salary',
+                    'badge'       => 'Salary Payment',
+                    'ref_no'      => 'SAL-' . str_pad($salary->id, 4, '0', STR_PAD_LEFT),
+                    'title'       => $emp?->name ?? 'Staff Member',
+                    'subtitle'    => implode(' · ', $subtitleParts),
+                    'notes'       => $salary->notes,
+                    'direction'   => 'out',
+                    'amount'      => (float) $salary->net_salary,
+                    'date'        => $salary->payment_date ? $salary->payment_date->format('d M Y') : $salary->created_at?->format('d M Y'),
+                    'time'        => $salary->created_at?->format('h:i A'),
+                    'timestamp'   => $salary->created_at?->timestamp ?? 0,
+                    // Backward-compatible fields
+                    'customer'    => $emp?->name ?? 'Staff Member',
+                    'phone'       => 'SAL-' . str_pad($salary->id, 4, '0', STR_PAD_LEFT),
+                    'order_no'    => null,
+                ];
+            });
+
+        // Merge & Sort by newest first
+        $rows = $paymentRows->concat($expenseRows)->concat($salaryRows)->sortByDesc('timestamp')->values();
+
+        $totalIn = (float) $paymentRows->sum('amount');
+        $totalOut = (float) ($expenseRows->sum('amount') + $salaryRows->sum('amount'));
+
+        return view('accounts.ledger', compact('account', 'rows', 'totalIn', 'totalOut'));
     }
 
     // ── Edit Category ──

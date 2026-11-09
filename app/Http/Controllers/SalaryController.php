@@ -138,18 +138,34 @@ class SalaryController extends Controller
         $validated['payment_method'] = 'cash';
 
         DB::transaction(function () use ($validated, $request) {
+            $isPaidOrPartial = in_array($validated['status'], ['paid', 'partial'], true);
+            $newAccountId = !empty($validated['account_id']) ? (int) $validated['account_id'] : null;
+            $newAmount = (float) $validated['net_salary'];
+
             if (!empty($request->salary_id)) {
                 $salary = Salary::findOrFail($request->salary_id);
+                $oldPaidOrPartial = in_array($salary->status, ['paid', 'partial'], true);
+                $oldAccountId = $salary->account_id ? (int) $salary->account_id : null;
+                $oldAmount = (float) $salary->net_salary;
+
+                // If previously deducted, refund the old account
+                if ($oldPaidOrPartial && $oldAccountId) {
+                    $oldAccount = Account::find($oldAccountId);
+                    if ($oldAccount) {
+                        $oldAccount->increment('current_balance', $oldAmount);
+                    }
+                }
+
                 $salary->update($validated);
             } else {
                 $salary = Salary::create($validated);
             }
 
-            // If linked to an account and paid, update account balance
-            if (!empty($validated['account_id']) && $validated['status'] === 'paid') {
-                $account = Account::find($validated['account_id']);
+            // If linked to an account and paid or partial, deduct from account balance
+            if ($isPaidOrPartial && $newAccountId) {
+                $account = Account::find($newAccountId);
                 if ($account) {
-                    $account->decrement('current_balance', $validated['net_salary']);
+                    $account->decrement('current_balance', $newAmount);
                 }
             }
         });
@@ -161,7 +177,7 @@ class SalaryController extends Controller
     {
         DB::transaction(function () use ($salary) {
             // Refund account balance if it was deducted
-            if ($salary->account_id && $salary->status === 'paid') {
+            if ($salary->account_id && in_array($salary->status, ['paid', 'partial'], true)) {
                 $account = Account::find($salary->account_id);
                 if ($account) {
                     $account->increment('current_balance', $salary->net_salary);

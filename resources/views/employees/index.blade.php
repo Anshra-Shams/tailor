@@ -177,6 +177,14 @@
                                 {{ $employee->joining_date ? \Carbon\Carbon::parse($employee->joining_date)->format('M d, Y') : '—' }}
                             </td>
                             <td class="px-6 py-4 text-right space-x-1">
+                                <!-- Ledger Button -->
+                                <a href="{{ route('employee-ledger.show', $employee) }}"
+                                   class="inline-block p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
+                                   title="View Ledger">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                </a>
                                 <!-- Edit Button -->
                                 <button type="button" 
                                         onclick="openEditEmployeeModal({{ json_encode($employee) }})"

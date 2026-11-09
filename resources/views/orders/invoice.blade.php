@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invoice #{{ str_pad($order->id, 5, '0', STR_PAD_LEFT) }} - Meco</title>
+    <title>Invoice #{{ str_pad($order->order_number ?? $order->id, 5, '0', STR_PAD_LEFT) }} - Meco</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -136,7 +136,7 @@
                 Back to Orders
             </a>
             <h2 class="text-sm font-bold text-slate-800">
-                Invoice #{{ str_pad($order->id, 5, '0', STR_PAD_LEFT) }}
+                Invoice #{{ str_pad($order->order_number ?? $order->id, 5, '0', STR_PAD_LEFT) }}
             </h2>
         </div>
         <div class="flex items-center gap-2">
@@ -192,7 +192,7 @@
                     </div>
                     <div>
                         <div class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">INVOICE</div>
-                        <div class="text-xl font-black text-[#0f4c81] leading-tight">#{{ str_pad($order->id, 5, '0', STR_PAD_LEFT) }}</div>
+                        <div class="text-xl font-black text-[#0f4c81] leading-tight">#{{ str_pad($order->order_number ?? $order->id, 5, '0', STR_PAD_LEFT) }}</div>
                         <div class="text-[11px] font-semibold text-slate-500">Date: {{ ($order->order_date ?? $order->created_at)?->format('d-m-Y') }}</div>
                     </div>
                 </div>

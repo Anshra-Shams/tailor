@@ -12,6 +12,7 @@ class Order extends Model
     use HasFactory;
 
     protected $fillable = [
+        'order_number',
         'customer_id',
         'member_id',
         'service_id',
@@ -32,6 +33,7 @@ class Order extends Model
     ];
 
     protected $casts = [
+        'order_number' => 'integer',
         'price' => 'decimal:2',
         'quantity' => 'integer',
         'paid_amount' => 'decimal:2',

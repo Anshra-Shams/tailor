@@ -287,7 +287,7 @@
 
                                             {{-- Floating Available Services Dropdown (fixed overlay so it never scrolls the card) --}}
                                             <div x-show="activeServiceDropdown === svc.id" x-transition
-                                                :style="dropdownStyle"
+                                                :style="getServiceDropdownStyle(svc.id)"
                                                 class="fixed z-[80] min-w-[240px] bg-white rounded-xl border border-slate-200 shadow-xl overflow-hidden divide-y divide-slate-100 max-h-56 overflow-y-auto">
                                                 <template x-for="s in getFilteredServicesFor(svc.id)" :key="'sopt_'+s.id">
                                                     <button type="button" @mousedown.prevent="pickServiceFromDropdown(svc.id, s.id)"
@@ -341,14 +341,14 @@
 
                                             {{-- Floating price tier dropdown --}}
                                             <div x-show="activePriceDropdown === svc.id" x-transition
-                                                :style="priceDropdownStyle"
+                                                :style="getPriceDropdownStyle(svc.id)"
                                                 class="fixed z-[80] min-w-[150px] bg-white rounded-xl border border-slate-200 shadow-xl overflow-hidden divide-y divide-slate-100 py-1">
                                                 <template x-for="t in ['basic', 'standard', 'premium']" :key="'tier_' + svc.id + '_' + t">
                                                     <button type="button" @mousedown.prevent="pickPriceTierFromDropdown(svc.id, t)"
                                                         class="w-full text-left px-3 py-2 text-xs flex items-center justify-between transition cursor-pointer"
                                                         :class="getServiceTier(svc.id) === t ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-slate-700 hover:bg-slate-50 font-medium'">
                                                         <span x-text="getTierLabel(t)"></span>
-                                                        <span class="font-bold" x-text="money(getTierPrice(getSvcById(svc.id), t))"></span>
+                                                        <span class="font-bold" x-text="money(getTierPrice(svc, t))"></span>
                                                     </button>
                                                 </template>
                                             </div>
@@ -1129,11 +1129,18 @@ function orderWizard() {
             }
         },
 
-        get priceDropdownStyle() {
-            const r = this.priceDropRect && this.priceDropRect.id === this.activePriceDropdown ? this.priceDropRect : null;
+        getPriceDropdownStyle(svcId) {
+            if (this.activePriceDropdown !== svcId) {
+                return { display: 'none' };
+            }
+            const r = this.priceDropRect && this.priceDropRect.id === svcId ? this.priceDropRect : null;
             return r
                 ? { position: 'fixed', top: r.top + 'px', left: r.left + 'px', width: r.width + 'px', zIndex: 9999 }
                 : { display: 'none' };
+        },
+
+        get priceDropdownStyle() {
+            return this.getPriceDropdownStyle(this.activePriceDropdown);
         },
 
         openPriceDropdown(svcId) {
@@ -1160,7 +1167,7 @@ function orderWizard() {
                 window.removeEventListener('resize', this._priceScrollHandler);
                 this._priceScrollHandler = null;
             }
-            if (this.activePriceDropdown === svcId) {
+            if (!svcId || this.activePriceDropdown === svcId) {
                 this.activePriceDropdown = null;
                 this.priceDropRect = null;
             }
@@ -1195,11 +1202,18 @@ function orderWizard() {
             if (rect) this.dropdownRect = rect;
         },
 
-        get dropdownStyle() {
-            const r = this.dropdownRect && this.dropdownRect.id === this.activeServiceDropdown ? this.dropdownRect : null;
+        getServiceDropdownStyle(svcId) {
+            if (this.activeServiceDropdown !== svcId) {
+                return { display: 'none' };
+            }
+            const r = this.dropdownRect && this.dropdownRect.id === svcId ? this.dropdownRect : null;
             return r
                 ? { position: 'fixed', top: r.top + 'px', left: r.left + 'px', width: r.width + 'px', zIndex: 9999 }
                 : { display: 'none' };
+        },
+
+        get dropdownStyle() {
+            return this.getServiceDropdownStyle(this.activeServiceDropdown);
         },
 
         openServiceDropdown(svcId, svc) {
@@ -1928,9 +1942,9 @@ function orderWizard() {
                 'trouser_length': ['trouser_length', 'lower_length', 'shalwar_length', 'pajama_length', 'pant_length', 'length'],
                 'pant_length': ['trouser_length', 'lower_length', 'shalwar_length', 'pajama_length', 'length'],
                 'pajama_length': ['trouser_length', 'lower_length', 'shalwar_length', 'pant_length', 'length'],
-                'waist_lower': ['waist_lower', 'trouser_waist', 'lower_waist', 'pant_waist', 'waist'],
-                'pant_waist': ['trouser_waist', 'lower_waist', 'waist_lower', 'waist'],
-                'trouser_waist': ['trouser_waist', 'lower_waist', 'waist_lower', 'pant_waist', 'waist'],
+                'waist_lower': ['waist_lower', 'trouser_waist', 'lower_waist', 'pant_waist', 'shalwar_waist'],
+                'pant_waist': ['trouser_waist', 'lower_waist', 'waist_lower', 'pant_waist', 'shalwar_waist'],
+                'trouser_waist': ['trouser_waist', 'lower_waist', 'waist_lower', 'pant_waist', 'shalwar_waist'],
                 'hip': ['hip', 'seat'],
                 'inseam': ['inseam'],
                 'paincha': ['paincha', 'paincha_bottom', 'bottom_ankle', 'bottom'],
@@ -2026,9 +2040,9 @@ function orderWizard() {
                 'trouser_length': ['trouser_length', 'lower_length', 'shalwar_length', 'pajama_length', 'pant_length', 'length'],
                 'pant_length': ['trouser_length', 'lower_length', 'shalwar_length', 'pajama_length', 'length', 'pant_length'],
                 'pajama_length': ['trouser_length', 'lower_length', 'shalwar_length', 'pant_length', 'length', 'pajama_length'],
-                'waist_lower': ['waist_lower', 'trouser_waist', 'lower_waist', 'pant_waist', 'waist'],
-                'pant_waist': ['trouser_waist', 'lower_waist', 'waist_lower', 'waist', 'pant_waist'],
-                'trouser_waist': ['trouser_waist', 'lower_waist', 'waist_lower', 'pant_waist', 'waist'],
+                'waist_lower': ['waist_lower', 'trouser_waist', 'lower_waist', 'pant_waist', 'shalwar_waist'],
+                'pant_waist': ['trouser_waist', 'lower_waist', 'waist_lower', 'pant_waist', 'shalwar_waist'],
+                'trouser_waist': ['trouser_waist', 'lower_waist', 'waist_lower', 'pant_waist', 'shalwar_waist'],
                 'hip': ['hip', 'seat'],
                 'inseam': ['inseam'],
                 'paincha': ['paincha', 'paincha_bottom', 'bottom_ankle', 'bottom'],
@@ -2046,9 +2060,8 @@ function orderWizard() {
 
             if (prevObj && prevObj.measurements) {
                 for (const k of keysToSearch) {
-                    const smartV = this.getSmartValue(k, prevObj.measurements);
-                    if (smartV) {
-                        vals.push(...this.parseValues(smartV));
+                    if (prevObj.measurements[k] !== undefined && prevObj.measurements[k] !== null && prevObj.measurements[k] !== '') {
+                        vals.push(...this.parseValues(prevObj.measurements[k]));
                     }
                 }
             }
