@@ -94,22 +94,37 @@
         </div>
 
         <!-- Key Financial Summary Box -->
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-8">
+            <div class="border {{ $stats['due_balance'] < 0 ? 'border-rose-300 bg-rose-50/30' : ($stats['due_balance'] > 0 ? 'border-emerald-300 bg-emerald-50/30' : 'border-slate-200 bg-white') }} rounded-xl p-3.5">
+                <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Due Balance</span>
+                <span class="text-xl font-black {{ $stats['due_balance'] < 0 ? 'text-rose-700' : ($stats['due_balance'] > 0 ? 'text-emerald-700' : 'text-slate-900') }} mt-1 block">
+                    {{ $stats['due_balance'] < 0 ? '- Rs. ' . number_format(abs($stats['due_balance']), 2) : 'Rs. ' . number_format($stats['due_balance'], 2) }}
+                </span>
+                <span class="text-[10px] font-semibold text-slate-500">
+                    {{ $stats['due_balance'] < 0 ? 'Advance Given' : ($stats['due_balance'] > 0 ? 'Payable to Staff' : 'Settled') }}
+                </span>
+            </div>
             <div class="border border-slate-200 rounded-xl p-3.5 bg-white">
                 <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Total Disbursed (Paid)</span>
                 <span class="text-xl font-black text-slate-900 mt-1 block">Rs. {{ number_format($stats['total_disbursed'], 2) }}</span>
+                <span class="text-[10px] text-slate-400">Cash / Bank paid</span>
             </div>
             <div class="border border-slate-200 rounded-xl p-3.5 bg-white">
-                <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Total Bonuses</span>
-                <span class="text-xl font-black text-indigo-700 mt-1 block">Rs. {{ number_format($stats['total_bonus'], 2) }}</span>
+                <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">{{ $employee->salary_type === 'project' ? 'Work Earned' : 'Basic Earned' }}</span>
+                <span class="text-xl font-black text-slate-900 mt-1 block">Rs. {{ number_format($stats['total_work_earned'], 2) }}</span>
+                <span class="text-[10px] text-slate-400">Assigned work gross</span>
             </div>
             <div class="border border-slate-200 rounded-xl p-3.5 bg-white">
-                <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Total Deductions / Adv</span>
-                <span class="text-xl font-black text-rose-700 mt-1 block">Rs. {{ number_format($stats['total_deductions'], 2) }}</span>
+                <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Bonuses / Deduct</span>
+                <span class="text-sm font-black text-slate-800 mt-2 block">
+                    <span class="text-indigo-700">+{{ number_format($stats['total_bonus'], 0) }}</span> / 
+                    <span class="text-rose-700">-{{ number_format($stats['total_deductions'], 0) }}</span>
+                </span>
             </div>
             <div class="border border-slate-200 rounded-xl p-3.5 bg-white">
                 <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Assigned Orders</span>
                 <span class="text-xl font-black text-purple-700 mt-1 block">{{ $stats['total_orders'] }} <span class="text-xs font-normal text-slate-500">({{ $stats['completed_orders'] }} done)</span></span>
+                <span class="text-[10px] text-slate-400">Rs. {{ number_format($stats['assigned_work_amount'] ?? 0, 0) }} value</span>
             </div>
         </div>
 
