@@ -150,8 +150,11 @@ class AdminUserSeeder extends Seeder
             ],
         ];
 
-        // foreach ($services as $service) {
-        //     Service::create($service);
-        // }
+        foreach ($services as $service) {
+            Service::updateOrCreate(
+                ['name' => $service['name']],
+                $service
+            );
+        }
     }
 }
