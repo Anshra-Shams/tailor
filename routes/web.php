@@ -19,6 +19,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SalaryController;
 use App\Http\Controllers\ServiceController;
+use App\Http\Controllers\SettingController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -120,6 +121,12 @@ Route::middleware('auth')->group(function () {
     });
     Route::middleware('can:view-permissions')->group(function () {
         Route::resource('permissions', PermissionController::class)->except(['create', 'show', 'edit']);
+    });
+
+    // Settings Module
+    Route::middleware('can:manage-settings')->group(function () {
+        Route::get('settings', [SettingController::class, 'edit'])->name('settings.edit');
+        Route::put('settings', [SettingController::class, 'update'])->name('settings.update');
     });
 
     // Measurements (decoupled from Orders)

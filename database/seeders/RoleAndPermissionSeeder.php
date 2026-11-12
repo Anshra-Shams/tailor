@@ -80,6 +80,9 @@ class RoleAndPermissionSeeder extends Seeder
                 'edit-permissions',
                 'delete-permissions',
             ],
+            'Settings' => [
+                'manage-settings',
+            ],
         ];
 
         $allPermissions = [];
